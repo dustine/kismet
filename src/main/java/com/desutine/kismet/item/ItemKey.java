@@ -1,11 +1,10 @@
 package com.desutine.kismet.item;
 
-import com.desutine.kismet.reference.Items;
-import net.minecraft.item.Item;
+import com.desutine.kismet.reference.Names;
 
 public class ItemKey extends ItemKismet {
-    public ItemKey(){
+    public ItemKey() {
         super();
-        this.setUnlocalizedName(Items.KEY_NAME);
+        this.setUnlocalizedName(Names.KEY_NAME);
     }
 }

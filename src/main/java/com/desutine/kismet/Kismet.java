@@ -11,31 +11,35 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
+import java.util.Random;
+
 @Mod(modid = Reference.MODID, version = Reference.VERSION)
-public class Kismet
-{
+public class Kismet {
+    public static final Random random = new Random();
     @Mod.Instance(Reference.MODID)
     public static Kismet instance;
-
     @SidedProxy(clientSide = Reference.CLIENT_PROXY_CLASS, serverSide = Reference.SERVER_PROXY_CLASS)
     public static IProxy proxy;
 
     @EventHandler
-    public void preInit(FMLPreInitializationEvent event){
+    public void preInit(FMLPreInitializationEvent event) {
+        // get named logger
+        ModLogger.logger = (event.getModLog());
+
         proxy.preInit(event);
+        ModLogger.info("PreInit done, registered X items, X blocks");
     }
 
     @EventHandler
-    public void init(FMLInitializationEvent event)
-    {
-		// some example code
-        System.out.println("DIRT BLOCK >> "+Blocks.dirt.getUnlocalizedName());
+    public void init(FMLInitializationEvent event) {
+        // some example code
+        System.out.println("DIRT BLOCK >> " + Blocks.dirt.getUnlocalizedName());
 
         proxy.init(event);
     }
 
     @EventHandler
-    public void postInit(FMLPostInitializationEvent event){
+    public void postInit(FMLPostInitializationEvent event) {
         proxy.postInit();
     }
 }

@@ -1,0 +1,11 @@
+
+{
+  "parent": "builtin/generated",
+  "textures": {
+    "layer0": "kismet:item/key"
+  },
+  "display": {
+    "thirdperson": "forge:default-item",
+    "firstperson": "forge:default-tool"
+  }
+}
