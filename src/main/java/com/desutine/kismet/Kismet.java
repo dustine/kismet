@@ -16,6 +16,7 @@ import java.util.Random;
 @Mod(modid = Reference.MODID, version = Reference.VERSION)
 public class Kismet {
     public static final Random random = new Random();
+    public static ModPacketHandler packetHandler;
     @Mod.Instance(Reference.MODID)
     public static Kismet instance;
     @SidedProxy(clientSide = Reference.CLIENT_PROXY_CLASS, serverSide = Reference.SERVER_PROXY_CLASS)

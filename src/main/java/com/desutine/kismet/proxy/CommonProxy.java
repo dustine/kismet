@@ -3,6 +3,7 @@ package com.desutine.kismet.proxy;
 import com.desutine.kismet.Init;
 import com.desutine.kismet.Kismet;
 import com.desutine.kismet.ModLogger;
+import com.desutine.kismet.ModPacketHandler;
 import com.desutine.kismet.event.BlockEventHandler;
 import com.desutine.kismet.event.EventHandler;
 import net.minecraftforge.common.MinecraftForge;
@@ -22,6 +23,7 @@ public abstract class CommonProxy implements IProxy {
 
         Init.initBlocks();
         Init.initItems();
+        Init.initTileEntities();
     }
 
     /**
@@ -30,7 +32,11 @@ public abstract class CommonProxy implements IProxy {
      */
     @Override
     public void init(FMLInitializationEvent event) {
+        // readying network stuff
+        Kismet.packetHandler = new ModPacketHandler();
+
         ModLogger.info(GameData.getItemRegistry().getRandomObject(Kismet.random).getRegistryName());
+        ModLogger.info(GameData.getItemRegistry().getKeys().size() + "items?");
     }
 
     /**

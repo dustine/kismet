@@ -1,0 +1,21 @@
+{
+  "elements": [
+{
+  "from": [0, 2, 2],
+  "to": [1, 14, 14],
+  "faces": {
+    "north": {
+      "texture": "#rim"
+    },
+    "east": {
+      "texture": "#rim"
+    },
+    "south": {
+      "texture": "#rim"
+    },
+    "west": {
+      "texture": "#rim"
+    }
+  }
+}
+    ]}

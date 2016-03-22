@@ -14,8 +14,26 @@ public class ModLogger {
         log(Level.FATAL, message);
     }
 
+    /**
+     * A severe error that will prevent the application from continuing.
+     */
+    public static void fatal(Object message, Throwable ex){
+        log(Level.FATAL, message, ex);
+    }
+
+    private static void log(Level level, Object message, Throwable ex) {
+        logger.log(level, message.toString(), ex);
+    }
+
     public static void log(Level level, Object message) {
         logger.log(level, message.toString());
+    }
+
+    /**
+     * An error in the application, possibly recoverable.
+     */
+    public static void error(Object message, Throwable ex) {
+        log(Level.ERROR, message, ex);
     }
 
     /**
