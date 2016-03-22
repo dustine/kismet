@@ -1,7 +1,7 @@
 //package com.desutine.kismet.model;
 //
 //import com.desutine.kismet.block.BlockDisplay;
-//import com.desutine.kismet.init.Blocks;
+//import com.desutine.kismet.initBlocks.Blocks;
 //import net.minecraft.block.Block;
 //import net.minecraft.block.state.IBlockState;
 //import net.minecraft.client.Minecraft;

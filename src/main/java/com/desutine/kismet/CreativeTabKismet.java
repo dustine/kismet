@@ -1,6 +1,6 @@
 package com.desutine.kismet;
 
-import com.desutine.kismet.init.Blocks;
+import com.desutine.kismet.reference.Blocks;
 import com.desutine.kismet.reference.Reference;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;

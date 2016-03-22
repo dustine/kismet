@@ -1,4 +1,4 @@
-package com.desutine.kismet.init;
+package com.desutine.kismet.reference;
 
 import com.desutine.kismet.block.BlockDisplay;
 import com.desutine.kismet.block.ModBlock;
@@ -10,7 +10,4 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 public class Blocks {
     public static final ModBlock kismetDisplayBlock = new BlockDisplay();
 
-    public static void init() {
-        GameRegistry.registerBlock(kismetDisplayBlock, Names.DISPLAY_NAME);
-    }
 }

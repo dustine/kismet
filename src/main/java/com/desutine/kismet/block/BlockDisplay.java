@@ -1,6 +1,6 @@
 package com.desutine.kismet.block;
 
-import com.desutine.kismet.init.Items;
+import com.desutine.kismet.reference.Items;
 import com.desutine.kismet.reference.Names;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyInteger;
@@ -22,8 +22,8 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class BlockDisplay extends ModBlock {
-    public static final PropertyInteger STREAK = PropertyInteger.create("streak", 0, 20);
-    public static final IUnlistedProperty<Item> TARGET = new IUnlistedProperty<Item>() {
+    private static final PropertyInteger STREAK = PropertyInteger.create("streak", 0, 20);
+    private static final IUnlistedProperty<Item> TARGET = new IUnlistedProperty<Item>() {
         @Override
         public String getName() {
             return "target";
