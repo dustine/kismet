@@ -1,7 +1,7 @@
 package com.desutine.kismet;
 
 import com.desutine.kismet.reference.Reference;
-import com.desutine.kismet.tileentity.TileEntityDisplay;
+import com.desutine.kismet.tileentity.DisplayTileEntity;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -73,7 +73,7 @@ public class ModPacketHandler {
                     IBlockState state = Minecraft.getMinecraft().theWorld.getBlockState(message.pos);
                     Chunk chunk = Minecraft.getMinecraft().theWorld.getChunkFromBlockCoords(message.pos);
 
-                    TileEntityDisplay tt = (TileEntityDisplay) Minecraft.getMinecraft().theWorld.getTileEntity(message.pos);
+                    DisplayTileEntity tt = (DisplayTileEntity) Minecraft.getMinecraft().theWorld.getTileEntity(message.pos);
                     tt.streak = message.streak;
                     tt.fulfilled = message.fulfilled;
                     Minecraft.getMinecraft().theWorld.markAndNotifyBlock(message.pos, chunk, state, tt.enrichState

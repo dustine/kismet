@@ -1,8 +1,8 @@
 package com.desutine.kismet.block;
 
 import com.desutine.kismet.reference.Names;
+import com.desutine.kismet.tileentity.DisplayTileEntity;
 import com.desutine.kismet.tileentity.ModBlockContainer;
-import com.desutine.kismet.tileentity.TileEntityDisplay;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.properties.PropertyInteger;
@@ -24,7 +24,7 @@ import net.minecraftforge.common.property.IUnlistedProperty;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class DisplayBlock extends ModBlockContainer<TileEntityDisplay> {
+public class DisplayBlock extends ModBlockContainer<DisplayTileEntity> {
     public static final PropertyInteger STREAK = PropertyInteger.create("streak", 0, 20);
     //    private static final IUnlistedProperty<Item> TARGET = new IUnlistedProperty<Item>() {
 //        @Override
@@ -62,7 +62,7 @@ public class DisplayBlock extends ModBlockContainer<TileEntityDisplay> {
 
     @Override
     public TileEntity createNewTileEntity(World worldIn, int meta) {
-        return new TileEntityDisplay();
+        return new DisplayTileEntity();
     }
 
     // convert to/from metadata
@@ -81,7 +81,7 @@ public class DisplayBlock extends ModBlockContainer<TileEntityDisplay> {
     @Override
     public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
         IBlockState newState = super.getActualState(state, worldIn, pos);
-        TileEntityDisplay tileEntity = (TileEntityDisplay) worldIn.getTileEntity(pos);
+        DisplayTileEntity tileEntity = (DisplayTileEntity) worldIn.getTileEntity(pos);
         return tileEntity.enrichState(state);
     }
 

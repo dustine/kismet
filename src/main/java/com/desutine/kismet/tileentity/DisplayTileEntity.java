@@ -8,15 +8,17 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class TileEntityDisplay extends TileEntity implements ITickable {
+public class DisplayTileEntity extends TileEntity implements ITickable {
     public int streak;
     public boolean fulfilled;
     private long deadline;
     private String target;
     private TargetType type;
 
-    public TileEntityDisplay() {
+    public DisplayTileEntity() {
         // generate a fresh new ip!
         target = Reference.MODID + ':' + Names.KEY_NAME;
         type = TargetType.ITEM;
@@ -61,6 +63,13 @@ public class TileEntityDisplay extends TileEntity implements ITickable {
     }
 
     @Override
+    public void onLoad() {
+        super.onLoad();
+        if(!this.worldObj.isRemote)
+            Kismet.packetHandler.updateClientDisplay(worldObj.provider.getDimension(), pos, fulfilled, streak);
+    }
+
+    @Override
     public void writeToNBT(NBTTagCompound compound) {
         super.writeToNBT(compound);
 
@@ -74,4 +83,5 @@ public class TileEntityDisplay extends TileEntity implements ITickable {
     private enum TargetType {
         ITEM, BLOCK
     }
+
 }
