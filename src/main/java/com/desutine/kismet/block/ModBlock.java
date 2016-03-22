@@ -1,6 +1,6 @@
 package com.desutine.kismet.block;
 
-import com.desutine.kismet.CreativeTabKismet;
+import com.desutine.kismet.KismetCreativeTab;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 
@@ -11,6 +11,6 @@ public class ModBlock extends Block {
 
     public ModBlock(Material material) {
         super(material);
-        setCreativeTab(CreativeTabKismet.KISMET_TAB);
+        setCreativeTab(KismetCreativeTab.KISMET_TAB);
     }
 }

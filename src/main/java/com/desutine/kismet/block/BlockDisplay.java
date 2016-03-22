@@ -58,9 +58,46 @@ public class BlockDisplay extends ModBlock {
         );
     }
 
+    // convert to/from metadata
+    @Override
+    public IBlockState getStateFromMeta(int meta) {
+        return getDefaultState().withProperty(STREAK, meta);
+    }
+
+    // convert to/from metadata
+    @Override
+    public int getMetaFromState(IBlockState state) {
+        return state.getValue(STREAK);
+    }
+
+    @Override
+    public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
+        return super.getActualState(state, worldIn, pos);
+    }
+
+    // used by the renderer to control lighting and visibility of other blocks, also by
+    // (eg) wall or fence to control whether the fence joins itself to this block
+    @Override
+    public boolean isFullCube(IBlockState state) {
+        return false;
+    }
+
+    // used by the renderer to control lighting and visibility of other blocks.
+    @Override
+    public boolean isOpaqueCube(IBlockState state) {
+        return false;
+    }
+
     @SideOnly(Side.CLIENT)
     public BlockRenderLayer getBlockLayer() {
         return BlockRenderLayer.CUTOUT_MIPPED;
+    }
+
+    @Override
+    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
+        worldIn.setBlockState(pos, state.withProperty(BlockDisplay.STREAK, (state.getValue(BlockDisplay.STREAK) + 1)
+                % 21));
+        return super.onBlockActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX, hitY, hitZ);
     }
 
     // returning block state
@@ -71,32 +108,8 @@ public class BlockDisplay extends ModBlock {
         return new ExtendedBlockState(this, listedProperties, unlistedProperties);
     }
 
-    // convert to/from metadata
-    @Override
-    public int getMetaFromState(IBlockState state) {
-        return state.getValue(STREAK);
-    }
-
-    // convert to/from metadata
-    @Override
-    public IBlockState getStateFromMeta(int meta) {
-        return getDefaultState().withProperty(STREAK, meta);
-    }
-
-    @Override
-    public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
-        return super.getActualState(state, worldIn, pos);
-    }
-
     @Override
     public IBlockState getExtendedState(IBlockState state, IBlockAccess world, BlockPos pos) {
         return super.getExtendedState(state, world, pos);
-    }
-
-    @Override
-    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
-        worldIn.setBlockState(pos, state.withProperty(BlockDisplay.STREAK, (state.getValue(BlockDisplay.STREAK) + 1)
-                % 21));
-        return super.onBlockActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX, hitY, hitZ);
     }
 }
