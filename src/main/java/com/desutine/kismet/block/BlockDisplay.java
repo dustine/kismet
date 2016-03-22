@@ -1,8 +1,6 @@
 package com.desutine.kismet.block;
 
-import com.desutine.kismet.ModLogger;
 import com.desutine.kismet.init.Items;
-import com.desutine.kismet.item.ItemKey;
 import com.desutine.kismet.reference.Names;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyInteger;
@@ -17,19 +15,13 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
-import net.minecraftforge.client.event.ModelBakeEvent;
-import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.property.ExtendedBlockState;
 import net.minecraftforge.common.property.IExtendedBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class BlockDisplay extends BlockKismet {
+public class BlockDisplay extends ModBlock {
     public static final PropertyInteger STREAK = PropertyInteger.create("streak", 0, 20);
     public static final IUnlistedProperty<Item> TARGET = new IUnlistedProperty<Item>() {
         @Override
