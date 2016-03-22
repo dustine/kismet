@@ -2,8 +2,8 @@ package com.desutine.kismet.item;
 
 import com.desutine.kismet.reference.Names;
 
-public class ItemKey extends ModItem {
-    public ItemKey() {
+public class KeyItem extends ModItem {
+    public KeyItem() {
         super();
         this.setUnlocalizedName(Names.KEY_NAME);
     }

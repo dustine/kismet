@@ -9,7 +9,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public abstract class ModBlockContainer<T extends TileEntity> extends ModBlock implements ITileEntityProvider {
-    public ModBlockContainer(){
+    public ModBlockContainer() {
         super();
         this.isBlockContainer = true;
     }

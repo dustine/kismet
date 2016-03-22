@@ -24,9 +24,9 @@ import net.minecraftforge.common.property.IUnlistedProperty;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class BlockDisplay extends ModBlockContainer<TileEntityDisplay> {
+public class DisplayBlock extends ModBlockContainer<TileEntityDisplay> {
     public static final PropertyInteger STREAK = PropertyInteger.create("streak", 0, 20);
-//    private static final IUnlistedProperty<Item> TARGET = new IUnlistedProperty<Item>() {
+    //    private static final IUnlistedProperty<Item> TARGET = new IUnlistedProperty<Item>() {
 //        @Override
 //        public String getName() {
 //            return "target";
@@ -50,14 +50,14 @@ public class BlockDisplay extends ModBlockContainer<TileEntityDisplay> {
 //    };
     public static final PropertyBool FULFILLED = PropertyBool.create("fulfilled");
 
-    public BlockDisplay() {
+    public DisplayBlock() {
         super();
         this.setUnlocalizedName(Names.DISPLAY_NAME);
 
         // declaring properties
         setDefaultState(blockState.getBaseState()
-            .withProperty(STREAK, 0)
-            .withProperty(FULFILLED, false));
+                .withProperty(STREAK, 0)
+                .withProperty(FULFILLED, false));
     }
 
     @Override
@@ -92,6 +92,11 @@ public class BlockDisplay extends ModBlockContainer<TileEntityDisplay> {
         return false;
     }
 
+    @Override
+    public EnumBlockRenderType getRenderType(IBlockState state) {
+        return EnumBlockRenderType.MODEL;
+    }
+
     // used by the renderer to control lighting and visibility of other blocks.
     @Override
     public boolean isOpaqueCube(IBlockState state) {
@@ -105,9 +110,14 @@ public class BlockDisplay extends ModBlockContainer<TileEntityDisplay> {
 
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
-        if(worldIn.isRemote) return true;
+        if (worldIn.isRemote) return true;
 
         return super.onBlockActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX, hitY, hitZ);
+    }
+
+    @Override
+    public IBlockState onBlockPlaced(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
+        return super.onBlockPlaced(worldIn, pos, facing, hitX, hitY, hitZ, meta, placer);
     }
 
     // returning block state
@@ -116,16 +126,5 @@ public class BlockDisplay extends ModBlockContainer<TileEntityDisplay> {
         IProperty[] listedProperties = new IProperty[] {STREAK, FULFILLED};
         IUnlistedProperty[] unlistedProperties = new IUnlistedProperty[] {};
         return new ExtendedBlockState(this, listedProperties, unlistedProperties);
-    }
-
-
-    @Override
-    public IBlockState onBlockPlaced(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
-        return super.onBlockPlaced(worldIn, pos, facing, hitX, hitY, hitZ, meta, placer);
-    }
-
-    @Override
-    public EnumBlockRenderType getRenderType(IBlockState state) {
-        return EnumBlockRenderType.MODEL;
     }
 }

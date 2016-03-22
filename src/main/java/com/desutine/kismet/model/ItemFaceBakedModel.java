@@ -1,6 +1,6 @@
 //package com.desutine.kismet.model;
 //
-//import com.desutine.kismet.block.BlockDisplay;
+//import com.desutine.kismet.block.DisplayBlock;
 //import com.desutine.kismet.initBlocks.Blocks;
 //import net.minecraft.block.Block;
 //import net.minecraft.block.state.IBlockState;
@@ -24,7 +24,7 @@
 //    public List<BakedQuad> getQuads(IBlockState state, EnumFacing side, long rand) {
 ////        ModelLoaderRegistry.getModel()
 //
-//        Item item = ((IExtendedBlockState)state).getValue(BlockDisplay.TARGET);
+//        Item item = ((IExtendedBlockState)state).getValue(DisplayBlock.TARGET);
 //        Minecraft mc = Minecraft.getMinecraft();
 //        ModelManager mcmm = mc.getBlockRendererDispatcher().getBlockModelShapes().getModelManager();
 //

@@ -1,28 +1,18 @@
 package com.desutine.kismet.tileentity;
 
 import com.desutine.kismet.Kismet;
-import com.desutine.kismet.ModLogger;
-import com.desutine.kismet.ModPacketHandler;
-import com.desutine.kismet.block.BlockDisplay;
+import com.desutine.kismet.block.DisplayBlock;
 import com.desutine.kismet.reference.Names;
 import com.desutine.kismet.reference.Reference;
-import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.common.DimensionManager;
-import net.minecraftforge.common.property.IExtendedBlockState;
-import net.minecraftforge.fml.common.network.NetworkRegistry;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class TileEntityDisplay extends TileEntity implements ITickable {
-    private long deadline;
     public int streak;
     public boolean fulfilled;
+    private long deadline;
     private String target;
     private TargetType type;
 
@@ -34,10 +24,10 @@ public class TileEntityDisplay extends TileEntity implements ITickable {
 
     @Override
     public void update() {
-        if(!this.worldObj.isRemote){
+        if (!this.worldObj.isRemote) {
             boolean isDirty = false;
             // if server
-            if(deadline < worldObj.getTotalWorldTime()){
+            if (deadline < worldObj.getTotalWorldTime()) {
                 // todo - unhardcode the ammount, also i'm assuming 24000 ticks = one day, hah
                 deadline = worldObj.getTotalWorldTime() + 200;
 
@@ -46,7 +36,7 @@ public class TileEntityDisplay extends TileEntity implements ITickable {
                 isDirty = true;
             }
 
-            if(isDirty){
+            if (isDirty) {
                 markDirty();
                 // update via web towards the client
                 Kismet.packetHandler.updateClientDisplay(worldObj.provider.getDimension(), pos, fulfilled, streak);
@@ -55,12 +45,19 @@ public class TileEntityDisplay extends TileEntity implements ITickable {
     }
 
     public IBlockState enrichState(IBlockState state) {
-        return state.withProperty(BlockDisplay.STREAK, streak)
-                .withProperty(BlockDisplay.FULFILLED, fulfilled);
+        return state.withProperty(DisplayBlock.STREAK, streak)
+                .withProperty(DisplayBlock.FULFILLED, fulfilled);
     }
 
-    private enum TargetType {
-        ITEM, BLOCK
+    @Override
+    public void readFromNBT(NBTTagCompound compound) {
+        super.readFromNBT(compound);
+
+        deadline = compound.getLong("deadline");
+        streak = compound.getInteger("streak");
+        fulfilled = compound.getBoolean("fulfilled");
+        target = compound.getString("target");
+        type = TargetType.valueOf(compound.getString("type"));
     }
 
     @Override
@@ -74,14 +71,7 @@ public class TileEntityDisplay extends TileEntity implements ITickable {
         compound.setString("type", type.name());
     }
 
-    @Override
-    public void readFromNBT(NBTTagCompound compound) {
-        super.readFromNBT(compound);
-
-        deadline = compound.getLong("deadline");
-        streak = compound.getInteger("streak");
-        fulfilled = compound.getBoolean("fulfilled");
-        target = compound.getString("target");
-        type = TargetType.valueOf(compound.getString("type"));
+    private enum TargetType {
+        ITEM, BLOCK
     }
 }
