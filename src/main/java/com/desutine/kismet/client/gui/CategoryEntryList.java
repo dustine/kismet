@@ -12,7 +12,8 @@ import net.minecraftforge.fml.client.config.IConfigElement;
 import java.util.List;
 
 // Config category for general configurations
-class CategoryEntryList extends GuiConfigEntries.CategoryEntry {
+@SuppressWarnings("WeakerAccess")
+public class CategoryEntryList extends GuiConfigEntries.CategoryEntry {
     public CategoryEntryList(GuiConfig owningScreen, GuiConfigEntries owningEntryList, IConfigElement configElement) {
         super(owningScreen, owningEntryList, configElement);
     }

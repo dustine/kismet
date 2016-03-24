@@ -132,21 +132,22 @@ public class ModConfig {
         */
 
         if (readFieldsFromConfig) {
-            setHasChill(propHasChill.getBoolean());
-            setHasTimed(propHasTimed.getBoolean());
-            setIsStrict(propIsStrict.getBoolean());
+            hasChill = propHasChill.getBoolean();
+            hasTimed = propHasTimed.getBoolean();
+            isStrict = propIsStrict.getBoolean();
 
-            setTimeLimit(propTimeLimit.getInt());
-            if (getTimeLimit() < TIME_LIMIT_MIN || getTimeLimit() > TIME_LIMIT_MAX) {
+            timeLimit = propTimeLimit.getInt();
+            if (timeLimit < TIME_LIMIT_MIN || timeLimit > TIME_LIMIT_MAX) {
                 setTimeLimit(TIME_LIMIT_DEFAULT);
             }
 
-            setListMode(propListMode.getString());
-            if (!getListMode().equalsIgnoreCase("blacklist") && !getListMode().equalsIgnoreCase("whitelist")) {
+            listMode = propListMode.getString();
+            if (!listMode.equalsIgnoreCase("blacklist") && !listMode.equalsIgnoreCase("whitelist")) {
                 setListMode(LIST_MODE_DEFAULT);
             }
 
-            setList(propList.getStringList());
+            list = propList.getStringList();
+            syncFromFields();
         }
 
         // ---- step 4 - write the class's variables back into the config properties and save to disk -------------------
@@ -168,6 +169,11 @@ public class ModConfig {
 
     public static Configuration getConfig() {
         return config;
+    }
+
+    public static void setConfig(Configuration config) {
+        ModConfig.config = config;
+        syncFromFields();
     }
 
     public static void clientPreInit() {
