@@ -1,6 +1,6 @@
 package com.desutine.kismet;
 
-import com.desutine.kismet.proxy.CommonProxy;
+import com.desutine.kismet.network.ModPacketHandler;
 import com.desutine.kismet.proxy.IProxy;
 import com.desutine.kismet.reference.Reference;
 import net.minecraft.init.Blocks;
@@ -13,7 +13,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
 import java.util.Random;
 
-@Mod(modid = Reference.MODID, version = Reference.VERSION)
+@Mod(modid = Reference.MODID, version = Reference.VERSION, guiFactory = Reference.GUI_FACTORY_CLASS)
 public class Kismet {
     public static final Random random = new Random();
     public static ModPacketHandler packetHandler;

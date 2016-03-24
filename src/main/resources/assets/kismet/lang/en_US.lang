@@ -1,3 +1,33 @@
+# Blocks
+tile.chillDisplay.name=Enable Chill Kismet Display
 tile.display.name=Current Kismet Display
+
+# Items
 item.key.name=Kismetic Key
+
+# Creative Tabs
 itemGroup.kismet=Kismet
+
+# GUI
+gui.config.mainTitle=Kismet Config
+gui.config.category.main=General
+gui.config.category.main.tooltip=General configurations
+
+## Config fields
+gui.config.hasChill=Enable Chill Display
+gui.config.hasChill.tooltip=Allows crafting of a display variant that doesn't impose a time limit (no streaks though)
+gui.config.hasTimed=Enable Timed Display
+gui.config.hasTimed.tooltip=Allows crafting of a display variant with an imposed time limit before resetting the goal
+gui.config.timeLimit=Time between resets
+gui.config.timeLimit.tooltip=Defines how long you give the player between every new Kismet goal
+gui.config.category.list=Allowed Items
+gui.config.category.list.tooltip=Settings regarding the allowed/disallowed items to be picked as goals
+
+gui.config.list.isStrict=Strict Item Filtering
+gui.config.list.isStrict.tooltip=When true, Kismet will avoid picking any items that aren't craftable or present in any
+specific loot table\nWarning: Still applies if list is on whitelist mode, where it will further filter out the items present in the list
+gui.config.list.listMode=List Mode
+gui.config.list.listMode.tooltip=Determines the behaviour of the item list bellow
+gui.config.list.list=Targeted Items List
+gui.config.list.list.tooltip=List of items that can appear in the Kismet\nUse names, such as "kismet:block", or just
+the mod name to blacklist it entirely!

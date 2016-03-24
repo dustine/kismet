@@ -1,4 +1,4 @@
-package com.desutine.kismet;
+package com.desutine.kismet.network;
 
 import com.desutine.kismet.reference.Reference;
 import com.desutine.kismet.tileentity.DisplayTileEntity;
@@ -74,6 +74,7 @@ public class ModPacketHandler {
                     Chunk chunk = Minecraft.getMinecraft().theWorld.getChunkFromBlockCoords(message.pos);
 
                     DisplayTileEntity tt = (DisplayTileEntity) Minecraft.getMinecraft().theWorld.getTileEntity(message.pos);
+                    if (tt == null) return;
                     tt.streak = message.streak;
                     tt.fulfilled = message.fulfilled;
                     Minecraft.getMinecraft().theWorld.markAndNotifyBlock(message.pos, chunk, state, tt.enrichState

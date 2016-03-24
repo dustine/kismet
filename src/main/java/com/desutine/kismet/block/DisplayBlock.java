@@ -26,33 +26,12 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class DisplayBlock extends ModBlockContainer<DisplayTileEntity> {
     public static final PropertyInteger STREAK = PropertyInteger.create("streak", 0, 20);
-    //    private static final IUnlistedProperty<Item> TARGET = new IUnlistedProperty<Item>() {
-//        @Override
-//        public String getName() {
-//            return "target";
-//        }
-//
-//        @Override
-//        public boolean isValid(Item s) {
-//            // todo
-//            return true;
-//        }
-//
-//        @Override
-//        public Class<Item> getType() {
-//            return Item.class;
-//        }
-//
-//        @Override
-//        public String valueToString(Item s) {
-//            return s.getRegistryName();
-//        }
-//    };
+
     public static final PropertyBool FULFILLED = PropertyBool.create("fulfilled");
 
     public DisplayBlock() {
         super();
-        this.setUnlocalizedName(Names.DISPLAY_NAME);
+        this.setUnlocalizedName(Names.DISPLAY);
 
         // declaring properties
         setDefaultState(blockState.getBaseState()
@@ -82,7 +61,7 @@ public class DisplayBlock extends ModBlockContainer<DisplayTileEntity> {
     public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
         IBlockState newState = super.getActualState(state, worldIn, pos);
         DisplayTileEntity tileEntity = (DisplayTileEntity) worldIn.getTileEntity(pos);
-        return tileEntity.enrichState(state);
+        return tileEntity.enrichState(newState);
     }
 
     // used by the renderer to control lighting and visibility of other blocks, also by

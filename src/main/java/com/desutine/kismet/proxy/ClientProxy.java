@@ -1,6 +1,7 @@
 package com.desutine.kismet.proxy;
 
-import com.desutine.kismet.Init;
+import com.desutine.kismet.init.ClientInit;
+import com.desutine.kismet.ModConfig;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
@@ -10,7 +11,10 @@ public class ClientProxy extends CommonProxy {
      */
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);
-        Init.renderInInventory();
+        ModConfig.clientPreInit();
+
+        ClientInit.renderInInventory();
+        ClientInit.initTileEntityRenderers();
     }
 
     /**

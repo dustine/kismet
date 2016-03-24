@@ -2,14 +2,13 @@
 {
   "modid": "kismet",
   "name": "Kismet",
-  "description": "Kismet n. Fate; fortune.\nA refreshing crafting challenge to spice any modded experience. The RNG
-  gods demand on you to craft one specific item before every consecutive sunrise. How long can you hold up?\nWarning: Batteries not included.",
+  "description": "Kismet n. Fate; fortune.\nA refreshing crafting challenge to spice any modded experience. The RNG gods demand on you to craft one specific item before every consecutive sunrise. How long can you hold up?\nWarning: Batteries not included.",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "",
   "updateUrl": "",
   "authorList": ["Desutine"],
-  "credits": "EiraNet, Pahimar, ",
+  "credits": "EiraNet (hey Blay!), Pahimar, TheGreyGhost",
   "logoFile": "",
   "screenshots": [],
   "dependencies": []

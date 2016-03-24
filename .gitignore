@@ -21,3 +21,4 @@ build
 eclipse
 run
 *.xcf
+/src/Ideas.md

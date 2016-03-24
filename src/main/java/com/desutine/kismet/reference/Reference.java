@@ -6,5 +6,5 @@ public class Reference {
     public static final String SERVER_PROXY_CLASS = "com.desutine.kismet.proxy.ServerProxy";
     public static final String CLIENT_PROXY_CLASS = "com.desutine.kismet.proxy.ClientProxy";
 
-    public static final String MOD_NAME = "Kismet";
+    public static final String GUI_FACTORY_CLASS = "com.desutine.kismet.client.gui.ModGuiFactory";
 }
