@@ -13,28 +13,33 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
+
+import static net.minecraftforge.common.config.Configuration.CATEGORY_GENERAL;
 
 /**
  * Mod Configuration
  * Heavily based on TheGreyGhost's MinecraftByExample
  * Source: https://github.com/TheGreyGhost/MinecraftByExample
  */
+@SuppressWarnings("WeakerAccess")
 public class ModConfig {
-    public static final String CATEGORY_LIST_NAME = "category_list";
-    public static final String LIST_MODE_DEFAULT = "blacklist";
-    public static final String[] LIST_MODE_CHOICES = new String[] {"blacklist", "whitelist"};
-    public static final boolean IS_STRICT_DEFAULT = true;
-    public static final String[] LIST_DEFAULT = new String[] {};
-    // config fields go here
-    public static boolean hasChill;
-    // end config fields
-    public static boolean hasTimed;
-    public static int timeLimit;
-    public static boolean isStrict;
-    public static String listMode;
-    public static String[] list;
-    private static Configuration config;
+    /* START CONFIG FIELDS */
 
+    private static final boolean IS_STRICT_DEFAULT = true;
+    private static final String LIST_MODE_DEFAULT = "blacklist";
+    private static final String[] LIST_MODE_CHOICES = new String[] {"blacklist", "whitelist"};
+    private static final String[] LIST_DEFAULT = new String[] {};
+    private static final String CATEGORY_LIST = "list";
+    private static boolean hasChill;
+    private static boolean hasTimed;
+    private static int timeLimit;
+    private static boolean isStrict;
+    private static String listMode;
+
+    /* END CONFIG FIELDS */
+    private static String[] list;
+    private static Configuration config;
     public static void preInit() {
         File configFile = new File(Loader.instance().getConfigDir(), Reference.MODID + ".cfg");
         config = new Configuration(configFile);
@@ -60,81 +65,88 @@ public class ModConfig {
      * @param readFieldsFromConfig if true, reload the member variables from the config field
      */
 
+    @SuppressWarnings("ConstantConditions")
     private static void syncConfig(boolean loadConfigFromFile, boolean readFieldsFromConfig) {
-        // ---- step 1 - load raw values from config file (if loadFromFile true) -------------------
-
-		/*Check if this config object is the main config file or a child config
-         *For simple config setups, this only matters if you enable global config
-		 *	for your config object by using config.enableGlobalConfiguration(),
-		 *	this will cause your config file to be 'global.cfg' in the default config directory
-		 *  and use it to read/write your config options
-		 */
+        // ---- step 1 - load raw values from config file (if loadFromFile true) ---------------------------------------
         if (loadConfigFromFile) {
             config.load();
         }
 
-		/* Using language keys are a good idea if you are using a config GUI
-         * This allows you to provide "pretty" names for the config properties
-		 * 	in a .lang file as well as allow others to provide other localizations
-		 *  for your mod
-		 * The language key is also used to get the tooltip for your property,
-		 * 	the language key for each properties tooltip is langKey + ".tooltip"
-		 *  If no tooltip lang key is specified in a .lang file, it will default to
-		 *  the property's comment field
-		 * prop.setRequiresWorldRestart(true); and prop.setRequiresMcRestart(true);
-		 *  can be used to tell Forge if that specific property requires a world
-		 *  or complete Minecraft restart, respectively
-		 *  Note: if a property requires a world restart it cannot be edited in the
-		 *   in-world mod settings (which hasn't been implemented yet by Forge), only
-		 *   when a world isn't loaded
-		 *   -See the function definitions for more info
-		 */
+        // ---- step 2 - define the properties in the config file ------------------------------------------------------
+        Pattern listPattern = Pattern.compile("([0-9a-z]+)(:[0-9a-z]+)?");
 
+        boolean HAS_CHILL_DEFAULT = true;
+        Property propHasChill = config.get(CATEGORY_GENERAL, "hasChill", HAS_CHILL_DEFAULT, I18n.format("gui.config" +
+                ".hasChill" + ".tooltip"))
+                .setLanguageKey("gui.config.hasChill")
+                .setRequiresMcRestart(true);
 
-        // ---- step 2 - define the properties in the config file -------------------
+        boolean HAS_TIMED_DEFAULT = true;
+        Property propHasTimed = config.get(CATEGORY_GENERAL, "hasTimed", HAS_TIMED_DEFAULT, I18n.format
+                ("gui.config.hasTimed" + ".tooltip"))
+                .setLanguageKey("gui.config.hasTimed")
+                .setRequiresMcRestart(true);
 
-        // The following code is used to define the properties in the config file-
-        //   their name, type, default / min / max values, a comment.  These affect what is displayed on the GUI.
-        // If the file already exists, the property values will already have been read from the file, otherwise they
-        //  will be assigned the default value.
+        int TIME_LIMIT_DEFAULT = 24000;
+        int TIME_LIMIT_MIN = 20;
+        int TIME_LIMIT_MAX = Integer.MAX_VALUE;
+        Property propTimeLimit = config.get(CATEGORY_GENERAL, "timeLimit", TIME_LIMIT_DEFAULT, I18n
+                .format("gui.config.timeLimit" + ".tooltip"))
+                .setLanguageKey("gui.config.timeLimit")
+                .setMinValue(TIME_LIMIT_MIN)
+                .setMaxValue(TIME_LIMIT_MAX);
 
-        Property propIsStrict = config.get(CATEGORY_LIST_NAME, "isStrict", IS_STRICT_DEFAULT, I18n.format("gui.config.list.isStrict.tooltip"));
-        propIsStrict.setLanguageKey("gui.config.list.isStrict");
+        Property propIsStrict = config.get(getCategoryList(), "getIsStrict", IS_STRICT_DEFAULT, I18n.format("gui.config" +
+                ".list.getIsStrict" + ".tooltip"))
+                .setLanguageKey("gui.config.list.getIsStrict");
 
-        // list mode: sets if the item list is either in blacklist or whitelist
-        Property propListMode = config.get(CATEGORY_LIST_NAME, "listMode", LIST_MODE_DEFAULT, I18n.format("gui.config.list.listMode.tooltip"));
-        propListMode.setLanguageKey("gui.config.list.listMode");
+        Property propListMode = config.get(getCategoryList(), "listMode", LIST_MODE_DEFAULT, I18n.format("gui.config" +
+                ".list.listMode" + ".tooltip"))
+                .setLanguageKey("gui.config.list.listMode")
+                .setValidValues(LIST_MODE_CHOICES);
 
-        // the actual item list
-        Property propList = config.get(CATEGORY_LIST_NAME, "list", LIST_DEFAULT, I18n.format("gui.config.list.list" +
-                ".tooltip"));
-        propList.setLanguageKey("gui.config.list.list");
+        Property propList = config.get(getCategoryList(), "list", LIST_DEFAULT, I18n.format("gui.config.list.list" +
+                ".tooltip"))
+                .setLanguageKey("gui.config.list.list")
+                .setValidationPattern(listPattern);
 
         // config field order, one per category
         List<String> propOrderGeneral = new ArrayList<String>();
-        propOrderGeneral.add(propIsStrict.getName());
-        propOrderGeneral.add(propListMode.getName());
-        propOrderGeneral.add(propList.getName());
-        config.setCategoryPropertyOrder(CATEGORY_LIST_NAME, propOrderGeneral);
+        propOrderGeneral.add(propHasChill.getName());
+        propOrderGeneral.add(propHasTimed.getName());
+        propOrderGeneral.add(propTimeLimit.getName());
+        config.setCategoryPropertyOrder(CATEGORY_GENERAL, propOrderGeneral);
 
-        // ---- step 3 - read the config property values into the class's variables (if readFieldsFromConfig) -------------------
+        List<String> propOrderList = new ArrayList<String>();
+        propOrderList.add(propIsStrict.getName());
+        propOrderList.add(propListMode.getName());
+        propOrderList.add(propList.getName());
+        config.setCategoryPropertyOrder(getCategoryList(), propOrderList);
 
-        // As each value is read from the property, it should be checked to make sure it is valid, in case someone
-        //   has manually edited or corrupted the value.  The get() methods don't check that the value is in range even
-        //   if you have specified a MIN and MAX value of the property
+        // ---- step 3 - read the config property values into the class's variables (if readFieldsFromConfig) ----------
+
+        /*
+           As each value is read from the property, it should be checked to make sure it is valid, in case someone
+           has manually edited or corrupted the value.  The get() methods don't check that the value is in range even if
+           you have specified a MIN and MAX value of the property
+        */
 
         if (readFieldsFromConfig) {
-            //If getInt cannot get an integer value from the config file value of myInteger (e.g. corrupted file)
-            // it will set it to the default value passed to the function
+            setHasChill(propHasChill.getBoolean());
+            setHasTimed(propHasTimed.getBoolean());
+            setIsStrict(propIsStrict.getBoolean());
 
-            isStrict = propIsStrict.getBoolean();
-
-            String listModeCandidate = propListMode.getString();
-            if (listModeCandidate.equalsIgnoreCase("blacklist") || listModeCandidate.equalsIgnoreCase("whitelist")) {
-                listMode = listModeCandidate;
+            setTimeLimit(propTimeLimit.getInt());
+            if (getTimeLimit() < TIME_LIMIT_MIN || getTimeLimit() > TIME_LIMIT_MAX) {
+                setTimeLimit(TIME_LIMIT_DEFAULT);
             }
 
-            list = propList.getStringList();
+            setListMode(propListMode.getString());
+            if (!getListMode().equalsIgnoreCase("blacklist") && !getListMode().equalsIgnoreCase("whitelist")) {
+                setListMode(LIST_MODE_DEFAULT);
+            }
+
+            setList(propList.getStringList());
         }
 
         // ---- step 4 - write the class's variables back into the config properties and save to disk -------------------
@@ -142,9 +154,12 @@ public class ModConfig {
         //  This is done even for a loadFromFile==true, because some of the properties may have been assigned default
         //    values if the file was empty or corrupt.
 
-        propIsStrict.set(isStrict);
-        propListMode.set(listMode);
-        propList.set(list);
+        propHasChill.set(getHasChill());
+        propHasTimed.set(getHasTimed());
+        propTimeLimit.set(getTimeLimit());
+        propIsStrict.set(getIsStrict());
+        propListMode.set(getListMode());
+        propList.set(getList());
 
         if (config.hasChanged()) {
             config.save();
@@ -174,6 +189,64 @@ public class ModConfig {
      */
     public static void syncFromFields() {
         syncConfig(false, false);
+    }
+
+    public static boolean getHasChill() {
+        return hasChill;
+    }
+
+    public static void setHasChill(boolean hasChill) {
+        ModConfig.hasChill = hasChill;
+        syncFromFields();
+    }
+
+    public static boolean getHasTimed() {
+        return hasTimed;
+    }
+
+    public static void setHasTimed(boolean hasTimed) {
+        ModConfig.hasTimed = hasTimed;
+        syncFromFields();
+    }
+
+    public static int getTimeLimit() {
+        return timeLimit;
+    }
+
+    public static void setTimeLimit(int timeLimit) {
+        ModConfig.timeLimit = timeLimit;
+        syncFromFields();
+    }
+
+    public static boolean getIsStrict() {
+        return isStrict;
+    }
+
+    public static void setIsStrict(boolean isStrict) {
+        ModConfig.isStrict = isStrict;
+        syncFromFields();
+    }
+
+    public static String getListMode() {
+        return listMode;
+    }
+
+    public static void setListMode(String listMode) {
+        ModConfig.listMode = listMode;
+        syncFromFields();
+    }
+
+    public static String[] getList() {
+        return list;
+    }
+
+    public static void setList(String[] list) {
+        ModConfig.list = list;
+        syncFromFields();
+    }
+
+    public static String getCategoryList() {
+        return CATEGORY_LIST;
     }
 
     private static class ConfigEventHandler {

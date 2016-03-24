@@ -9,9 +9,8 @@ item.key.name=Kismetic Key
 itemGroup.kismet=Kismet
 
 # GUI
-gui.config.mainTitle=Kismet Config
-gui.config.category.main=General
-gui.config.category.main.tooltip=General configurations
+gui.config.category.main=Kismet
+gui.config.category.main.tooltip=Kismet Configurations
 
 ## Config fields
 gui.config.hasChill=Enable Chill Display
@@ -24,10 +23,8 @@ gui.config.category.list=Allowed Items
 gui.config.category.list.tooltip=Settings regarding the allowed/disallowed items to be picked as goals
 
 gui.config.list.isStrict=Strict Item Filtering
-gui.config.list.isStrict.tooltip=When true, Kismet will avoid picking any items that aren't craftable or present in any
-specific loot table\nWarning: Still applies if list is on whitelist mode, where it will further filter out the items present in the list
+gui.config.list.isStrict.tooltip=When true, Kismet will avoid picking any items that aren't craftable or present in any specific loot table\nWarning: Still applies if list is on whitelist mode, where it will further filter out the items present in the list
 gui.config.list.listMode=List Mode
 gui.config.list.listMode.tooltip=Determines the behaviour of the item list bellow
 gui.config.list.list=Targeted Items List
-gui.config.list.list.tooltip=List of items that can appear in the Kismet\nUse names, such as "kismet:block", or just
-the mod name to blacklist it entirely!
+gui.config.list.list.tooltip=List of items that can appear in the Kismet\nUse names, such as "mod:item", or just the mod name, as "mod", to blacklist it entirely!
