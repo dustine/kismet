@@ -22,7 +22,6 @@ import static net.minecraftforge.common.config.Configuration.CATEGORY_GENERAL;
  * Heavily based on TheGreyGhost's MinecraftByExample
  * Source: https://github.com/TheGreyGhost/MinecraftByExample
  */
-@SuppressWarnings("WeakerAccess")
 public class ModConfig {
     /* START CONFIG FIELDS */
 
@@ -31,10 +30,10 @@ public class ModConfig {
     private static final String[] LIST_MODE_CHOICES = new String[] {"blacklist", "whitelist"};
     private static final String[] LIST_DEFAULT = new String[] {};
     private static final String CATEGORY_LIST = "list";
-    private static boolean hasChill;
-    private static boolean hasTimed;
+    private static boolean chill;
+    private static boolean timed;
     private static int timeLimit;
-    private static boolean isStrict;
+    private static boolean strict;
     private static String listMode;
 
     /* END CONFIG FIELDS */
@@ -42,7 +41,8 @@ public class ModConfig {
     private static Configuration config;
     public static void preInit() {
         File configFile = new File(Loader.instance().getConfigDir(), Reference.MODID + ".cfg");
-        config = new Configuration(configFile);
+        if(config == null)
+            config = new Configuration(configFile);
 
         syncFromFile();
     }
@@ -65,7 +65,6 @@ public class ModConfig {
      * @param readFieldsFromConfig if true, reload the member variables from the config field
      */
 
-    @SuppressWarnings("ConstantConditions")
     private static void syncConfig(boolean loadConfigFromFile, boolean readFieldsFromConfig) {
         // ---- step 1 - load raw values from config file (if loadFromFile true) ---------------------------------------
         if (loadConfigFromFile) {
@@ -76,15 +75,14 @@ public class ModConfig {
         Pattern listPattern = Pattern.compile("([0-9a-z]+)(:[0-9a-z]+)?");
 
         boolean HAS_CHILL_DEFAULT = true;
-        Property propHasChill = config.get(CATEGORY_GENERAL, "hasChill", HAS_CHILL_DEFAULT, I18n.format("gui.config" +
-                ".hasChill" + ".tooltip"))
-                .setLanguageKey("gui.config.hasChill")
+        Property propHasChill = config.get(CATEGORY_GENERAL, "chill", HAS_CHILL_DEFAULT, I18n.format("gui.config.chill" + ".tooltip"))
+                .setLanguageKey("gui.config.chill")
                 .setRequiresMcRestart(true);
 
         boolean HAS_TIMED_DEFAULT = true;
-        Property propHasTimed = config.get(CATEGORY_GENERAL, "hasTimed", HAS_TIMED_DEFAULT, I18n.format
-                ("gui.config.hasTimed" + ".tooltip"))
-                .setLanguageKey("gui.config.hasTimed")
+        Property propHasTimed = config.get(CATEGORY_GENERAL, "timed", HAS_TIMED_DEFAULT, I18n.format
+                ("gui.config.timed" + ".tooltip"))
+                .setLanguageKey("gui.config.timed")
                 .setRequiresMcRestart(true);
 
         int TIME_LIMIT_DEFAULT = 24000;
@@ -96,9 +94,9 @@ public class ModConfig {
                 .setMinValue(TIME_LIMIT_MIN)
                 .setMaxValue(TIME_LIMIT_MAX);
 
-        Property propIsStrict = config.get(getCategoryList(), "getIsStrict", IS_STRICT_DEFAULT, I18n.format("gui.config" +
-                ".list.getIsStrict" + ".tooltip"))
-                .setLanguageKey("gui.config.list.getIsStrict");
+        Property propIsStrict = config.get(getCategoryList(), "strict", IS_STRICT_DEFAULT, I18n.format("gui.config" +
+                ".list.strict" + ".tooltip"))
+                .setLanguageKey("gui.config.list.strict");
 
         Property propListMode = config.get(getCategoryList(), "listMode", LIST_MODE_DEFAULT, I18n.format("gui.config" +
                 ".list.listMode" + ".tooltip"))
@@ -132,9 +130,9 @@ public class ModConfig {
         */
 
         if (readFieldsFromConfig) {
-            hasChill = propHasChill.getBoolean();
-            hasTimed = propHasTimed.getBoolean();
-            isStrict = propIsStrict.getBoolean();
+            chill = propHasChill.getBoolean();
+            timed = propHasTimed.getBoolean();
+            strict = propIsStrict.getBoolean();
 
             timeLimit = propTimeLimit.getInt();
             if (timeLimit < TIME_LIMIT_MIN || timeLimit > TIME_LIMIT_MAX) {
@@ -155,12 +153,12 @@ public class ModConfig {
         //  This is done even for a loadFromFile==true, because some of the properties may have been assigned default
         //    values if the file was empty or corrupt.
 
-        propHasChill.set(getHasChill());
-        propHasTimed.set(getHasTimed());
-        propTimeLimit.set(getTimeLimit());
-        propIsStrict.set(getIsStrict());
-        propListMode.set(getListMode());
-        propList.set(getList());
+        propHasChill.set(chill);
+        propHasTimed.set(timed);
+        propTimeLimit.set(timeLimit);
+        propIsStrict.set(strict);
+        propListMode.set(listMode);
+        propList.set(list);
 
         if (config.hasChanged()) {
             config.save();
@@ -169,11 +167,6 @@ public class ModConfig {
 
     public static Configuration getConfig() {
         return config;
-    }
-
-    public static void setConfig(Configuration config) {
-        ModConfig.config = config;
-        syncFromFields();
     }
 
     public static void clientPreInit() {
@@ -197,21 +190,14 @@ public class ModConfig {
         syncConfig(false, false);
     }
 
-    public static boolean getHasChill() {
-        return hasChill;
-    }
 
-    public static void setHasChill(boolean hasChill) {
-        ModConfig.hasChill = hasChill;
+    public static void setChill(boolean chill) {
+        ModConfig.chill = chill;
         syncFromFields();
     }
 
-    public static boolean getHasTimed() {
-        return hasTimed;
-    }
-
-    public static void setHasTimed(boolean hasTimed) {
-        ModConfig.hasTimed = hasTimed;
+    public static void setTimed(boolean timed) {
+        ModConfig.timed = timed;
         syncFromFields();
     }
 
@@ -224,12 +210,8 @@ public class ModConfig {
         syncFromFields();
     }
 
-    public static boolean getIsStrict() {
-        return isStrict;
-    }
-
-    public static void setIsStrict(boolean isStrict) {
-        ModConfig.isStrict = isStrict;
+    public static void setStrict(boolean strict) {
+        ModConfig.strict = strict;
         syncFromFields();
     }
 
@@ -255,6 +237,18 @@ public class ModConfig {
         return CATEGORY_LIST;
     }
 
+    public static boolean isChill() {
+        return chill;
+    }
+
+    public static boolean isTimed() {
+        return timed;
+    }
+
+    public static boolean isStrict() {
+        return strict;
+    }
+
     private static class ConfigEventHandler {
         /*
          * This class, when instantiated as an object, will listen on the FML
@@ -262,11 +256,10 @@ public class ModConfig {
          */
         @SubscribeEvent(priority = EventPriority.NORMAL)
         public void onEvent(ConfigChangedEvent.OnConfigChangedEvent event) {
-            if (Reference.MODID.equals(event.modID) && !event.isWorldRunning) {
+            if (Reference.MODID.equals(event.getModID())) {
                 syncFromGUI();
-                if (event.configID != null) {
-                    syncFromGUI();
-                    ModLogger.info("Config changed on GUI, category " + event.configID);
+                if (event.getConfigID() != null) {
+                    ModLogger.info("Config changed on GUI, category " + event.getConfigID());
                 } else {
                     ModLogger.info("Config changed on GUI, no category");
                 }

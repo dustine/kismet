@@ -42,7 +42,7 @@ public class ModGuiFactory implements IModGuiFactory {
     public static class ModConfigGui extends GuiConfig {
 
         public ModConfigGui(GuiScreen parentScreen) {
-            super(parentScreen, getConfigElements(), Reference.MODID, Configuration.CATEGORY_GENERAL, false, false, null);
+            super(parentScreen, getConfigElements(), Reference.MODID, false, false, null);
 
             this.title = ModConfig.getConfig().toString();
             this.titleLine2 = I18n.format("gui.config.category.main");
