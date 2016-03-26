@@ -3,10 +3,12 @@ package com.desutine.kismet.network;
 import com.desutine.kismet.reference.Reference;
 import com.desutine.kismet.tileentity.DisplayTileEntity;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.common.property.IExtendedBlockState;
+import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
@@ -18,10 +20,11 @@ public class ModPacketHandler {
     public static final SimpleNetworkWrapper INSTANCE = NetworkRegistry.INSTANCE.newSimpleChannel(Reference.MODID);
     private static int displacer = 0;
 
-    public void updateClientDisplay(int dimension, final BlockPos pos, boolean fulfilled, int streak) {
+    public void updateClientDisplay(int dimension, final BlockPos pos, DisplayTileEntity tileEntity) {
         INSTANCE.registerMessage(DisplayUpdateMessageHandler.class, DisplayUpdateMessage.class, getDisplacer(), Side
                 .CLIENT);
-        INSTANCE.sendToDimension(new DisplayUpdateMessage(pos, fulfilled, streak), dimension);
+        INSTANCE.sendToDimension(new DisplayUpdateMessage(pos, tileEntity.isFulfilled(), tileEntity.getStreak(), tileEntity
+                .getTarget()), dimension);
     }
 
     private static int getDisplacer() {
@@ -32,15 +35,17 @@ public class ModPacketHandler {
         private BlockPos pos;
         private int streak;
         private boolean fulfilled;
+        private ItemStack target;
 
         // A default constructor is always required
         public DisplayUpdateMessage() {
         }
 
-        public DisplayUpdateMessage(BlockPos pos, boolean fulfilled, int streak) {
+        public DisplayUpdateMessage(BlockPos pos, boolean fulfilled, int streak, ItemStack target) {
             this.pos = pos.getImmutable();
             this.fulfilled = fulfilled;
             this.streak = streak;
+            this.target = target;
         }
 
         @Override
@@ -52,6 +57,7 @@ public class ModPacketHandler {
             pos = new BlockPos(x, y, z);
             fulfilled = buf.readBoolean();
             streak = buf.readInt();
+            target = ByteBufUtils.readItemStack(buf);
         }
 
         @Override
@@ -61,6 +67,7 @@ public class ModPacketHandler {
             buf.writeInt(pos.getZ());
             buf.writeBoolean(fulfilled);
             buf.writeInt(streak);
+            ByteBufUtils.writeItemStack(buf, target);
         }
     }
 
@@ -70,15 +77,20 @@ public class ModPacketHandler {
             Minecraft.getMinecraft().addScheduledTask(new Runnable() {
                 @Override
                 public void run() {
-                    IBlockState state = Minecraft.getMinecraft().theWorld.getBlockState(message.pos);
+                    IExtendedBlockState state = getBlockState();
                     Chunk chunk = Minecraft.getMinecraft().theWorld.getChunkFromBlockCoords(message.pos);
 
                     DisplayTileEntity tt = (DisplayTileEntity) Minecraft.getMinecraft().theWorld.getTileEntity(message.pos);
                     if (tt == null) return;
-                    tt.streak = message.streak;
-                    tt.fulfilled = message.fulfilled;
-                    Minecraft.getMinecraft().theWorld.markAndNotifyBlock(message.pos, chunk, state, tt.enrichState
-                            (state), 2);
+                    tt.setStreak(message.streak);
+                    tt.setFulfilled(message.fulfilled);
+                    tt.setTarget(message.target);
+//                    Minecraft.getMinecraft().theWorld.markAndNotifyBlock(message.pos, chunk, state, getBlockState(), 2);
+                    Minecraft.getMinecraft().theWorld.markBlockRangeForRenderUpdate(message.pos, message.pos);
+                }
+
+                IExtendedBlockState getBlockState() {
+                    return (IExtendedBlockState) Minecraft.getMinecraft().theWorld.getBlockState(message.pos);
                 }
             });
             return null;

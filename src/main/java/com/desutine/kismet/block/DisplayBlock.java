@@ -1,5 +1,6 @@
 package com.desutine.kismet.block;
 
+import com.desutine.kismet.ModLogger;
 import com.desutine.kismet.reference.Names;
 import com.desutine.kismet.tileentity.DisplayTileEntity;
 import com.desutine.kismet.tileentity.ModBlockContainer;
@@ -26,7 +27,6 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class DisplayBlock extends ModBlockContainer<DisplayTileEntity> {
     public static final PropertyInteger STREAK = PropertyInteger.create("streak", 0, 20);
-
     public static final PropertyBool FULFILLED = PropertyBool.create("fulfilled");
 
     public DisplayBlock() {
@@ -61,7 +61,9 @@ public class DisplayBlock extends ModBlockContainer<DisplayTileEntity> {
     public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
         IBlockState newState = super.getActualState(state, worldIn, pos);
         DisplayTileEntity tileEntity = (DisplayTileEntity) worldIn.getTileEntity(pos);
-        return tileEntity.enrichState(newState);
+        if (tileEntity != null)
+            return tileEntity.enrichState(newState);
+        else return newState;
     }
 
     // used by the renderer to control lighting and visibility of other blocks, also by
@@ -89,8 +91,17 @@ public class DisplayBlock extends ModBlockContainer<DisplayTileEntity> {
 
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
-        if (worldIn.isRemote) return true;
+//        if (worldIn.isRemote) return true;
 
+        DisplayTileEntity te = (DisplayTileEntity) worldIn.getTileEntity(pos);
+        if (!te.isFulfilled()) {
+            te.setFulfilled(true);
+//            te.updateClientDisplay();
+        }
+        if (heldItem != null) {
+            ModLogger.info(String.format("Added %s", heldItem.getDisplayName()));
+            te.setTarget(heldItem);
+        }
         return super.onBlockActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX, hitY, hitZ);
     }
 

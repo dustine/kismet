@@ -49,7 +49,7 @@ public class ModGuiFactory implements IModGuiFactory {
         }
 
         private static List<IConfigElement> getConfigElements() {
-            // TODO Check FMLConfigGuiFactory.class for the extra "bells" you can add to the config
+            // REMINDER Check FMLConfigGuiFactory.class for the extra "bells" you can add to the config
             List<IConfigElement> list = new ArrayList<IConfigElement>();
 
             Configuration config = ModConfig.getConfig();
