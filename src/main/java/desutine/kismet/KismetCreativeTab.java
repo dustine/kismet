@@ -6,10 +6,10 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 
 public class KismetCreativeTab {
-    public static final CreativeTabs KISMET_TAB = new CreativeTabs(Reference.MODID.toLowerCase()) {
-        @Override
-        public Item getTabIconItem() {
-            return Item.getItemFromBlock(Blocks.kismetDisplayBlock);
-        }
-    };
+  public static final CreativeTabs KISMET_TAB = new CreativeTabs(Reference.MODID.toLowerCase()) {
+    @Override
+    public Item getTabIconItem() {
+      return Item.getItemFromBlock(Blocks.kismetDisplayBlock);
+    }
+  };
 }

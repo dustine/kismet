@@ -7,11 +7,11 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class EventHandler {
-    @SubscribeEvent
-    @SideOnly(Side.CLIENT)
-    public void addISmartModel(ModelBakeEvent event) {
-        ModLogger.info("ModelBakeEvent evented");
+  @SubscribeEvent
+  @SideOnly(Side.CLIENT)
+  public void addISmartModel(ModelBakeEvent event) {
+    ModLogger.info("ModelBakeEvent evented");
 //        event.getModelRegistry().putObject(new ModelResourceLocation("kismet:"), new ItemFaceBakedModel() {
 //        });
-    }
+  }
 }

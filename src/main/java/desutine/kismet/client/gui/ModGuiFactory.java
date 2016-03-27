@@ -9,9 +9,11 @@ import net.minecraft.client.resources.I18n;
 import net.minecraftforge.common.config.ConfigElement;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.fml.client.IModGuiFactory;
-
-import net.minecraftforge.fml.client.config.*;
+import net.minecraftforge.fml.client.config.DummyConfigElement;
+import net.minecraftforge.fml.client.config.GuiConfig;
+import net.minecraftforge.fml.client.config.GuiConfigEntries;
 import net.minecraftforge.fml.client.config.GuiConfigEntries.CategoryEntry;
+import net.minecraftforge.fml.client.config.IConfigElement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,53 +21,53 @@ import java.util.Set;
 
 public class ModGuiFactory implements IModGuiFactory {
 
-    @Override
-    public void initialize(Minecraft minecraftInstance) {
+  @Override
+  public void initialize(Minecraft minecraftInstance) {
 
+  }
+
+  @Override
+  public Class<? extends GuiScreen> mainConfigGuiClass() {
+    return ModConfigGui.class;
+  }
+
+  @Override
+  public Set<RuntimeOptionCategoryElement> runtimeGuiCategories() {
+    return null;
+  }
+
+  @Override
+  public RuntimeOptionGuiHandler getHandlerFor(RuntimeOptionCategoryElement element) {
+    return null;
+  }
+
+  public static class ModConfigGui extends GuiConfig {
+
+    public ModConfigGui(GuiScreen parentScreen) {
+      super(parentScreen, getConfigElements(), Reference.MODID, false, false, null);
+
+      this.title = ModConfig.getConfig().toString();
+      this.titleLine2 = I18n.format("gui.config.category.main");
     }
 
-    @Override
-    public Class<? extends GuiScreen> mainConfigGuiClass() {
-        return ModConfigGui.class;
+    private static List<IConfigElement> getConfigElements() {
+      // REMINDER Check FMLConfigGuiFactory.class for the extra "bells" you can add to the config
+      List<IConfigElement> list = new ArrayList<IConfigElement>();
+
+      Configuration config = ModConfig.getConfig();
+
+      list.addAll(new ConfigElement(config.getCategory(Configuration.CATEGORY_GENERAL)).getChildElements());
+      list.add(new DummyConfigElement.DummyCategoryElement(ModConfig.getCategoryList(), "gui.config.category.list", CategoryEntryList.class));
+
+      return list;
     }
 
-    @Override
-    public Set<RuntimeOptionCategoryElement> runtimeGuiCategories() {
-        return null;
+    public static class CategoryEntryGeneral extends CategoryEntry {
+      public CategoryEntryGeneral(GuiConfig owningScreen, GuiConfigEntries owningEntryList, IConfigElement configElement) {
+        super(owningScreen, owningEntryList, configElement);
+      }
     }
 
-    @Override
-    public RuntimeOptionGuiHandler getHandlerFor(RuntimeOptionCategoryElement element) {
-        return null;
-    }
-
-    public static class ModConfigGui extends GuiConfig {
-
-        public ModConfigGui(GuiScreen parentScreen) {
-            super(parentScreen, getConfigElements(), Reference.MODID, false, false, null);
-
-            this.title = ModConfig.getConfig().toString();
-            this.titleLine2 = I18n.format("gui.config.category.main");
-        }
-
-        private static List<IConfigElement> getConfigElements() {
-            // REMINDER Check FMLConfigGuiFactory.class for the extra "bells" you can add to the config
-            List<IConfigElement> list = new ArrayList<IConfigElement>();
-
-            Configuration config = ModConfig.getConfig();
-
-            list.addAll(new ConfigElement(config.getCategory(Configuration.CATEGORY_GENERAL)).getChildElements());
-            list.add(new DummyConfigElement.DummyCategoryElement(ModConfig.getCategoryList(), "gui.config.category.list", CategoryEntryList.class));
-
-            return list;
-        }
-
-        public static class CategoryEntryGeneral extends CategoryEntry {
-            public CategoryEntryGeneral(GuiConfig owningScreen, GuiConfigEntries owningEntryList, IConfigElement configElement) {
-                super(owningScreen, owningEntryList, configElement);
-            }
-        }
-
-    }
+  }
 
 }
