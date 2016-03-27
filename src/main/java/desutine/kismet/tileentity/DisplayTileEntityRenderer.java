@@ -1,9 +1,11 @@
 package desutine.kismet.tileentity;
 
+import desutine.kismet.ModLogger;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
+import net.minecraftforge.client.model.IPerspectiveAwareModel;
 
 public class DisplayTileEntityRenderer extends TileEntitySpecialRenderer<DisplayTileEntity> {
     @Override
