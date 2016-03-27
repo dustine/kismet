@@ -1,4 +1,4 @@
-package desutine.kismet;
+package desutine.kismet.client;
 
 import desutine.kismet.reference.Blocks;
 import desutine.kismet.reference.Reference;

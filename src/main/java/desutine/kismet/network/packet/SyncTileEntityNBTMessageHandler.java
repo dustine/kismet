@@ -1,19 +1,12 @@
 package desutine.kismet.network.packet;
 
 import desutine.kismet.ModLogger;
-import desutine.kismet.tileentity.DisplayTileEntity;
 import net.minecraft.client.Minecraft;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.Style;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-
-import java.util.Iterator;
-import java.util.List;
 
 public class SyncTileEntityNBTMessageHandler implements IMessageHandler<SyncTileEntityNBTMessage,
         IMessage> {

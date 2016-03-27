@@ -1,6 +1,6 @@
-package desutine.kismet.block;
+package desutine.kismet.common.block;
 
-import desutine.kismet.KismetCreativeTab;
+import desutine.kismet.client.KismetCreativeTab;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 

@@ -1,6 +1,6 @@
-package desutine.kismet.item;
+package desutine.kismet.common.item;
 
-import desutine.kismet.KismetCreativeTab;
+import desutine.kismet.client.KismetCreativeTab;
 import net.minecraft.item.Item;
 
 public class ModItem extends Item {

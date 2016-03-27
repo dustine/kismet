@@ -1,5 +1,6 @@
-package desutine.kismet;
+package desutine.kismet.common;
 
+import desutine.kismet.ModLogger;
 import desutine.kismet.reference.Reference;
 import net.minecraft.client.resources.I18n;
 import net.minecraftforge.common.MinecraftForge;

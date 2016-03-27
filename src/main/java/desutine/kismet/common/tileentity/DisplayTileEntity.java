@@ -1,11 +1,10 @@
-package desutine.kismet.tileentity;
+package desutine.kismet.common.tileentity;
 
 import desutine.kismet.Kismet;
-import desutine.kismet.ModConfig;
-import desutine.kismet.block.DisplayBlock;
+import desutine.kismet.common.ModConfig;
+import desutine.kismet.common.block.DisplayBlock;
 import desutine.kismet.reference.Blocks;
 import desutine.kismet.reference.Items;
-import mezz.jei.RecipeRegistry;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -16,7 +15,6 @@ import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
 import net.minecraftforge.fml.common.registry.GameData;
-import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -132,6 +130,10 @@ public class DisplayTileEntity extends TileEntity implements ITickable {
         this.deadline = deadline;
         // not really needed as it's not directly related to display
 //        this.stateChanged = true;
+    }
+    public IBlockState enrichState(IBlockState state) {
+        return state.withProperty(DisplayBlock.STREAK, getStreak())
+                .withProperty(DisplayBlock.FULFILLED, isFulfilled());
     }@Override
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
@@ -147,10 +149,7 @@ public class DisplayTileEntity extends TileEntity implements ITickable {
 
     }
 
-    public IBlockState enrichState(IBlockState state) {
-        return state.withProperty(DisplayBlock.STREAK, getStreak())
-                .withProperty(DisplayBlock.FULFILLED, isFulfilled());
-    }
+
 
 
 

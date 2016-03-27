@@ -1,6 +1,6 @@
-package desutine.kismet.tileentity;
+package desutine.kismet.common.tileentity;
 
-import desutine.kismet.block.ModBlock;
+import desutine.kismet.common.block.ModBlock;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;

@@ -1,4 +1,4 @@
-package desutine.kismet.event;
+package desutine.kismet.common.event;
 
 import desutine.kismet.ModLogger;
 import net.minecraftforge.client.event.ModelBakeEvent;

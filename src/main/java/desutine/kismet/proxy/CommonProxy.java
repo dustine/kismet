@@ -1,12 +1,12 @@
 package desutine.kismet.proxy;
 
-import desutine.kismet.ModConfig;
-import desutine.kismet.init.Init;
+import desutine.kismet.common.ModConfig;
+import desutine.kismet.common.Init;
 import desutine.kismet.Kismet;
 import desutine.kismet.ModLogger;
 import desutine.kismet.network.ModPacketHandler;
-import desutine.kismet.event.BlockEventHandler;
-import desutine.kismet.event.EventHandler;
+import desutine.kismet.common.event.BlockEventHandler;
+import desutine.kismet.common.event.EventHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;

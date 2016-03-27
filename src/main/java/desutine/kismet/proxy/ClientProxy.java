@@ -1,7 +1,7 @@
 package desutine.kismet.proxy;
 
-import desutine.kismet.init.ClientInit;
-import desutine.kismet.ModConfig;
+import desutine.kismet.client.ClientInit;
+import desutine.kismet.common.ModConfig;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 

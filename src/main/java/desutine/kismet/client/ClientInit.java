@@ -1,11 +1,11 @@
-package desutine.kismet.init;
+package desutine.kismet.client;
 
 import desutine.kismet.reference.Blocks;
 import desutine.kismet.reference.Items;
 import desutine.kismet.reference.Names;
 import desutine.kismet.reference.Reference;
-import desutine.kismet.tileentity.DisplayTileEntity;
-import desutine.kismet.tileentity.DisplayTileEntityRenderer;
+import desutine.kismet.common.tileentity.DisplayTileEntity;
+import desutine.kismet.client.renderer.DisplayTileEntityRenderer;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.model.ModelLoader;

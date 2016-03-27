@@ -1,10 +1,10 @@
-package desutine.kismet.init;
+package desutine.kismet.common;
 
 import desutine.kismet.reference.Blocks;
 import desutine.kismet.reference.Items;
 import desutine.kismet.reference.Names;
 import desutine.kismet.reference.Reference;
-import desutine.kismet.tileentity.DisplayTileEntity;
+import desutine.kismet.common.tileentity.DisplayTileEntity;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class Init {

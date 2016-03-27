@@ -1,7 +1,7 @@
 package desutine.kismet.client.gui;
 
 
-import desutine.kismet.ModConfig;
+import desutine.kismet.common.ModConfig;
 import desutine.kismet.reference.Reference;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;

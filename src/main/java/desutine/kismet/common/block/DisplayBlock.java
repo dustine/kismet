@@ -1,10 +1,9 @@
-package desutine.kismet.block;
+package desutine.kismet.common.block;
 
-import desutine.kismet.ModLogger;
 import desutine.kismet.reference.Items;
 import desutine.kismet.reference.Names;
-import desutine.kismet.tileentity.DisplayTileEntity;
-import desutine.kismet.tileentity.ModBlockContainer;
+import desutine.kismet.common.tileentity.DisplayTileEntity;
+import desutine.kismet.common.tileentity.ModBlockContainer;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.properties.PropertyInteger;
@@ -19,8 +18,6 @@ import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.TextComponentBase;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
