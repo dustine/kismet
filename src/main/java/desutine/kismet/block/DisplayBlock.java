@@ -1,5 +1,6 @@
 package desutine.kismet.block;
 
+import desutine.kismet.ModLogger;
 import desutine.kismet.reference.Items;
 import desutine.kismet.reference.Names;
 import desutine.kismet.tileentity.DisplayTileEntity;
@@ -18,6 +19,8 @@ import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentBase;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -27,102 +30,101 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class DisplayBlock extends ModBlockContainer<DisplayTileEntity> {
-  public static final PropertyInteger STREAK = PropertyInteger.create("streak", 0, 20);
-  public static final PropertyBool FULFILLED = PropertyBool.create("fulfilled");
+    public static final PropertyInteger STREAK = PropertyInteger.create("streak", 0, 20);
+    public static final PropertyBool FULFILLED = PropertyBool.create("fulfilled");
 
-  public DisplayBlock() {
-    super();
-    this.setUnlocalizedName(Names.DISPLAY);
+    public DisplayBlock() {
+        super();
+        this.setUnlocalizedName(Names.DISPLAY);
 
-    // declaring properties
-    setDefaultState(blockState.getBaseState()
-            .withProperty(STREAK, 0)
-            .withProperty(FULFILLED, false));
-  }
-
-  @Override
-  public TileEntity createNewTileEntity(World worldIn, int meta) {
-    return new DisplayTileEntity();
-  }
-
-  // convert to/from metadata
-  @Override
-  public IBlockState getStateFromMeta(int meta) {
-    return getDefaultState();
-  }
-
-  // metadata doesn't matter in this case
-  // convert to/from metadata
-  @Override
-  public int getMetaFromState(IBlockState state) {
-    return 0;
-  }
-
-  @Override
-  public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
-    IBlockState newState = super.getActualState(state, worldIn, pos);
-    DisplayTileEntity tileEntity = (DisplayTileEntity) worldIn.getTileEntity(pos);
-    if (tileEntity != null)
-      return tileEntity.enrichState(newState);
-    else return newState;
-  }
-
-  // used by the renderer to control lighting and visibility of other blocks, also by
-  // (eg) wall or fence to control whether the fence joins itself to this block
-  @Override
-  public boolean isFullCube(IBlockState state) {
-    return false;
-  }
-
-  @Override
-  public EnumBlockRenderType getRenderType(IBlockState state) {
-    return EnumBlockRenderType.MODEL;
-  }
-
-  // used by the renderer to control lighting and visibility of other blocks.
-  @Override
-  public boolean isOpaqueCube(IBlockState state) {
-    return false;
-  }
-
-  @SideOnly(Side.CLIENT)
-  public BlockRenderLayer getBlockLayer() {
-    return BlockRenderLayer.CUTOUT_MIPPED;
-  }
-
-  @Override
-  public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
-    DisplayTileEntity te = (DisplayTileEntity) worldIn.getTileEntity(pos);
-
-    // no clients, the following code is server-only for ~safety~ and synchronicity
-    if (worldIn.isRemote) {
-      playerIn.addChatComponentMessage(new TextComponentString(te.getTarget().getDisplayName()));
-      return true;
+        // declaring properties
+        setDefaultState(blockState.getBaseState()
+                .withProperty(STREAK, 0)
+                .withProperty(FULFILLED, false));
     }
 
-    if (te == null)
-      return super.onBlockActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX, hitY, hitZ);
-
-    if (heldItem != null && heldItem.isItemEqual(new ItemStack(Items.itemKey))) {
-      // key = free regen
-      te.getNewTarget();
-      playerIn.addChatComponentMessage(new TextComponentString(te.getTarget().getDisplayName()));
+    @Override
+    public TileEntity createNewTileEntity(World worldIn, int meta) {
+        return new DisplayTileEntity();
     }
 
+    // convert to/from metadata
+    @Override
+    public IBlockState getStateFromMeta(int meta) {
+        return getDefaultState();
+    }
 
-    return super.onBlockActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX, hitY, hitZ);
-  }
+    // metadata doesn't matter in this case
+    // convert to/from metadata
+    @Override
+    public int getMetaFromState(IBlockState state) {
+        return 0;
+    }
 
-  @Override
-  public IBlockState onBlockPlaced(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
-    return super.onBlockPlaced(worldIn, pos, facing, hitX, hitY, hitZ, meta, placer);
-  }
+    @Override
+    public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
+        IBlockState newState = super.getActualState(state, worldIn, pos);
+        DisplayTileEntity tileEntity = (DisplayTileEntity) worldIn.getTileEntity(pos);
+        if (tileEntity != null)
+            return tileEntity.enrichState(newState);
+        else return newState;
+    }
 
-  // returning block state
-  @Override
-  protected BlockStateContainer createBlockState() {
-    IProperty[] listedProperties = new IProperty[] {STREAK, FULFILLED};
-    IUnlistedProperty[] unlistedProperties = new IUnlistedProperty[] {};
-    return new ExtendedBlockState(this, listedProperties, unlistedProperties);
-  }
+    // used by the renderer to control lighting and visibility of other blocks, also by
+    // (eg) wall or fence to control whether the fence joins itself to this block
+    @Override
+    public boolean isFullCube(IBlockState state) {
+        return false;
+    }
+
+    @Override
+    public EnumBlockRenderType getRenderType(IBlockState state) {
+        return EnumBlockRenderType.MODEL;
+    }
+
+    // used by the renderer to control lighting and visibility of other blocks.
+    @Override
+    public boolean isOpaqueCube(IBlockState state) {
+        return false;
+    }
+
+    @SideOnly(Side.CLIENT)
+    public BlockRenderLayer getBlockLayer() {
+        return BlockRenderLayer.CUTOUT_MIPPED;
+    }
+
+    @Override
+    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
+        DisplayTileEntity te = (DisplayTileEntity) worldIn.getTileEntity(pos);
+
+        // no clients, the following code is server-only for ~safety~ and synchronicity
+        if (worldIn.isRemote){
+            playerIn.addChatComponentMessage(new TextComponentString(te.getTarget().getDisplayName()));
+            return true;
+        }
+
+        if(te == null) return super.onBlockActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX, hitY, hitZ);
+
+        if(heldItem != null && heldItem.isItemEqual(new ItemStack(Items.itemKey))){
+            // key = free regen
+            te.getNewTarget();
+            playerIn.addChatComponentMessage(new TextComponentString(te.getTarget().getDisplayName()));
+        }
+
+
+        return super.onBlockActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX, hitY, hitZ);
+    }
+
+    @Override
+    public IBlockState onBlockPlaced(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
+        return super.onBlockPlaced(worldIn, pos, facing, hitX, hitY, hitZ, meta, placer);
+    }
+
+    // returning block state
+    @Override
+    protected BlockStateContainer createBlockState() {
+        IProperty[] listedProperties = new IProperty[] {STREAK, FULFILLED};
+        IUnlistedProperty[] unlistedProperties = new IUnlistedProperty[] {};
+        return new ExtendedBlockState(this, listedProperties, unlistedProperties);
+    }
 }
