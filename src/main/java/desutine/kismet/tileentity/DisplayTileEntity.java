@@ -1,8 +1,11 @@
 package desutine.kismet.tileentity;
 
+import desutine.kismet.Kismet;
+import desutine.kismet.ModConfig;
 import desutine.kismet.block.DisplayBlock;
 import desutine.kismet.reference.Blocks;
 import desutine.kismet.reference.Items;
+import mezz.jei.RecipeRegistry;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -12,10 +15,15 @@ import net.minecraft.network.play.INetHandlerPlayClient;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
+import net.minecraftforge.fml.common.registry.GameData;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
+import java.util.Random;
+
 public class DisplayTileEntity extends TileEntity implements ITickable {
+    private static final int STREAK_MAX = 20;
     private int streak;
     private boolean fulfilled;
     private long deadline;
@@ -34,35 +42,30 @@ public class DisplayTileEntity extends TileEntity implements ITickable {
 
     @Override
     public void update() {
-        // if server
-//        if (!this.worldObj.isRemote) {
         // isDirty is set to true whenever the internal state of the block is changed
         // name coming from the parent's method markDirty()
-            boolean isDirty = false;
-
+        boolean isDirty = false;
         isDirty |= checkForDeadline(isDirty);
-
-            if (isDirty) {
-                markDirty();
-            }
+        if (isDirty) {
+            markDirty();
+        }
         if (this.worldObj.isRemote && this.stateChanged) {
             stateChanged = false;
             updateClientDisplay();
         }
-//        }
     }
 
     private boolean checkForDeadline(boolean isDirty) {
         if (getDeadline() < worldObj.getTotalWorldTime()) {
-            // todo - unhardcode the ammount, also i'm assuming 24000 ticks = one day, hah
-            setDeadline(worldObj.getTotalWorldTime() + 100);
+            setDeadline(worldObj.getTotalWorldTime() + ModConfig.getTimeLimit());
 
             if (isFulfilled()) {
-                setStreak((getStreak() + 1) % 15);
+                setStreak(getStreak() + 1);
             } else {
                 setStreak(0);
             }
-            setFulfilled(false);
+
+            getNewTarget();
             isDirty = true;
         }
         return isDirty;
@@ -74,7 +77,6 @@ public class DisplayTileEntity extends TileEntity implements ITickable {
         IBlockState newState = Blocks.kismetDisplayBlock.getActualState(oldState, worldObj, pos);
         // kinda of a hack but really only to force the block to update in tone ._.
         worldObj.markAndNotifyBlock(pos, worldObj.getChunkFromBlockCoords(pos), oldState, newState, 2);
-//        Kismet.packetHandler.updateClientDisplay(worldObj.provider.getDimension(), pos, this);
     }
 
     public long getDeadline() {
@@ -89,12 +91,48 @@ public class DisplayTileEntity extends TileEntity implements ITickable {
         return streak;
     }
 
+    public void getNewTarget() {
+        // only server pls
+        if(worldObj.isRemote) return;
+
+        int nrBlocks = GameData.getBlockRegistry().getKeys().size();
+        int nrItems = GameData.getItemRegistry().getKeys().size();
+        Random random = new Random();
+        if(random.nextDouble() < ((double) nrBlocks) / (nrItems + nrBlocks)){
+            // blocks
+            target = new ItemStack(GameData.getBlockRegistry().getRandomObject(random));
+        } else {
+            // items
+            target = new ItemStack(GameData.getItemRegistry().getRandomObject(random));
+        }
+
+        // new target, no fulfillment
+        setFulfilled(false);
+        // sync client with server as this won't be true anymore after this function
+        Kismet.packetHandler.syncDisplayTargetToClient(worldObj.provider.getDimension(), this);
+    }
+
     public void setStreak(int streak) {
+        int oldStreak = this.streak;
         this.streak = streak;
+        // TO-DO: Unhardcode the streak limit
+        if(this.streak > STREAK_MAX) {
+            this.streak = STREAK_MAX;
+            // don't cause a state update if the old streak was already over the max
+            if(oldStreak > STREAK_MAX) return;
+        }
         this.stateChanged = true;
     }
 
-    @Override
+    public void setFulfilled(boolean fulfilled) {
+        this.fulfilled = fulfilled;
+        this.stateChanged = true;
+    }
+    public void setDeadline(long deadline) {
+        this.deadline = deadline;
+        // not really needed as it's not directly related to display
+//        this.stateChanged = true;
+    }@Override
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
 
@@ -109,21 +147,14 @@ public class DisplayTileEntity extends TileEntity implements ITickable {
 
     }
 
-    public void setFulfilled(boolean fulfilled) {
-        this.fulfilled = fulfilled;
-        this.stateChanged = true;
-    }
-
-    public void setDeadline(long deadline) {
-        this.deadline = deadline;
-        // not really needed as it's not directly related to display
-//        this.stateChanged = true;
-    }
-
     public IBlockState enrichState(IBlockState state) {
         return state.withProperty(DisplayBlock.STREAK, getStreak())
                 .withProperty(DisplayBlock.FULFILLED, isFulfilled());
     }
+
+
+
+
 
     @Override
     public void writeToNBT(NBTTagCompound compound) {

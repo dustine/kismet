@@ -1,6 +1,7 @@
 package desutine.kismet.block;
 
 import desutine.kismet.ModLogger;
+import desutine.kismet.reference.Items;
 import desutine.kismet.reference.Names;
 import desutine.kismet.tileentity.DisplayTileEntity;
 import desutine.kismet.tileentity.ModBlockContainer;
@@ -18,6 +19,9 @@ import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentBase;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.property.ExtendedBlockState;
@@ -91,17 +95,23 @@ public class DisplayBlock extends ModBlockContainer<DisplayTileEntity> {
 
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
-//        if (worldIn.isRemote) return true;
-
         DisplayTileEntity te = (DisplayTileEntity) worldIn.getTileEntity(pos);
-        if (!te.isFulfilled()) {
-            te.setFulfilled(true);
-//            te.updateClientDisplay();
+
+        // no clients, the following code is server-only for ~safety~ and synchronicity
+        if (worldIn.isRemote){
+            playerIn.addChatComponentMessage(new TextComponentString(te.getTarget().getDisplayName()));
+            return true;
         }
-        if (heldItem != null) {
-            ModLogger.info(String.format("Added %s", heldItem.getDisplayName()));
-            te.setTarget(heldItem);
+
+        if(te == null) return super.onBlockActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX, hitY, hitZ);
+
+        if(heldItem != null && heldItem.isItemEqual(new ItemStack(Items.itemKey))){
+            // key = free regen
+            te.getNewTarget();
+            playerIn.addChatComponentMessage(new TextComponentString(te.getTarget().getDisplayName()));
         }
+
+
         return super.onBlockActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX, hitY, hitZ);
     }
 
