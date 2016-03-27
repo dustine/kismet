@@ -1,6 +1,6 @@
 package desutine.kismet.common;
 
-import desutine.kismet.ModLogger;
+import desutine.kismet.Logger;
 import desutine.kismet.reference.Reference;
 import net.minecraft.client.resources.I18n;
 import net.minecraftforge.common.MinecraftForge;
@@ -23,7 +23,7 @@ import static net.minecraftforge.common.config.Configuration.CATEGORY_GENERAL;
  * Heavily based on TheGreyGhost's MinecraftByExample
  * Source: https://github.com/TheGreyGhost/MinecraftByExample
  */
-public class ModConfig {
+public class ConfigKismet {
     /* START CONFIG FIELDS */
 
     private static final boolean IS_STRICT_DEFAULT = true;
@@ -196,7 +196,7 @@ public class ModConfig {
     }
 
     public static void setTimeLimit(int timeLimit) {
-        ModConfig.timeLimit = timeLimit;
+        ConfigKismet.timeLimit = timeLimit;
         syncFromFields();
     }
 
@@ -205,7 +205,7 @@ public class ModConfig {
     }
 
     public static void setListMode(String listMode) {
-        ModConfig.listMode = listMode;
+        ConfigKismet.listMode = listMode;
         syncFromFields();
     }
 
@@ -214,7 +214,7 @@ public class ModConfig {
     }
 
     public static void setList(String[] list) {
-        ModConfig.list = list;
+        ConfigKismet.list = list;
         syncFromFields();
     }
 
@@ -227,7 +227,7 @@ public class ModConfig {
     }
 
     public static void setChill(boolean chill) {
-        ModConfig.chill = chill;
+        ConfigKismet.chill = chill;
         syncFromFields();
     }
 
@@ -236,7 +236,7 @@ public class ModConfig {
     }
 
     public static void setTimed(boolean timed) {
-        ModConfig.timed = timed;
+        ConfigKismet.timed = timed;
         syncFromFields();
     }
 
@@ -245,7 +245,7 @@ public class ModConfig {
     }
 
     public static void setStrict(boolean strict) {
-        ModConfig.strict = strict;
+        ConfigKismet.strict = strict;
         syncFromFields();
     }
 
@@ -259,9 +259,9 @@ public class ModConfig {
             if (Reference.MODID.equals(event.getModID())) {
                 syncFromGUI();
                 if (event.getConfigID() != null) {
-                    ModLogger.info("Config changed on GUI, category " + event.getConfigID());
+                    Logger.info("Config changed on GUI, category " + event.getConfigID());
                 } else {
-                    ModLogger.info("Config changed on GUI, no category");
+                    Logger.info("Config changed on GUI, no category");
                 }
             }
         }

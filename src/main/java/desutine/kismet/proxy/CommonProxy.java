@@ -1,11 +1,11 @@
 package desutine.kismet.proxy;
 
-import desutine.kismet.common.ModConfig;
-import desutine.kismet.common.Init;
+import desutine.kismet.common.ConfigKismet;
+import desutine.kismet.common.CommonInit;
 import desutine.kismet.Kismet;
-import desutine.kismet.ModLogger;
-import desutine.kismet.network.ModPacketHandler;
-import desutine.kismet.common.event.BlockEventHandler;
+import desutine.kismet.Logger;
+import desutine.kismet.network.PacketHandlerKismet;
+import desutine.kismet.common.event.EventHandlerBlock;
 import desutine.kismet.common.event.EventHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -19,16 +19,16 @@ public abstract class CommonProxy implements IProxy {
     @Override
     public void preInit(FMLPreInitializationEvent event) {
         // load configs
-        ModConfig.preInit();
+        ConfigKismet.preInit();
 
         // register eventhandlers
         MinecraftForge.EVENT_BUS.register(new EventHandler());
-        MinecraftForge.EVENT_BUS.register(new BlockEventHandler());
+        MinecraftForge.EVENT_BUS.register(new EventHandlerBlock());
 
         // register blocks, items, te
-        Init.initBlocks();
-        Init.initItems();
-        Init.initTileEntities();
+        CommonInit.initBlocks();
+        CommonInit.initItems();
+        CommonInit.initTileEntities();
     }
 
     /**
@@ -38,11 +38,11 @@ public abstract class CommonProxy implements IProxy {
     @Override
     public void init(FMLInitializationEvent event) {
         // readying network stuff
-        Kismet.packetHandler = new ModPacketHandler();
+        Kismet.packetHandler = new PacketHandlerKismet();
 
         // debug logs
-        ModLogger.info(GameData.getItemRegistry().getRandomObject(Kismet.random).getRegistryName());
-        ModLogger.info(GameData.getItemRegistry().getKeys().size() + "items?");
+        Logger.info(GameData.getItemRegistry().getRandomObject(Kismet.random).getRegistryName());
+        Logger.info(GameData.getItemRegistry().getKeys().size() + "items?");
     }
 
     /**

@@ -1,9 +1,9 @@
 package desutine.kismet.reference;
 
-import desutine.kismet.common.item.KeyItem;
-import desutine.kismet.common.item.ModItem;
+import desutine.kismet.common.item.ItemKey;
+import desutine.kismet.common.item.ItemKismet;
 
 public class Items {
-    public static final ModItem itemKey = new KeyItem();
+    public static final ItemKismet itemKey = new ItemKey();
 
 }

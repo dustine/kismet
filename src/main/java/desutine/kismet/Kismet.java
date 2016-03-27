@@ -1,6 +1,6 @@
 package desutine.kismet;
 
-import desutine.kismet.network.ModPacketHandler;
+import desutine.kismet.network.PacketHandlerKismet;
 import desutine.kismet.proxy.IProxy;
 import desutine.kismet.reference.Reference;
 import net.minecraft.init.Blocks;
@@ -16,7 +16,7 @@ import java.util.Random;
 @Mod(modid = Reference.MODID, version = Reference.VERSION, guiFactory = Reference.GUI_FACTORY_CLASS)
 public class Kismet {
     public static final Random random = new Random();
-    public static ModPacketHandler packetHandler;
+    public static PacketHandlerKismet packetHandler;
     @Mod.Instance(Reference.MODID)
     public static Kismet instance;
     @SidedProxy(clientSide = Reference.CLIENT_PROXY_CLASS, serverSide = Reference.SERVER_PROXY_CLASS)
@@ -25,10 +25,10 @@ public class Kismet {
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         // get named logger
-        ModLogger.logger = (event.getModLog());
+        Logger.logger = (event.getModLog());
 
         proxy.preInit(event);
-        ModLogger.info("PreInit done, registered X items, X blocks");
+        Logger.info("PreInit done, registered X items, X blocks");
     }
 
     @EventHandler

@@ -1,6 +1,6 @@
-package desutine.kismet.common.tileentity;
+package desutine.kismet.common.block;
 
-import desutine.kismet.common.block.ModBlock;
+import desutine.kismet.common.block.BlockKismet;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -8,13 +8,13 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-public abstract class ModBlockContainer<T extends TileEntity> extends ModBlock implements ITileEntityProvider {
-    public ModBlockContainer() {
+public abstract class ContainerKismet<T extends TileEntity> extends BlockKismet implements ITileEntityProvider {
+    public ContainerKismet() {
         super();
         this.isBlockContainer = true;
     }
 
-    public ModBlockContainer(Material material) {
+    public ContainerKismet(Material material) {
         super(material);
         this.isBlockContainer = true;
     }

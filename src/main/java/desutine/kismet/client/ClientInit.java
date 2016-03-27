@@ -4,8 +4,8 @@ import desutine.kismet.reference.Blocks;
 import desutine.kismet.reference.Items;
 import desutine.kismet.reference.Names;
 import desutine.kismet.reference.Reference;
-import desutine.kismet.common.tileentity.DisplayTileEntity;
-import desutine.kismet.client.renderer.DisplayTileEntityRenderer;
+import desutine.kismet.common.tile.TileDisplay;
+import desutine.kismet.client.renderer.RendererTileDisplay;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.model.ModelLoader;
@@ -14,7 +14,7 @@ import net.minecraftforge.fml.client.registry.ClientRegistry;
 public class ClientInit {
     public static void initTileEntityRenderers() {
         // and their renderers too
-        ClientRegistry.bindTileEntitySpecialRenderer(DisplayTileEntity.class, new DisplayTileEntityRenderer());
+        ClientRegistry.bindTileEntitySpecialRenderer(TileDisplay.class, new RendererTileDisplay());
     }
 
     public static void renderInInventory() {

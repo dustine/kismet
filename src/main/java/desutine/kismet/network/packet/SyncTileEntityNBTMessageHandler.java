@@ -1,6 +1,6 @@
 package desutine.kismet.network.packet;
 
-import desutine.kismet.ModLogger;
+import desutine.kismet.Logger;
 import net.minecraft.client.Minecraft;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
@@ -27,7 +27,7 @@ public class SyncTileEntityNBTMessageHandler implements IMessageHandler<SyncTile
                 try {
                     tileEntity.readFromNBT(message.nbtTagCompound);
                 } catch (Throwable te) {
-                    ModLogger.error(te);
+                    Logger.error(te);
                 }
             }
         });

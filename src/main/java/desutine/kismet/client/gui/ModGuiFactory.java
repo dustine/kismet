@@ -1,7 +1,7 @@
 package desutine.kismet.client.gui;
 
 
-import desutine.kismet.common.ModConfig;
+import desutine.kismet.common.ConfigKismet;
 import desutine.kismet.reference.Reference;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
@@ -44,7 +44,7 @@ public class ModGuiFactory implements IModGuiFactory {
         public ModConfigGui(GuiScreen parentScreen) {
             super(parentScreen, getConfigElements(), Reference.MODID, false, false, null);
 
-            this.title = ModConfig.getConfig().toString();
+            this.title = ConfigKismet.getConfig().toString();
             this.titleLine2 = I18n.format("gui.config.category.main");
         }
 
@@ -52,10 +52,10 @@ public class ModGuiFactory implements IModGuiFactory {
             // REMINDER Check FMLConfigGuiFactory.class for the extra "bells" you can add to the config
             List<IConfigElement> list = new ArrayList<IConfigElement>();
 
-            Configuration config = ModConfig.getConfig();
+            Configuration config = ConfigKismet.getConfig();
 
             list.addAll(new ConfigElement(config.getCategory(Configuration.CATEGORY_GENERAL)).getChildElements());
-            list.add(new DummyConfigElement.DummyCategoryElement(ModConfig.getCategoryList(), "gui.config.category.list", CategoryEntryList.class));
+            list.add(new DummyConfigElement.DummyCategoryElement(ConfigKismet.getCategoryList(), "gui.config.category.list", CategoryEntryList.class));
 
             return list;
         }

@@ -1,9 +1,8 @@
 package desutine.kismet.common.block;
 
+import desutine.kismet.common.tile.TileDisplay;
 import desutine.kismet.reference.Items;
 import desutine.kismet.reference.Names;
-import desutine.kismet.common.tileentity.DisplayTileEntity;
-import desutine.kismet.common.tileentity.ModBlockContainer;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.properties.PropertyInteger;
@@ -26,11 +25,11 @@ import net.minecraftforge.common.property.IUnlistedProperty;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class DisplayBlock extends ModBlockContainer<DisplayTileEntity> {
+public class BlockDisplay extends ContainerKismet<TileDisplay> {
     public static final PropertyInteger STREAK = PropertyInteger.create("streak", 0, 20);
     public static final PropertyBool FULFILLED = PropertyBool.create("fulfilled");
 
-    public DisplayBlock() {
+    public BlockDisplay() {
         super();
         this.setUnlocalizedName(Names.DISPLAY);
 
@@ -42,7 +41,7 @@ public class DisplayBlock extends ModBlockContainer<DisplayTileEntity> {
 
     @Override
     public TileEntity createNewTileEntity(World worldIn, int meta) {
-        return new DisplayTileEntity();
+        return new TileDisplay();
     }
 
     // convert to/from metadata
@@ -61,7 +60,7 @@ public class DisplayBlock extends ModBlockContainer<DisplayTileEntity> {
     @Override
     public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
         IBlockState newState = super.getActualState(state, worldIn, pos);
-        DisplayTileEntity tileEntity = (DisplayTileEntity) worldIn.getTileEntity(pos);
+        TileDisplay tileEntity = (TileDisplay) worldIn.getTileEntity(pos);
         if (tileEntity != null)
             return tileEntity.enrichState(newState);
         else return newState;
@@ -92,7 +91,7 @@ public class DisplayBlock extends ModBlockContainer<DisplayTileEntity> {
 
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
-        DisplayTileEntity te = (DisplayTileEntity) worldIn.getTileEntity(pos);
+        TileDisplay te = (TileDisplay) worldIn.getTileEntity(pos);
 
         // no clients, the following code is server-only for ~safety~ and synchronicity
         if (worldIn.isRemote){

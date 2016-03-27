@@ -1,6 +1,6 @@
 package desutine.kismet.client.gui;
 
-import desutine.kismet.common.ModConfig;
+import desutine.kismet.common.ConfigKismet;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.I18n;
 import net.minecraftforge.common.config.ConfigElement;
@@ -20,8 +20,8 @@ public class CategoryEntryList extends GuiConfigEntries.CategoryEntry {
 
     @Override
     protected GuiScreen buildChildScreen() {
-        Configuration configuration = ModConfig.getConfig();
-        ConfigElement category = new ConfigElement(configuration.getCategory(ModConfig.getCategoryList()));
+        Configuration configuration = ConfigKismet.getConfig();
+        ConfigElement category = new ConfigElement(configuration.getCategory(ConfigKismet.getCategoryList()));
         List<IConfigElement> propertiesOnThisScreen = category.getChildElements();
         // Forge best practices say to put the path to the config file for the category as
         // the title for the category config screen
@@ -29,7 +29,7 @@ public class CategoryEntryList extends GuiConfigEntries.CategoryEntry {
 
         return new GuiConfig(this.owningScreen, propertiesOnThisScreen,
                 this.owningScreen.modID,
-                ModConfig.getCategoryList(),
+                ConfigKismet.getCategoryList(),
                 this.configElement.requiresWorldRestart() || this.owningScreen.allRequireWorldRestart,
                 this.configElement.requiresMcRestart() || this.owningScreen.allRequireMcRestart,
                 windowTitle,

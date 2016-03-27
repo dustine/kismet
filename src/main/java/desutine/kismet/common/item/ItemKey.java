@@ -10,8 +10,8 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-public class KeyItem extends ModItem {
-    public KeyItem() {
+public class ItemKey extends ItemKismet {
+    public ItemKey() {
         super();
         this.setUnlocalizedName(Names.KEY);
     }

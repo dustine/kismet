@@ -1,8 +1,8 @@
-package desutine.kismet.common.tileentity;
+package desutine.kismet.common.tile;
 
 import desutine.kismet.Kismet;
-import desutine.kismet.common.ModConfig;
-import desutine.kismet.common.block.DisplayBlock;
+import desutine.kismet.common.ConfigKismet;
+import desutine.kismet.common.block.BlockDisplay;
 import desutine.kismet.reference.Blocks;
 import desutine.kismet.reference.Items;
 import net.minecraft.block.state.IBlockState;
@@ -20,7 +20,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import java.util.Random;
 
-public class DisplayTileEntity extends TileEntity implements ITickable {
+public class TileDisplay extends TileEntity implements ITickable {
     private static final int STREAK_MAX = 20;
     private int streak;
     private boolean fulfilled;
@@ -30,7 +30,7 @@ public class DisplayTileEntity extends TileEntity implements ITickable {
 //    private String target;
 //    private TargetType type;
 
-    public DisplayTileEntity() {
+    public TileDisplay() {
         // generate a fresh new ip!
 //        target = Reference.MODID + ':' + Names.KEY;
 //        type = TargetType.ITEM;
@@ -55,7 +55,7 @@ public class DisplayTileEntity extends TileEntity implements ITickable {
 
     private boolean checkForDeadline(boolean isDirty) {
         if (getDeadline() < worldObj.getTotalWorldTime()) {
-            setDeadline(worldObj.getTotalWorldTime() + ModConfig.getTimeLimit());
+            setDeadline(worldObj.getTotalWorldTime() + ConfigKismet.getTimeLimit());
 
             if (isFulfilled()) {
                 setStreak(getStreak() + 1);
@@ -132,8 +132,8 @@ public class DisplayTileEntity extends TileEntity implements ITickable {
 //        this.stateChanged = true;
     }
     public IBlockState enrichState(IBlockState state) {
-        return state.withProperty(DisplayBlock.STREAK, getStreak())
-                .withProperty(DisplayBlock.FULFILLED, isFulfilled());
+        return state.withProperty(BlockDisplay.STREAK, getStreak())
+                .withProperty(BlockDisplay.FULFILLED, isFulfilled());
     }@Override
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
