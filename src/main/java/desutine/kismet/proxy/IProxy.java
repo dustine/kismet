@@ -9,4 +9,6 @@ public interface IProxy {
     void initConfig();
 
     void registerTESR();
+
+    void registerBlockItemColor();
 }

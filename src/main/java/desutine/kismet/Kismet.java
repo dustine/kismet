@@ -63,6 +63,9 @@ public class Kismet {
         // register recipes
         ModRecipes.init();
 
+        // register tints
+        proxy.registerBlockItemColor();
+
         // debug logs
         ModLogger.info(GameData.getItemRegistry().getRandomObject(Kismet.random).getRegistryName());
         ModLogger.info(GameData.getItemRegistry().getKeys().size() + "items?");

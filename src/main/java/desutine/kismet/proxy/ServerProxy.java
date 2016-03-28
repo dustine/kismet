@@ -19,4 +19,9 @@ public class ServerProxy extends CommonProxy {
     public void registerTESR() {
         // NOOP
     }
+
+    @Override
+    public void registerBlockItemColor() {
+        // NOOP
+    }
 }

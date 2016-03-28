@@ -60,6 +60,8 @@ public class TileDisplay extends TileEntity implements ITickable {
         }
     }
 
+
+
     private boolean checkForNullTarget() {
         if(getTarget() == null) {
             return getNewTarget();
