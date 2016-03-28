@@ -1,6 +1,6 @@
 package desutine.kismet.proxy;
 
-import desutine.kismet.common.ConfigKismet;
+import desutine.kismet.common.config.ConfigKismet;
 import desutine.kismet.common.CommonInit;
 import desutine.kismet.Kismet;
 import desutine.kismet.Logger;

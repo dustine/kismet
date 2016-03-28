@@ -1,6 +1,6 @@
 package desutine.kismet.client.gui;
 
-import desutine.kismet.common.ConfigKismet;
+import desutine.kismet.common.config.ConfigKismet;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.I18n;
 import net.minecraftforge.common.config.ConfigElement;

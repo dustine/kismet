@@ -1,18 +1,22 @@
-package desutine.kismet.common;
+package desutine.kismet.common.config;
 
 import desutine.kismet.Logger;
 import desutine.kismet.reference.Reference;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.fml.common.event.FMLServerAboutToStartEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -40,12 +44,18 @@ public class ConfigKismet {
     /* END CONFIG FIELDS */
     private static String[] list;
     private static Configuration config;
+
     public static void preInit() {
         File configFile = new File(Loader.instance().getConfigDir(), Reference.MODID + ".cfg");
-        if(config == null)
+        if (config == null)
             config = new Configuration(configFile);
 
+        // fill internal blacklist
+        BlockListHelper.internalBlacklist.add(new ResourceLocation("minecraft:air"));
+
         syncFromFile();
+
+        MinecraftForge.EVENT_BUS.register(new ConfigKismet.CommonConfigEventHandler());
     }
 
     /**
@@ -172,7 +182,7 @@ public class ConfigKismet {
 
     public static void clientPreInit() {
 
-        MinecraftForge.EVENT_BUS.register(new ConfigEventHandler());
+        MinecraftForge.EVENT_BUS.register(new ClientConfigEventHandler());
     }
 
     /**
@@ -249,7 +259,11 @@ public class ConfigKismet {
         syncFromFields();
     }
 
-    private static class ConfigEventHandler {
+    public static ItemStack generateTarget(HashMap<String, Integer> modWeights, List<ItemStack> lastTargets) {
+        return BlockListHelper.generateTarget(modWeights, lastTargets);
+    }
+
+    private static class ClientConfigEventHandler {
         /*
          * This class, when instantiated as an object, will listen on the FML
          *  event bus for an OnConfigChangedEvent
@@ -266,4 +280,12 @@ public class ConfigKismet {
             }
         }
     }
+
+    private static class CommonConfigEventHandler {
+        @SubscribeEvent
+        public void onEvent(FMLServerAboutToStartEvent event) {
+            BlockListHelper.generateInternalList();
+        }
+    }
+
 }
