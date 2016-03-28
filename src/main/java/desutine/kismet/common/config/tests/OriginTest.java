@@ -1,8 +1,8 @@
 package desutine.kismet.common.config.tests;
 
-import desutine.kismet.common.config.InformedResourceLocation;
+import desutine.kismet.common.config.InformedItemStack;
 
-public abstract class OriginTest implements InformedResourceLocation.ITest {
+public abstract class OriginTest implements InformedItemStack.ITest {
     protected boolean passed = false;
     protected final String name;
 

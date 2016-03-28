@@ -1,34 +1,29 @@
 package desutine.kismet.proxy;
 
-import desutine.kismet.client.ClientInit;
+import desutine.kismet.client.renderer.RendererTileDisplay;
 import desutine.kismet.common.config.ConfigKismet;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import desutine.kismet.reference.Names;
+import desutine.kismet.reference.Reference;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+import net.minecraft.item.Item;
+import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 
 public class ClientProxy extends CommonProxy {
-    /**
-     * Run before anything else. Read your config, create blocks, items, etc, and register them with the GameRegistry
-     */
-    public void preInit(FMLPreInitializationEvent event) {
-        super.preInit(event);
+    @Override
+    public void addInventoryModels() {
+                + Names.Items.KEY, "inventory"));
+                ModelResourceLocation(Reference.MODID + ':' + Names.Blocks.DISPLAY, "inventory"));
+    }
+
+    @Override
+    public void initConfig() {
+        ConfigKismet.preInit();
         ConfigKismet.clientPreInit();
-
-        ClientInit.renderInInventory();
-        ClientInit.initTileEntityRenderers();
     }
 
-    /**
-     * Do your mod setup. Build whatever data structures you care about. Register recipes,
-     * send FMLInterModComms messages to other mods.
-     */
-    public void init(FMLInitializationEvent event) {
-        super.init(event);
-    }
-
-    /**
-     * Handle interaction with other mods, complete your setup based on this.
-     */
-    public void postInit() {
-        super.postInit();
+    @Override
+    public void registerTESR() {
+        ClientRegistry.bindTileEntitySpecialRenderer(TileDisplay.class, new RendererTileDisplay());
     }
 }

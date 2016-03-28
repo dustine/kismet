@@ -1,6 +1,6 @@
 package desutine.kismet.common.item;
 
-import desutine.kismet.reference.Blocks;
+import desutine.kismet.common.init.ModBlocks;
 import desutine.kismet.reference.Names;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -13,12 +13,12 @@ import net.minecraft.world.World;
 public class ItemKey extends ItemKismet {
     public ItemKey() {
         super();
-        this.setUnlocalizedName(Names.KEY);
+        this.setUnlocalizedName(Names.Items.KEY);
     }
 
     @Override
     public EnumActionResult onItemUse(ItemStack stack, EntityPlayer playerIn, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-        if(worldIn.getBlockState(pos).getBlock().isAssociatedBlock(Blocks.kismetDisplayBlock)){
+        if(worldIn.getBlockState(pos).getBlock().isAssociatedBlock(ModBlocks.kismetDisplayBlock)){
             stack.stackSize--;
         }
         return EnumActionResult.PASS;

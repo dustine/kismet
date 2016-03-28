@@ -1,6 +1,6 @@
 package desutine.kismet.common.config;
 
-import desutine.kismet.Logger;
+import desutine.kismet.ModLogger;
 import desutine.kismet.reference.Reference;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
@@ -10,11 +10,11 @@ import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.Loader;
-import net.minecraftforge.fml.common.event.FMLServerAboutToStartEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.io.File;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,11 +51,9 @@ public class ConfigKismet {
             config = new Configuration(configFile);
 
         // fill internal blacklist
-        BlockListHelper.internalBlacklist.add(new ResourceLocation("minecraft:air"));
+        BlockListHelper.addToInternalBlacklist(new String[]{"minecraft:air"});
 
         syncFromFile();
-
-        MinecraftForge.EVENT_BUS.register(new ConfigKismet.CommonConfigEventHandler());
     }
 
     /**
@@ -273,18 +271,11 @@ public class ConfigKismet {
             if (Reference.MODID.equals(event.getModID())) {
                 syncFromGUI();
                 if (event.getConfigID() != null) {
-                    Logger.info("Config changed on GUI, category " + event.getConfigID());
+                    ModLogger.info("Config changed on GUI, category " + event.getConfigID());
                 } else {
-                    Logger.info("Config changed on GUI, no category");
+                    ModLogger.info("Config changed on GUI, no category");
                 }
             }
-        }
-    }
-
-    private static class CommonConfigEventHandler {
-        @SubscribeEvent
-        public void onEvent(FMLServerAboutToStartEvent event) {
-            BlockListHelper.generateInternalList();
         }
     }
 

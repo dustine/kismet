@@ -1,0 +1,113 @@
+{
+  "elements": [
+    {
+      "from": [2, 2, 0],
+      "to": [14, 3, 1],
+      "faces": {
+        "up": {
+          "texture": "#rim"
+        },
+        "down": {
+          "texture": "#rim"
+        },
+        "north": {
+          "texture": "#rim"
+        },
+        "east": {
+          "texture": "#rim"
+        },
+        "south": {
+          "texture": "#rim"
+        },
+        "west": {
+          "texture": "#rim"
+        }
+      }
+    }, {
+      "from": [2, 13, 0],
+      "to": [14, 14, 1],
+      "faces": {
+        "up": {
+          "texture": "#rim"
+        },
+        "down": {
+          "texture": "#rim"
+        },
+        "north": {
+          "texture": "#rim"
+        },
+        "east": {
+          "texture": "#rim"
+        },
+        "south": {
+          "texture": "#rim"
+        },
+        "west": {
+          "texture": "#rim"
+        }
+      }
+    }, {
+      "from": [2, 3, 0],
+      "to": [3, 13, 1],
+      "faces": {
+        "north": {
+          "texture": "#rim"
+        },
+        "east": {
+          "texture": "#rim"
+        },
+        "south": {
+          "texture": "#rim"
+        },
+        "west": {
+          "texture": "#rim"
+        }
+      }
+    }, {
+      "from": [13, 3, 0],
+      "to": [14, 13, 1],
+      "faces": {
+        "north": {
+          "texture": "#rim"
+        },
+        "east": {
+          "texture": "#rim"
+        },
+        "south": {
+          "texture": "#rim"
+        },
+        "west": {
+          "texture": "#rim"
+        }
+      }
+    }, {
+      "from": [2, 2, 0.5],
+      "to": [14, 14, 1],
+      "faces": {
+        "north": {
+          "texture": "#frame"
+        },
+        "south": {
+          "texture": "#rim"
+        }
+      }
+    }, {
+      "from": [7, 7, 0.25],
+      "to": [9, 9, 2.25],
+      "faces": {
+        "up": {
+          "texture": "#frame"
+        },
+        "down": {
+          "texture": "#frame"
+        },
+        "east": {
+          "texture": "#frame"
+        },
+        "west": {
+          "texture": "#frame"
+        }
+      }
+    },
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "textures": {
+      "particle": "minecraft:blocks/lapis_block",
+      "body": "minecraft:blocks/lapis_block",
+      "top": "minecraft:blocks/stone_slab_top",
+      "top-side": "minecraft:blocks/stone_slab_side",
+      "pivot": "kismet:block/pillar-top",
+      "bottom": "minecraft:blocks/lapis_block",
+      "bottom-side": "minecraft:blocks/lapis_block",
+      "rim": "minecraft:blocks/planks_birch",
+      "frame": "minecraft:blocks/itemframe_background"
+    },
+    "model": "kismet:display",
+    "transform": "forge:default-block"
+  },
+  "variants": {
+    "normal": [{}],
+    "inventory": [
+      {
+        "model": "kismet:display",
+        "transform": "forge:default-block",
+        "rim": "minecraft:blocks/planks_birch",
+        "frame": "minecraft:blocks/itemframe_background"
+      }
+    ],
+    "facing": {
+      "up": {},
+      "down": {},
+      "north": {},
+      "east": {
+        "y": 90
+      },
+      "south": {
+        "y": 90
+      },
+      "west": {
+        "y": 90
+      }
+    },
+    "fulfilled": {
+      "false": {
+        "submodel": {
+          "frame-in": {
+            "model": "kismet:frame"
+          }
+        }
+      },
+      "true": {
+        "submodel": {
+          "frame-out": {
+            "model": "kismet:frame",
+            "transform": {
+              "translate": [0, 0, -0.5]
+            }
+          }
+        }
+      }
+    }
+  }
+}

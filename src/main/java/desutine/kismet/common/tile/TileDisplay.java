@@ -3,8 +3,9 @@ package desutine.kismet.common.tile;
 import desutine.kismet.Kismet;
 import desutine.kismet.common.config.ConfigKismet;
 import desutine.kismet.common.block.BlockDisplay;
-import desutine.kismet.reference.Blocks;
+import desutine.kismet.common.init.ModBlocks;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -39,7 +40,7 @@ public class TileDisplay extends TileEntity implements ITickable {
 //        type = TargetType.ITEM;
         super();
         modWeights = new HashMap<String, Integer>();
-//        setTarget(new ItemStack(Items.itemKey));
+//        setTarget(new ItemStack(ModItems.itemKey));
         lastTargets = new ArrayList<ItemStack>();
     }
 
@@ -84,7 +85,7 @@ public class TileDisplay extends TileEntity implements ITickable {
     @SideOnly(Side.CLIENT)
     private void updateClientDisplay() {
         IBlockState oldState = worldObj.getBlockState(pos);
-        IBlockState newState = Blocks.kismetDisplayBlock.getActualState(oldState, worldObj, pos);
+        IBlockState newState = ModBlocks.kismetDisplayBlock.getActualState(oldState, worldObj, pos);
         // kinda of a hack but really only to force the block to update in tone ._.
         worldObj.markAndNotifyBlock(pos, worldObj.getChunkFromBlockCoords(pos), oldState, newState, 2);
     }
@@ -151,7 +152,8 @@ public class TileDisplay extends TileEntity implements ITickable {
 //        this.stateChanged = true;
     }
     public IBlockState enrichState(IBlockState state) {
-        return state.withProperty(BlockDisplay.STREAK, getStreak())
+//        return state.withProperty(BlockDisplay.STREAK, getStreak())
+        return state
                 .withProperty(BlockDisplay.FULFILLED, isFulfilled());
     }@Override
     public void readFromNBT(NBTTagCompound compound) {
@@ -161,7 +163,8 @@ public class TileDisplay extends TileEntity implements ITickable {
         setStreak(compound.getInteger("streak"));
         setFulfilled(compound.getBoolean("fulfilled"));
         if (compound.hasKey("target")) {
-            getTarget().readFromNBT(compound.getCompoundTag("target"));
+            if(target==null) setTarget(ItemStack.loadItemStackFromNBT(compound.getCompoundTag("target")));
+            else getTarget().readFromNBT(compound.getCompoundTag("target"));
         }
 
         // 10 for COMPOUND, check NBTBase
@@ -235,7 +238,7 @@ public class TileDisplay extends TileEntity implements ITickable {
 
     public void setTarget(ItemStack target) {
         this.target = target;
-        // not really needed as it's used up by the TESR so that updates in real time-ish
+        // fixme why is this not needed?
 //        this.stateChanged = true;
     }
 }

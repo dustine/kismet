@@ -1,6 +1,6 @@
 package desutine.kismet.reference;
 
-public class Reference {
+public final class Reference {
     public static final String MODID = "kismet";
     public static final String VERSION = "0.0.0+1.9";
     public static final String SERVER_PROXY_CLASS = "desutine.kismet.proxy.ServerProxy";

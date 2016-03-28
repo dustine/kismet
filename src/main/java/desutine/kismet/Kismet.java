@@ -1,15 +1,21 @@
 package desutine.kismet;
 
+import desutine.kismet.common.config.BlockListHelper;
+import desutine.kismet.common.init.ModBlocks;
+import desutine.kismet.common.init.ModItems;
+import desutine.kismet.common.init.ModRecipes;
+import desutine.kismet.common.init.ModTiles;
 import desutine.kismet.network.PacketHandlerKismet;
 import desutine.kismet.proxy.IProxy;
 import desutine.kismet.reference.Reference;
-import net.minecraft.init.Blocks;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.registry.GameData;
 
 import java.util.Random;
 
@@ -22,25 +28,52 @@ public class Kismet {
     @SidedProxy(clientSide = Reference.CLIENT_PROXY_CLASS, serverSide = Reference.SERVER_PROXY_CLASS)
     public static IProxy proxy;
 
+    /**
+     * Run before anything else. Read your config, create blocks, items, etc, and register them with the GameRegistry
+     */
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-        // get named logger
-        Logger.logger = (event.getModLog());
+        // register logger
+        ModLogger.logger = (event.getModLog());
 
-        proxy.preInit(event);
-        Logger.info("PreInit done, registered X items, X blocks");
+        // load configs
+        proxy.initConfig();
+
+        // register blocks, items, tile entities
+        ModBlocks.init();
+        ModItems.init();
+        proxy.addInventoryModels();
+        ModTiles.init();
+        proxy.registerTESR();
+
+        // register eventhandlers
+        MinecraftForge.EVENT_BUS.register(new desutine.kismet.common.event.EventHandler());
+//        MinecraftForge.EVENT_BUS.register(new EventHandlerBlock());
     }
 
+    /**
+     * Do your mod setup. Build whatever data structures you care about. Register recipes,
+     * send FMLInterModComms messages to other mods.
+     */
     @EventHandler
     public void init(FMLInitializationEvent event) {
-        // some example code
-        System.out.println("DIRT BLOCK >> " + Blocks.dirt.getUnlocalizedName());
+        // readying network stuff
+        Kismet.packetHandler = new PacketHandlerKismet();
 
-        proxy.init(event);
+        // register recipes
+        ModRecipes.init();
+
+        // debug logs
+        ModLogger.info(GameData.getItemRegistry().getRandomObject(Kismet.random).getRegistryName());
+        ModLogger.info(GameData.getItemRegistry().getKeys().size() + "items?");
     }
 
+    /**
+     * Handle interaction with other mods, complete your setup based on this.
+     */
     @EventHandler
     public void postInit(FMLPostInitializationEvent event) {
-        proxy.postInit();
+        // finish generating item tree
+        BlockListHelper.generateInternalList();
     }
 }

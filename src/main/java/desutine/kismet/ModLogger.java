@@ -3,7 +3,7 @@ package desutine.kismet;
 import net.minecraftforge.fml.common.FMLLog;
 import org.apache.logging.log4j.Level;
 
-public class Logger {
+public class ModLogger {
     static org.apache.logging.log4j.Logger logger = FMLLog.getLogger();
 
     /**

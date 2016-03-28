@@ -1,10 +1,11 @@
 package desutine.kismet.common.block;
 
 import desutine.kismet.common.tile.TileDisplay;
-import desutine.kismet.reference.Items;
+import desutine.kismet.common.init.ModItems;
 import desutine.kismet.reference.Names;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
+import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
@@ -26,35 +27,49 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class BlockDisplay extends ContainerKismet<TileDisplay> {
-    public static final PropertyInteger STREAK = PropertyInteger.create("streak", 0, 20);
+//    public static final PropertyInteger STREAK = PropertyInteger.create("streak", 0, 20);
     public static final PropertyBool FULFILLED = PropertyBool.create("fulfilled");
+    public static final PropertyEnum<EnumFacing> FACING = PropertyEnum.create("facing", EnumFacing.class);
 
     public BlockDisplay() {
         super();
-        this.setUnlocalizedName(Names.DISPLAY);
+        this.setUnlocalizedName(Names.Blocks.DISPLAY);
 
         // declaring properties
         setDefaultState(blockState.getBaseState()
-                .withProperty(STREAK, 0)
-                .withProperty(FULFILLED, false));
+//                .withProperty(STREAK, 0)
+                .withProperty(FULFILLED, false)
+//                .withProperty(FACING, EnumFacing.NORTH));
+        );
     }
+
+
 
     @Override
     public TileEntity createNewTileEntity(World worldIn, int meta) {
         return new TileDisplay();
     }
 
-    // convert to/from metadata
+    // convert from metadata
     @Override
     public IBlockState getStateFromMeta(int meta) {
-        return getDefaultState();
+        return getDefaultState()
+                .withProperty(FULFILLED, ((meta & 0b0100) == 0b0100))
+//                .withProperty(FACING, EnumFacing.HORIZONTALS[meta & 0b0011]);
+        ;
     }
 
-    // metadata doesn't matter in this case
-    // convert to/from metadata
+    // convert to metadata
     @Override
     public int getMetaFromState(IBlockState state) {
-        return 0;
+//        int facing = state.getValue(FACING).getHorizontalIndex();
+        int facing = 0;
+        facing &= 0b0011;
+
+        int fulfilled = state.getValue(FULFILLED)? 0b0100 : 0b0000;
+        fulfilled &= 0b0100;
+
+        return facing + fulfilled;
     }
 
     @Override
@@ -93,20 +108,19 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
         TileDisplay te = (TileDisplay) worldIn.getTileEntity(pos);
 
-        // no clients, the following code is server-only for ~safety~ and synchronicity
         if (worldIn.isRemote){
+            if(te.getTarget() == null) return false;
+            if(heldItem != null) return false;
             playerIn.addChatComponentMessage(new TextComponentString(te.getTarget().getDisplayName()));
-            return true;
+            return false;
         }
-
+        // no clients, the following code is server-only for ~safety~ and synchronicity
         if(te == null) return super.onBlockActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX, hitY, hitZ);
 
-        if(heldItem != null && heldItem.isItemEqual(new ItemStack(Items.itemKey))){
+        if(heldItem != null && heldItem.isItemEqual(new ItemStack(ModItems.itemKey))){
             // key = free regen
             te.getNewTarget();
-            playerIn.addChatComponentMessage(new TextComponentString(te.getTarget().getDisplayName()));
         }
-
 
         return super.onBlockActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX, hitY, hitZ);
     }
@@ -119,7 +133,9 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
     // returning block state
     @Override
     protected BlockStateContainer createBlockState() {
-        IProperty[] listedProperties = new IProperty[] {STREAK, FULFILLED};
+//        IProperty[] listedProperties = new IProperty[] {STREAK, FULFILLED, FACING};
+//        IProperty[] listedProperties = new IProperty[] {FULFILLED, FACING};
+        IProperty[] listedProperties = new IProperty[] {FULFILLED};
         IUnlistedProperty[] unlistedProperties = new IUnlistedProperty[] {};
         return new ExtendedBlockState(this, listedProperties, unlistedProperties);
     }
