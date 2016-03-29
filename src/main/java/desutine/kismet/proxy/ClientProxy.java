@@ -50,28 +50,4 @@ public class ClientProxy extends CommonProxy {
         Minecraft.getMinecraft().getBlockColors().registerBlockColorHandler(new ModBlockColor(), ModBlocks
                 .DISPLAY);
     }
-
-    @Override
-    public boolean onDisplayBlockSideActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ, TileDisplay te) {
-        if(te == null || te.getTarget() == null) return false;
-            if(heldItem != null) return true;
-            IItemListOverlay itemList = JeiIntegration.itemListOverlay;
-            if(itemList != null) {
-                // JEI integration?
-//                Minecraft.getMinecraft().displayGuiScreen(new GuiInventory(playerIn));
-
-                String name=te.getTarget().getDisplayName();
-                String mod = te.getTarget().getItem().getRegistryName();
-                mod = mod.substring(0, mod.indexOf(":"));
-                name = String.format("%s @%s", name, mod);
-                try {
-                    itemList.setFilterText(name);
-                } catch (NullPointerException ignored){}
-            }
-            playerIn.addChatComponentMessage(new TextComponentString(te.getTarget().getDisplayName()));
-            long remaining = te.getDeadline() - worldIn.getTotalWorldTime();
-            String remainingString = DurationFormatUtils.formatDurationHMS(remaining * (1000/20));
-            playerIn.addChatComponentMessage(new TextComponentString(remainingString));
-            return false;
-    }
 }

@@ -35,16 +35,4 @@ public class ServerProxy extends CommonProxy {
         // NOOP
     }
 
-    @Override
-    public boolean onDisplayBlockSideActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ, TileDisplay te) {
-        if(te == null) return false;
-
-        // If right-clicked with the key in any hand, regen the item
-        if(heldItem != null && heldItem.isItemEqual(new ItemStack(ModItems.itemKey))){ // key = free regen
-            te.getNewTarget();
-            return true;
-        }
-
-        return false;
-    }
 }

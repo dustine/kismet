@@ -1,9 +1,11 @@
 package desutine.kismet.common.tile;
 
 import desutine.kismet.Kismet;
+import desutine.kismet.ModLogger;
 import desutine.kismet.common.config.ConfigKismet;
 import desutine.kismet.common.block.BlockDisplay;
 import desutine.kismet.common.init.ModBlocks;
+import desutine.kismet.network.KismetPacketHandler;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -14,6 +16,8 @@ import net.minecraft.network.play.INetHandlerPlayClient;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
@@ -30,10 +34,26 @@ public class TileDisplay extends TileEntity implements ITickable {
     private HashMap<String, Integer> modWeights;
     private boolean stateChanged;
 
+
     public TileDisplay() {
         super();
         modWeights = new HashMap<String, Integer>();
         lastTargets = new ArrayList<ItemStack>();
+    }
+
+    /**
+     * Called whenever the block and/or its metadata changes
+     * @param world
+     * @param pos
+     * @param oldState
+     * @param newSate
+     * @return true forces the TE to be recreated
+     */
+    @Override
+    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
+        if(oldState.getBlock() != newSate.getBlock()) return true;
+        if(oldState.getBlock() != ModBlocks.DISPLAY) return true;
+        return false;
     }
 
     @Override
@@ -48,7 +68,7 @@ public class TileDisplay extends TileEntity implements ITickable {
         }
         if (this.worldObj.isRemote && this.stateChanged) {
             stateChanged = false;
-            forceBlockStateUpdate();
+            // forceBlockStateUpdate();
         }
     }
 
@@ -60,6 +80,7 @@ public class TileDisplay extends TileEntity implements ITickable {
         if (getDeadline() < worldObj.getTotalWorldTime()) {
             setDeadline(worldObj.getTotalWorldTime() + ConfigKismet.getTimeLimit());
 
+            // todo only increment streak in one place pls
             if (isFulfilled()) {
                 setStreak(getStreak() + 1);
             } else {
@@ -95,16 +116,6 @@ public class TileDisplay extends TileEntity implements ITickable {
         // only server pls
         if(worldObj.isRemote) return false;
 
-//        int nrBlocks = GameData.getBlockRegistry().getKeys().size();
-//        int nrItems = GameData.getItemRegistry().getKeys().size();
-//        Random random = new Random();
-//        if(random.nextDouble() < ((double) nrBlocks) / (nrItems + nrBlocks)){
-//            // blocks
-//            target = new ItemStack(GameData.getBlockRegistry().getRandomObject(random));
-//        } else {
-//            // items
-//            target = new ItemStack(GameData.getItemRegistry().getRandomObject(random));
-//        }
         ItemStack target = ConfigKismet.generateTarget(modWeights, lastTargets);
         setTarget(target);
         if(target == null) return false;
@@ -247,7 +258,7 @@ public class TileDisplay extends TileEntity implements ITickable {
         boolean oldFulfilled = state.getValue(BlockDisplay.FULFILLED);
         // optimization trick, less state packets
         if(oldFulfilled == fulfilled) return;
-        state.withProperty(BlockDisplay.FULFILLED, fulfilled);
+        state = state.withProperty(BlockDisplay.FULFILLED, fulfilled);
         worldObj.setBlockState(pos, state);
     }
 }

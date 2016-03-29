@@ -5,7 +5,7 @@ import desutine.kismet.common.init.ModBlocks;
 import desutine.kismet.common.init.ModItems;
 import desutine.kismet.common.init.ModRecipes;
 import desutine.kismet.common.init.ModTiles;
-import desutine.kismet.network.PacketHandlerKismet;
+import desutine.kismet.network.KismetPacketHandler;
 import desutine.kismet.proxy.IProxy;
 import desutine.kismet.reference.Reference;
 import net.minecraftforge.common.MinecraftForge;
@@ -22,7 +22,7 @@ import java.util.Random;
 @Mod(modid = Reference.MODID, version = Reference.VERSION, guiFactory = Reference.GUI_FACTORY_CLASS)
 public class Kismet {
     public static final Random random = new Random();
-    public static PacketHandlerKismet packetHandler;
+    public static KismetPacketHandler packetHandler;
     @Mod.Instance(Reference.MODID)
     public static Kismet instance;
     @SidedProxy(clientSide = Reference.CLIENT_PROXY_CLASS, serverSide = Reference.SERVER_PROXY_CLASS)
@@ -49,6 +49,9 @@ public class Kismet {
         // register eventhandlers
         MinecraftForge.EVENT_BUS.register(new desutine.kismet.common.event.EventHandler());
 //        MinecraftForge.EVENT_BUS.register(new EventHandlerBlock());
+
+        // start network channels
+        packetHandler = new KismetPacketHandler();
     }
 
     /**
@@ -57,9 +60,6 @@ public class Kismet {
      */
     @EventHandler
     public void init(FMLInitializationEvent event) {
-        // readying network stuff
-        Kismet.packetHandler = new PacketHandlerKismet();
-
         // register recipes
         ModRecipes.init();
 

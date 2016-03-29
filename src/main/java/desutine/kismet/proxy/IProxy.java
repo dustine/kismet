@@ -17,6 +17,4 @@ public interface IProxy {
     void registerTESR();
 
     void registerBlockItemColor();
-
-    boolean onDisplayBlockSideActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ, TileDisplay te);
 }

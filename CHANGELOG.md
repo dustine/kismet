@@ -1,9 +1,9 @@
 # Change Log
 All notable changes to this project, and henceforth the mod, will be documented on this file.
 
-This project adheres to a modified version of [Semantic Versioning](http://semver.org), to accommodate to the specific nature of the Minecraft modding environment, more concretely categorizing Major changes as API changing or Mod changing (leading to world issues).
+This project adheres to a *modified* version of [Semantic Versioning](http://semver.org) to accommodate to the specific nature of the Minecraft modding environment, more concretely splitting and categorizing Major changes as API changing or Mod changing (API changing plus leading to world issues) and adding the targetted minecraft version upfront.
 
-Details about this versioning system can be found [here (original version)](http://mcforge.readthedocs.org/en/latest/conventions/versioning/#versioning) and here (modified version used on this ), although release candidates and final denotations will use `+` instead of `-` to adhere back to Semver.
+Details about this versioning system can be found [here](http://mcforge.readthedocs.org/en/latest/conventions/versioning/#versioning).
 
 ## [Unreleased]
 ### Added

@@ -84,36 +84,31 @@ public class ConfigKismet {
         Pattern listPattern = Pattern.compile("([0-9a-z]+)(:[0-9a-z]+)?");
 
         boolean HAS_CHILL_DEFAULT = true;
-        Property propHasChill = config.get(CATEGORY_GENERAL, "chill", HAS_CHILL_DEFAULT, I18n.format("gui.config.chill" + ".tooltip"))
+        Property propHasChill = config.get(CATEGORY_GENERAL, "chill", HAS_CHILL_DEFAULT)
                 .setLanguageKey("gui.config.chill")
                 .setRequiresMcRestart(true);
 
         boolean HAS_TIMED_DEFAULT = true;
-        Property propHasTimed = config.get(CATEGORY_GENERAL, "timed", HAS_TIMED_DEFAULT, I18n.format
-                ("gui.config.timed" + ".tooltip"))
+        Property propHasTimed = config.get(CATEGORY_GENERAL, "timed", HAS_TIMED_DEFAULT)
                 .setLanguageKey("gui.config.timed")
                 .setRequiresMcRestart(true);
 
         int TIME_LIMIT_DEFAULT = 24000;
         int TIME_LIMIT_MIN = 20;
         int TIME_LIMIT_MAX = Integer.MAX_VALUE;
-        Property propTimeLimit = config.get(CATEGORY_GENERAL, "timeLimit", TIME_LIMIT_DEFAULT, I18n
-                .format("gui.config.timeLimit" + ".tooltip"))
+        Property propTimeLimit = config.get(CATEGORY_GENERAL, "timeLimit", TIME_LIMIT_DEFAULT)
                 .setLanguageKey("gui.config.timeLimit")
                 .setMinValue(TIME_LIMIT_MIN)
                 .setMaxValue(TIME_LIMIT_MAX);
 
-        Property propIsStrict = config.get(getCategoryList(), "strict", IS_STRICT_DEFAULT, I18n.format("gui.config" +
-                ".list.strict" + ".tooltip"))
+        Property propIsStrict = config.get(getCategoryList(), "strict", IS_STRICT_DEFAULT)
                 .setLanguageKey("gui.config.list.strict");
 
-        Property propListMode = config.get(getCategoryList(), "listMode", LIST_MODE_DEFAULT, I18n.format("gui.config" +
-                ".list.listMode" + ".tooltip"))
+        Property propListMode = config.get(getCategoryList(), "listMode", LIST_MODE_DEFAULT)
                 .setLanguageKey("gui.config.list.listMode")
                 .setValidValues(LIST_MODE_CHOICES);
 
-        Property propList = config.get(getCategoryList(), "list", LIST_DEFAULT, I18n.format("gui.config.list.list" +
-                ".tooltip"))
+        Property propList = config.get(getCategoryList(), "list", LIST_DEFAULT)
                 .setLanguageKey("gui.config.list.list")
                 .setValidationPattern(listPattern);
 

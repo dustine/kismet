@@ -1,6 +1,5 @@
 package desutine.kismet.common.block;
 
-import desutine.kismet.Kismet;
 import desutine.kismet.ModLogger;
 import desutine.kismet.client.JeiIntegration;
 import desutine.kismet.common.tile.TileDisplay;
@@ -12,6 +11,8 @@ import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -21,7 +22,7 @@ import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.*;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.property.ExtendedBlockState;
@@ -29,6 +30,10 @@ import net.minecraftforge.common.property.IUnlistedProperty;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.commons.lang3.time.DurationFormatUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class BlockDisplay extends ContainerKismet<TileDisplay>{
 //    public static final PropertyInteger STREAK = PropertyInteger.create("streak", 0, 20);
@@ -107,22 +112,121 @@ public class BlockDisplay extends ContainerKismet<TileDisplay>{
 
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
+        // correcting state not being correct -_-
+        state = worldIn.getBlockState(pos);
+
         // just consume the event if block is fulfilled
         ModLogger.info(String.format("%s %s %s", state, playerIn, hand
                 .toString()));
-        if(state.getValue(FULFILLED)) return true;
 
         TileDisplay te = (TileDisplay) worldIn.getTileEntity(pos);
-        // check if the item is correct
-        if(heldItem != null && te!=null && heldItem.isItemEqual(te.getTarget())){
+        // do nothing if tile-entity is borked
+        if(te == null) return false;
+
+        // Check if the heldItem is the target
+        if(heldItem != null && heldItem.isItemEqual(te.getTarget()) && !state.getValue(FULFILLED)){
             // fulfilled target~
-            worldIn.setBlockState(pos, state.withProperty(FULFILLED, true));
+            setTargetAsFulfilled(worldIn, pos);
             return true;
         }
 
+        if(worldIn.isRemote) {
+            // logical client
+            // try JEI/NEI integration
+            if(te.getTarget() == null) return false;
+            boolean success = doJeiIntegration(te, playerIn);
 
-        return Kismet.proxy.onDisplayBlockSideActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX,
-                hitY, hitZ, te);
+            if(!success && heldItem == null && hand==EnumHand.MAIN_HAND){
+                // only if right-clicking with an empty hand (main hand to avoid double spam)
+                // do we print the extra info
+                // todo: I18n these strings
+                String targetString = String.format("[Kismet] Current target: %s", te.getTarget().getDisplayName());
+                playerIn.addChatComponentMessage(new TextComponentString(targetString).setChatStyle(new Style().setColor(TextFormatting.AQUA)));
+
+                List<ITextComponent> timedTextComponents = new ArrayList<>();
+                timedTextComponents.add(new TextComponentString("Target expires in "));
+
+                long remaining = te.getDeadline() - worldIn.getTotalWorldTime();
+                String remainingTime = DurationFormatUtils.formatDurationHMS(remaining * (1000/20));
+                Style timerStyle = new Style();
+                if(remaining <= 15*60*20){
+                    if (remaining > 10*60*20) {
+                        timerStyle.setColor(TextFormatting.YELLOW);
+                    } else if (remaining > 5*60*20) {
+                        timerStyle.setColor(TextFormatting.RED);
+                    } else {
+                        timerStyle.setColor(TextFormatting.RED)
+                                .setBold(true);
+                    }
+                }
+                timedTextComponents.add(new TextComponentString(remainingTime).setChatStyle(timerStyle));
+                timedTextComponents.add(new TextComponentString(", ongoing streak of "));
+
+                int streak = te.getStreak()/10;
+                Style streakStyle = new Style();
+                TextFormatting[] colors = new TextFormatting[]{
+                        TextFormatting.WHITE,
+                        TextFormatting.GREEN,
+                        TextFormatting.DARK_BLUE,
+                        TextFormatting.LIGHT_PURPLE,
+                        TextFormatting.GOLD
+                };
+                if(streak > colors.length){
+                    // set the last colour
+                    streakStyle.setColor(colors[colors.length-1]);
+                } else {
+                    streakStyle.setColor(colors[streak]);
+                }
+                timedTextComponents.add(new TextComponentString("" + streak).setChatStyle(streakStyle));
+                timedTextComponents.add(new TextComponentString(" item(s)"));
+
+                Optional<ITextComponent> result = timedTextComponents.stream().reduce(ITextComponent::appendSibling);
+                if(result.isPresent()){
+                    playerIn.addChatComponentMessage(result.get());
+                }
+            }
+
+            return false;
+        } else {
+            // logical server
+            // If right-clicked with the key in any hand (while the target is unfulfilled), regen the item
+            if(heldItem != null && heldItem.isItemEqual(new ItemStack(ModItems.itemKey)) && !state.getValue(FULFILLED)){
+                // key = free regen
+                te.getNewTarget();
+                return true;
+            }
+        }
+
+        return super.onBlockActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX, hitY, hitZ);
+    }
+
+    private boolean doJeiIntegration(TileDisplay te, EntityPlayer playerIn) {
+        IItemListOverlay itemList = JeiIntegration.itemListOverlay;
+        if(itemList != null) {
+            try {
+                String oldFilter = itemList.getFilterText();
+
+                String filter=te.getTarget().getDisplayName();
+                String mod = te.getTarget().getItem().getRegistryName();
+                mod = mod.substring(0, mod.indexOf(":"));
+                filter = String.format("%s @%s", filter, mod);
+                if(oldFilter.equalsIgnoreCase(filter)) return false;
+
+                // empty hand = give information about the block
+                Minecraft.getMinecraft().displayGuiScreen(new GuiInventory(playerIn));
+                itemList.setFilterText(filter);
+            } catch (NullPointerException e){
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    public void setTargetAsFulfilled(World worldIn, BlockPos pos) {
+        TileDisplay te = (TileDisplay) worldIn.getTileEntity(pos);
+        te.setStreak(te.getStreak()+1);
+        worldIn.setBlockState(pos, worldIn.getBlockState(pos).withProperty(FULFILLED, true));
     }
 
     @Override
