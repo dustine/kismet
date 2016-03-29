@@ -46,8 +46,8 @@ public class InformedItemStack {
         void test(ItemStack test);
     }
 
-//        ModBlocks.kismetDisplayBlock.getHarvestLevel();
-//        ModBlocks.kismetDisplayBlock.getBlockState().getValidStates()
+//        ModBlocks.DISPLAY.getHarvestLevel();
+//        ModBlocks.DISPLAY.getBlockState().getValidStates()
 
     public boolean isObtainable() {
         return originTests.stream().anyMatch(input -> input != null && input.hasPassed()) || processTests.stream().anyMatch(input -> input != null && input.hasPassed());

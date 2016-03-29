@@ -5,7 +5,6 @@ import desutine.kismet.common.config.ConfigKismet;
 import desutine.kismet.common.block.BlockDisplay;
 import desutine.kismet.common.init.ModBlocks;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -25,48 +24,36 @@ import java.util.List;
 public class TileDisplay extends TileEntity implements ITickable {
     private static final int STREAK_MAX = 20;
     private int streak;
-    private boolean fulfilled;
     private long deadline;
     private ItemStack target;
     private List<ItemStack> lastTargets;
     private HashMap<String, Integer> modWeights;
     private boolean stateChanged;
-//    private String target;
-//    private TargetType type;
 
     public TileDisplay() {
-        // generate a fresh new ip!
-//        target = Reference.MODID + ':' + Names.KEY;
-//        type = TargetType.ITEM;
         super();
         modWeights = new HashMap<String, Integer>();
-//        setTarget(new ItemStack(ModItems.itemKey));
         lastTargets = new ArrayList<ItemStack>();
     }
 
     @Override
     public void update() {
-        // isDirty is set to true whenever the internal state of the block is changed
+        // isDirty is set to true whenever the internal state of the tile is changed
         // name coming from the parent's method markDirty()
-        boolean isDirty = false;
-        isDirty |= checkForDeadline();
+        boolean isDirty;
+        isDirty = checkForDeadline();
         isDirty |= checkForNullTarget();
         if (isDirty) {
             markDirty();
         }
         if (this.worldObj.isRemote && this.stateChanged) {
             stateChanged = false;
-            updateClientDisplay();
+            forceBlockStateUpdate();
         }
     }
 
-
-
     private boolean checkForNullTarget() {
-        if(getTarget() == null) {
-            return getNewTarget();
-        }
-        return false;
+        return getTarget() == null && getNewTarget();
     }
 
     private boolean checkForDeadline() {
@@ -85,19 +72,15 @@ public class TileDisplay extends TileEntity implements ITickable {
     }
 
     @SideOnly(Side.CLIENT)
-    private void updateClientDisplay() {
+    private void forceBlockStateUpdate() {
         IBlockState oldState = worldObj.getBlockState(pos);
-        IBlockState newState = ModBlocks.kismetDisplayBlock.getActualState(oldState, worldObj, pos);
+        IBlockState newState = ModBlocks.DISPLAY.getActualState(oldState, worldObj, pos);
         // kinda of a hack but really only to force the block to update in tone ._.
         worldObj.markAndNotifyBlock(pos, worldObj.getChunkFromBlockCoords(pos), oldState, newState, 2);
     }
 
     public long getDeadline() {
         return deadline;
-    }
-
-    public boolean isFulfilled() {
-        return fulfilled;
     }
 
     public int getStreak() {
@@ -139,31 +122,30 @@ public class TileDisplay extends TileEntity implements ITickable {
         if(this.streak > STREAK_MAX) {
             this.streak = STREAK_MAX;
             // don't cause a state update if the old streak was already over the max
-            if(oldStreak > STREAK_MAX) return;
+//            if(oldStreak > STREAK_MAX) return;
         }
-        this.stateChanged = true;
+//        this.stateChanged = true;
     }
 
-    public void setFulfilled(boolean fulfilled) {
-        this.fulfilled = fulfilled;
-        this.stateChanged = true;
-    }
     public void setDeadline(long deadline) {
         this.deadline = deadline;
         // not really needed as it's not directly related to display
 //        this.stateChanged = true;
     }
+
     public IBlockState enrichState(IBlockState state) {
 //        return state.withProperty(BlockDisplay.STREAK, getStreak())
-        return state
-                .withProperty(BlockDisplay.FULFILLED, isFulfilled());
-    }@Override
+        return state;
+//                .withProperty(BlockDisplay.FULFILLED, isFulfilled());
+    }
+
+    @Override
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
 
         setDeadline(compound.getLong("deadline"));
         setStreak(compound.getInteger("streak"));
-        setFulfilled(compound.getBoolean("fulfilled"));
+//        setFulfilled(compound.getBoolean("fulfilled"));
         if (compound.hasKey("target")) {
             if(target==null) setTarget(ItemStack.loadItemStackFromNBT(compound.getCompoundTag("target")));
             else getTarget().readFromNBT(compound.getCompoundTag("target"));
@@ -192,7 +174,7 @@ public class TileDisplay extends TileEntity implements ITickable {
 
         compound.setLong("deadline", getDeadline());
         compound.setInteger("streak", getStreak());
-        compound.setBoolean("fulfilled", isFulfilled());
+//        compound.setBoolean("fulfilled", isFulfilled());
         // target can be null :/
         if (getTarget() != null) {
             NBTTagCompound targetTag = new NBTTagCompound();
@@ -218,7 +200,6 @@ public class TileDisplay extends TileEntity implements ITickable {
         compound.setTag("lastTargets", lastTargetsNbt);
     }
 
-
     @Override
     public Packet<INetHandlerPlayClient> getDescriptionPacket() {
         NBTTagCompound nbtTagCompound = new NBTTagCompound();
@@ -226,13 +207,10 @@ public class TileDisplay extends TileEntity implements ITickable {
         return new SPacketUpdateTileEntity(this.pos, getBlockMetadata(), nbtTagCompound);
     }
 
-
-
     @Override
     public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
         readFromNBT(pkt.getNbtCompound());
     }
-
 
     public ItemStack getTarget() {
         return target;
@@ -242,5 +220,34 @@ public class TileDisplay extends TileEntity implements ITickable {
         this.target = target;
         // fixme why is this not needed?
 //        this.stateChanged = true;
+    }
+
+    public List<ItemStack> getLastTargets() {
+        return lastTargets;
+    }
+
+    public void setLastTargets(List<ItemStack> lastTargets) {
+        this.lastTargets = lastTargets;
+    }
+
+    public HashMap<String, Integer> getModWeights() {
+        return modWeights;
+    }
+
+    public void setModWeights(HashMap<String, Integer> modWeights) {
+        this.modWeights = modWeights;
+    }
+
+    private boolean isFulfilled() {
+        return worldObj.getBlockState(pos).getValue(BlockDisplay.FULFILLED);
+    }
+
+    private void setFulfilled(boolean fulfilled) {
+        IBlockState state = worldObj.getBlockState(pos);
+        boolean oldFulfilled = state.getValue(BlockDisplay.FULFILLED);
+        // optimization trick, less state packets
+        if(oldFulfilled == fulfilled) return;
+        state.withProperty(BlockDisplay.FULFILLED, fulfilled);
+        worldObj.setBlockState(pos, state);
     }
 }

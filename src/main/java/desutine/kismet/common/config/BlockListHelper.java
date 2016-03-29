@@ -106,7 +106,7 @@ public class BlockListHelper {
 
             if(max == 0){
                 // max is still 0, which means we have absolutely no blocks to add as a target. this is horrible!
-                // let's log it and force the target to be some loser unobtainable item
+                // let's _log it and force the target to be some loser unobtainable item
                 ModLogger.error("No targets to pick from!");
                 // todo That said loser item, using itemKey for now
                 return new ItemStack(ModItems.itemKey);

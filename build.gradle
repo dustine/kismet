@@ -23,9 +23,7 @@ repositories {
 apply plugin: 'net.minecraftforge.gradle.forge'
 
 dependencies {
-    println("Adding dependencies...")
-    deobfCompile "mezz.jei:jei_1.9:3.1.0.170"
-    println("Added!")
+    deobfCompile "mezz.jei:jei_1.9:3.1.2.172"
 }
 
 /*
@@ -34,12 +32,12 @@ plugins {
     id "net.minecraftforge.gradle.forge" version "2.0.2"
 }
 */
-version = "0.0.0+1.9"
-group= "com.desutine.kismet" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+version = "1.9-0.0.1.0"
+group= "desutine.kismet" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "Kismet"
 
 minecraft {
-    version = "1.9-12.16.0.1811-1.9"
+    version = "1.9-12.16.0.1812-1.9"
     runDir = "run"
     useDepAts = true
 

@@ -18,7 +18,7 @@ public class ItemKey extends ItemKismet {
 
     @Override
     public EnumActionResult onItemUse(ItemStack stack, EntityPlayer playerIn, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-        if(worldIn.getBlockState(pos).getBlock().isAssociatedBlock(ModBlocks.kismetDisplayBlock)){
+        if(worldIn.getBlockState(pos).getBlock().isAssociatedBlock(ModBlocks.DISPLAY)){
             stack.stackSize--;
         }
         return EnumActionResult.PASS;

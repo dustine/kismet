@@ -10,10 +10,10 @@ public class ModLogger {
      * A severe error that will prevent the application from continuing.
      */
     public static void fatal(Object message) {
-        log(Level.FATAL, message);
+        _log(Level.FATAL, message);
     }
 
-    public static void log(Level level, Object message) {
+    public static void _log(Level level, Object message) {
         logger.log(level, message.toString());
     }
 
@@ -21,10 +21,10 @@ public class ModLogger {
      * A severe error that will prevent the application from continuing.
      */
     public static void fatal(Object message, Throwable ex) {
-        log(Level.FATAL, message, ex);
+        _log(Level.FATAL, message, ex);
     }
 
-    private static void log(Level level, Object message, Throwable ex) {
+    private static void _log(Level level, Object message, Throwable ex) {
         logger.log(level, message.toString(), ex);
     }
 
@@ -32,41 +32,41 @@ public class ModLogger {
      * An error in the application, possibly recoverable.
      */
     public static void error(Object message, Throwable ex) {
-        log(Level.ERROR, message, ex);
+        _log(Level.ERROR, message, ex);
     }
 
     /**
      * An error in the application, possibly recoverable.
      */
     public static void error(Object message) {
-        log(Level.ERROR, message);
+        _log(Level.ERROR, message);
     }
 
     /**
      * An event that might possible lead to an error.
      */
     public static void warning(Object message) {
-        log(Level.WARN, message);
+        _log(Level.WARN, message);
     }
 
     /**
      * An event for informational purposes.
      */
     public static void info(Object message) {
-        log(Level.INFO, message);
+        _log(Level.INFO, message);
     }
 
     /**
      * A general debugging event.
      */
     public static void debug(Object message) {
-        log(Level.DEBUG, message);
+        _log(Level.DEBUG, message);
     }
 
     /**
      * A fine-grained debug message, typically capturing the flow through the application.
      */
     public static void trace(Object message) {
-        log(Level.TRACE, message);
+        _log(Level.TRACE, message);
     }
 }

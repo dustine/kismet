@@ -1,16 +1,10 @@
 package desutine.kismet.common.init;
 
-import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
-import desutine.kismet.ModLogger;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.oredict.ShapedOreRecipe;
-
-import java.util.Set;
 
 public class ModRecipes {
     public static void init() {
@@ -19,7 +13,7 @@ public class ModRecipes {
 //            item frame  | !blockLapis              | clock
 //
 //            = Timed Kismet Display
-        GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ModBlocks.kismetDisplayBlock), " i ", "dse", "flc",
+        GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ModBlocks.DISPLAY), " i ", "dse", "flc",
                 'i', new ItemStack(Blocks.heavy_weighted_pressure_plate),
                 'd', "gemDiamond",
                 's', new ItemStack(Blocks.stone_slab),
@@ -34,7 +28,7 @@ public class ModRecipes {
 //            so you don't need to remember if diamond and emerald are on the left or right
 //            same for the item frame and clock because minecraft does mirrored recipes automatically~
 
-        GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ModBlocks.kismetDisplayBlock), " i ", "esd", "flc",
+        GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ModBlocks.DISPLAY), " i ", "esd", "flc",
                 'i', new ItemStack(Blocks.heavy_weighted_pressure_plate),
                 'e', "gemEmerald",
                 's', new ItemStack(Blocks.stone_slab),
