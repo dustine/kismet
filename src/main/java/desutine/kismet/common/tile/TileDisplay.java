@@ -36,6 +36,13 @@ public class TileDisplay extends TileEntity implements ITickable {
     private List<ItemStack> lastTargets;
     private HashMap<String, Integer> modWeights;
     private boolean stateChanged;
+    private final TextFormatting[] colors = new TextFormatting[]{
+            TextFormatting.WHITE,
+            TextFormatting.GREEN,
+            TextFormatting.BLUE,
+            TextFormatting.DARK_PURPLE,
+            TextFormatting.GOLD
+    };
 
 
     public TileDisplay() {
@@ -88,14 +95,7 @@ public class TileDisplay extends TileEntity implements ITickable {
     public String getStylizedStreak() {
         int deliminator = getStreak()/10;
         String styleCode;
-        TextFormatting[] colors = new TextFormatting[]{
-                TextFormatting.WHITE,
-                TextFormatting.GREEN,
-                TextFormatting.DARK_BLUE,
-                TextFormatting.LIGHT_PURPLE,
-                TextFormatting.GOLD
-        };
-        if(deliminator > colors.length){
+        if(deliminator >= colors.length){
             // set the last colour
             styleCode = colors[colors.length-1].toString();
         } else {
@@ -177,12 +177,10 @@ public class TileDisplay extends TileEntity implements ITickable {
         int oldStreak = this.streak;
         this.streak = streak;
         // TO-DO: Unhardcode the streak limit
-        if(this.streak > STREAK_MAX) {
-            this.streak = STREAK_MAX;
+        if(oldStreak == streak) return;
             // don't cause a state update if the old streak was already over the max
 //            if(oldStreak > STREAK_MAX) return;
-        }
-//        this.stateChanged = true;
+        this.stateChanged = true;
     }
 
     public void setDeadline(long deadline) {
