@@ -132,58 +132,52 @@ public class BlockDisplay extends ContainerKismet<TileDisplay>{
 
         if(worldIn.isRemote) {
             // logical client
-            // try JEI/NEI integration
+            // no target = no gain
             if(te.getTarget() == null) return false;
-            boolean success = doJeiIntegration(te, playerIn);
+            // okay so, if right-clicked with a Kismetic Key, while it not being the target, because stuff happens at
+            // server-side, return true
+            if(heldItem != null && heldItem.isItemEqual(new ItemStack(ModItems.itemKey)) && !state.getValue(FULFILLED)) {
+                return true;
+            }
 
-            if(!success && heldItem == null && hand==EnumHand.MAIN_HAND){
-                // only if right-clicking with an empty hand (main hand to avoid double spam)
-                // do we print the extra info
+            if(hand==EnumHand.MAIN_HAND){
+                // only on main hand to avoid spam
                 // todo: I18n these strings
-                String targetString = String.format("[Kismet] Current target: %s", te.getTarget().getDisplayName());
-                playerIn.addChatComponentMessage(new TextComponentString(targetString).setChatStyle(new Style().setColor(TextFormatting.AQUA)));
+                String targetString;
 
-                List<ITextComponent> timedTextComponents = new ArrayList<>();
-                timedTextComponents.add(new TextComponentString("Target expires in "));
-
-                long remaining = te.getDeadline() - worldIn.getTotalWorldTime();
-                String remainingTime = DurationFormatUtils.formatDurationHMS(remaining * (1000/20));
-                Style timerStyle = new Style();
-                if(remaining <= 15*60*20){
-                    if (remaining > 10*60*20) {
-                        timerStyle.setColor(TextFormatting.YELLOW);
-                    } else if (remaining > 5*60*20) {
-                        timerStyle.setColor(TextFormatting.RED);
+                if(state.getValue(FULFILLED)){
+                    // add the streak, or not, if it is 2+
+                    if(te.getStreak()>1){
+                        targetString = String.format("[Kismet] Target §afulfilled§r (streak: %s), next target in %s",
+                                te.getStylizedStreak(), te.getStylizedDeadline());
                     } else {
-                        timerStyle.setColor(TextFormatting.RED)
-                                .setBold(true);
+                        targetString = String.format("[Kismet] Target §afulfilled§r, next target in %s",
+                                te.getStylizedDeadline());
                     }
-                }
-                timedTextComponents.add(new TextComponentString(remainingTime).setChatStyle(timerStyle));
-                timedTextComponents.add(new TextComponentString(", ongoing streak of "));
 
-                int streak = te.getStreak()/10;
-                Style streakStyle = new Style();
-                TextFormatting[] colors = new TextFormatting[]{
-                        TextFormatting.WHITE,
-                        TextFormatting.GREEN,
-                        TextFormatting.DARK_BLUE,
-                        TextFormatting.LIGHT_PURPLE,
-                        TextFormatting.GOLD
-                };
-                if(streak > colors.length){
-                    // set the last colour
-                    streakStyle.setColor(colors[colors.length-1]);
+                    playerIn.addChatComponentMessage(new TextComponentString(targetString));
                 } else {
-                    streakStyle.setColor(colors[streak]);
-                }
-                timedTextComponents.add(new TextComponentString("" + streak).setChatStyle(streakStyle));
-                timedTextComponents.add(new TextComponentString(" item(s)"));
+                    // special highlight on the target, to make it pop out
+                    targetString = String.format("[Kismet] Current target: §b§o%s",
+                            te.getTarget().getDisplayName());
 
-                Optional<ITextComponent> result = timedTextComponents.stream().reduce(ITextComponent::appendSibling);
-                if(result.isPresent()){
-                    playerIn.addChatComponentMessage(result.get());
+                    playerIn.addChatComponentMessage(new TextComponentString(targetString));
+
+                    // if it isn't fulfilled, the extra info goes into a second line
+                    // streak goes in if 2+
+                    String timedString;
+                    if(te.getStreak()>1){
+                        timedString = String.format("Target expires in %s, ongoing streak of %s item(s)",
+                                te.getStylizedDeadline(), te.getStylizedStreak());
+                    } else {
+                        timedString = String.format("Target expires in %s", te.getStylizedDeadline());
+                    }
+
+                    playerIn.addChatComponentMessage(new TextComponentString(timedString));
                 }
+
+                // try JEI/NEI integration
+                boolean success = doJeiIntegration(te, playerIn);
             }
 
             return false;
@@ -238,10 +232,7 @@ public class BlockDisplay extends ContainerKismet<TileDisplay>{
 
     @Override
     public IBlockState onBlockPlaced(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
-        final EnumFacing horizontal= placer.getHorizontalFacing().rotateY().rotateY();
-        IBlockState state = getStateFromMeta(meta).withProperty(FACING, horizontal);
-        int newMeta = getMetaFromState(state);
-        return super.onBlockPlaced(worldIn, pos, facing, hitX, hitY, hitZ, newMeta, placer);
+        return this.getDefaultState().withProperty(FACING, placer.getHorizontalFacing().getOpposite());
     }
 
     // returning block state

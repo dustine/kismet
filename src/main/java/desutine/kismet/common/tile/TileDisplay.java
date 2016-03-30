@@ -17,9 +17,12 @@ import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,6 +59,53 @@ public class TileDisplay extends TileEntity implements ITickable {
         return false;
     }
 
+    public String getStylizedDeadline() {
+        // format the time remaining as hh:mm:ss
+        // less error-prone way to get the seconds already rounded up
+        final long l = getDeadline() - worldObj.getTotalWorldTime();
+        long remainingTime = l /20 + (l%20 == 0 ? 0 : 1);
+
+        // yellow -> red -> bold red
+        String styleCode;
+        if(remainingTime <= 15*60){
+            if (remainingTime > 10*60) {
+                styleCode = TextFormatting.YELLOW.toString();
+            } else if (remainingTime > 5*60) {
+                styleCode = TextFormatting.RED.toString();
+            } else {
+                // bold after colour
+                styleCode = TextFormatting.RED.toString() + TextFormatting.BOLD.toString();
+            }
+        } else styleCode = "";
+
+        String remainingTimeString = DurationFormatUtils.formatDurationHMS(remainingTime * 1000);
+        remainingTimeString = remainingTimeString.substring(0, remainingTimeString.indexOf("."));
+
+        String resetStyleCode = TextFormatting.RESET.toString();
+        return styleCode + remainingTimeString + resetStyleCode;
+    }
+
+    public String getStylizedStreak() {
+        int deliminator = getStreak()/10;
+        String styleCode;
+        TextFormatting[] colors = new TextFormatting[]{
+                TextFormatting.WHITE,
+                TextFormatting.GREEN,
+                TextFormatting.DARK_BLUE,
+                TextFormatting.LIGHT_PURPLE,
+                TextFormatting.GOLD
+        };
+        if(deliminator > colors.length){
+            // set the last colour
+            styleCode = colors[colors.length-1].toString();
+        } else {
+            styleCode = colors[deliminator].toString();
+        }
+
+        String resetStyleCode = TextFormatting.RESET.toString();
+        return styleCode + streak + resetStyleCode;
+    }
+
     @Override
     public void update() {
         // isDirty is set to true whenever the internal state of the tile is changed
@@ -80,10 +130,7 @@ public class TileDisplay extends TileEntity implements ITickable {
         if (getDeadline() < worldObj.getTotalWorldTime()) {
             setDeadline(worldObj.getTotalWorldTime() + ConfigKismet.getTimeLimit());
 
-            // todo only increment streak in one place pls
-            if (isFulfilled()) {
-                setStreak(getStreak() + 1);
-            } else {
+            if (!isFulfilled()) {
                 setStreak(0);
             }
 
@@ -249,7 +296,7 @@ public class TileDisplay extends TileEntity implements ITickable {
         this.modWeights = modWeights;
     }
 
-    private boolean isFulfilled() {
+    public boolean isFulfilled() {
         return worldObj.getBlockState(pos).getValue(BlockDisplay.FULFILLED);
     }
 

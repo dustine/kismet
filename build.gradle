@@ -108,12 +108,6 @@ task syncLiveResources (type: Sync, dependsOn: "clearLiveResources", group:"live
     exclude "mcmod.info"
 }
 
-task syncBackLiveResources (type: Sync, group:"liveresources") {
-    from "run/resourcepacks/Live/"
-    into "src/main/resources"
-    exclude ("pack.mcmeta", "mcmod.info")
-}
-
 task liveResources (dependsOn: "syncLiveResources", group:"liveresources") {
     doLast {
         String version = minecraft.version
