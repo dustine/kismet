@@ -200,6 +200,13 @@ public class BlockDisplay extends ContainerKismet<TileDisplay>{
         return super.onBlockActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX, hitY, hitZ);
     }
 
+    @Override
+    public boolean canPlaceBlockOnSide(World worldIn, BlockPos pos, EnumFacing side) {
+        // no placing blocks!
+//        return false;
+        return super.canPlaceBlockOnSide(worldIn, pos, side);
+    }
+
     private boolean doJeiIntegration(TileDisplay te, EntityPlayer playerIn) {
         IItemListOverlay itemList = JeiIntegration.itemListOverlay;
         if(itemList != null) {

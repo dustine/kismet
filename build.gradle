@@ -32,7 +32,7 @@ plugins {
     id "net.minecraftforge.gradle.forge" version "2.0.2"
 }
 */
-version = "1.9-0.0.1.0"
+version = "1.9-0.0.2.0"
 group= "desutine.kismet" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "Kismet"
 
@@ -91,5 +91,39 @@ processResources
     // copy everything else, thats not the mcmod.info
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
+    }
+}
+
+
+task clearLiveResources(type: Delete, group:"liveresources") {
+    delete "run/resourcepacks/Live"
+    doLast {
+        new File("run/resourcepacks/Live").mkdirs()
+    }
+}
+
+task syncLiveResources (type: Sync, dependsOn: "clearLiveResources", group:"liveresources") {
+    from "src/main/resources"
+    into "run/resourcepacks/Live"
+    exclude "mcmod.info"
+}
+
+task syncBackLiveResources (type: Sync, group:"liveresources") {
+    from "run/resourcepacks/Live/"
+    into "src/main/resources"
+    exclude ("pack.mcmeta", "mcmod.info")
+}
+
+task liveResources (dependsOn: "syncLiveResources", group:"liveresources") {
+    doLast {
+        String version = minecraft.version
+        version = version.substring(version.indexOf('.') + 1)
+        int subVersion = Integer.parseInt(version)
+        int packFormat = subVersion < 8 ? 1 : 2
+
+        File file = new File("run/resourcepacks/Live/pack.mcmeta")
+        file.withWriter { out ->
+            out.println String.format("{\"pack\":{\"pack_format\":%d,\"description\":\"Resource pack that copies resources from src/main\"}}",packFormat)
+        }
     }
 }
