@@ -1,34 +1,18 @@
 package desutine.kismet.client.renderer;
 
-import com.google.common.collect.Lists;
-import desutine.kismet.ModLogger;
 import desutine.kismet.common.block.BlockDisplay;
 import desutine.kismet.common.tile.TileDisplay;
-import javafx.scene.shape.VertexFormat;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.*;
-import net.minecraft.client.renderer.block.model.*;
-import net.minecraft.client.renderer.entity.RenderMagmaCube;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.item.ItemSkull;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.MathHelper;
-import net.minecraftforge.client.event.RenderBlockOverlayEvent;
-import net.minecraftforge.client.event.RenderHandEvent;
-import net.minecraftforge.client.model.IPerspectiveAwareModel;
-import net.minecraftforge.client.model.ModelLoader;
-import net.minecraftforge.common.model.TRSRTransformation;
-import org.apache.commons.lang3.tuple.Pair;
-import org.lwjgl.opengl.GL11;
 
-import javax.vecmath.Matrix4f;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -40,19 +24,19 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
      */
     @Override
     public void renderTileEntityAt(TileDisplay te, double x, double y, double z, float partialTicks, int destroyStage) {
-        if(te == null) return;
+        if (te == null) return;
 
         // if we don't have a fulfilled target, show it
-        if(!te.isFulfilled()){
+        if (!te.isFulfilled()) {
             renderTargetItem(te, x, y, z);
         }
 
         // always show the label above though
         // BUT make it snazzy: only show the streak if 2+
         final float textBoxOffset = 0.4f;
-        if(te.getStreak()>1){
+        if (te.getStreak() > 1) {
             renderTextBox(x, y + textBoxOffset, z,
-                    Arrays.asList("Streak: "+te.getStylizedStreak(), te.getStylizedDeadline()));
+                    Arrays.asList("Streak: " + te.getStylizedStreak(), te.getStylizedDeadline()));
         } else {
             renderTextLabel(x, y + textBoxOffset, z, te.getStylizedDeadline());
         }
@@ -82,8 +66,7 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
 //            ModLogger.info(model.getQuads(null, null, 0));
 //            TRSRTransformation
 
-            if (!itemRenderer.shouldRenderItemIn3D(te.getTarget()) || te.getTarget().getItem() instanceof ItemSkull)
-            {
+            if (!itemRenderer.shouldRenderItemIn3D(te.getTarget()) || te.getTarget().getItem() instanceof ItemSkull) {
                 GlStateManager.rotate(180.0F, 0.0F, -1.0F, 0.0F);
             } else {
                 GlStateManager.scale(1.25, 1.25, 1.25);
@@ -115,7 +98,7 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         float playerAngle = renderManager.playerViewY;
         GlStateManager.rotate(-playerAngle, 0.0F, 1.0F, 0.0F);
         // take into account 3rd person view
-        GlStateManager.rotate((float)(renderManager.options.thirdPersonView == 2 ? -1 : 1) * renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
+        GlStateManager.rotate((float) (renderManager.options.thirdPersonView == 2 ? -1 : 1) * renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
         // one more rotate of my own so the text doesn't render backwards
         GlStateManager.rotate(180, 0, 0, 1);
         // scale it so IT DOESN'T TAKE THE WHOLE SKY, OMG
@@ -142,7 +125,7 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         int stringWidth = fontRenderer.getStringWidth(
                 lines.stream()
                         .max((o1, o2) -> fontRenderer.getStringWidth(o1) - fontRenderer.getStringWidth(o2))
-                        .orElseGet(() -> "")) /2;
+                        .orElseGet(() -> "")) / 2;
 
         Tessellator tessellator = Tessellator.getInstance();
         VertexBuffer vertexBuffer = tessellator.getBuffer();
@@ -151,16 +134,16 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         // no weird coordinates because we already set everything up on the tranforms
         // 7?
         vertexBuffer.begin(7, DefaultVertexFormats.POSITION_COLOR);
-        vertexBuffer.pos(-stringWidth - 1, -(9*lines.size()-8), 0).color(0.0f, 0.0f, 0.0f, 0.25f).endVertex();
+        vertexBuffer.pos(-stringWidth - 1, -(9 * lines.size() - 8), 0).color(0.0f, 0.0f, 0.0f, 0.25f).endVertex();
         vertexBuffer.pos(-stringWidth - 1, 8, 0).color(0.0f, 0.0f, 0.0f, 0.25f).endVertex();
         vertexBuffer.pos(stringWidth + 1, 8, -0).color(0.0f, 0.0f, 0.0f, 0.25f).endVertex();
-        vertexBuffer.pos(stringWidth + 1, -(9*lines.size()-8), 0).color(0.0f, 0.0f, 0.0f, 0.25f).endVertex();
+        vertexBuffer.pos(stringWidth + 1, -(9 * lines.size() - 8), 0).color(0.0f, 0.0f, 0.0f, 0.25f).endVertex();
         tessellator.draw();
         // ?
         GlStateManager.enableTexture2D();
 
         for (int i = 0; i < lines.size(); i++)
-            fontRenderer.drawString(lines.get(i), -fontRenderer.getStringWidth(lines.get(i)) / 2, -(i*9), 0xFFFFFF);
+            fontRenderer.drawString(lines.get(i), -fontRenderer.getStringWidth(lines.get(i)) / 2, -(i * 9), 0xFFFFFF);
 //        fontRenderer.FONT_HEIGHT
 
         GlStateManager.enableDepth();

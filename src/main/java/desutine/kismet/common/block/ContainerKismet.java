@@ -1,6 +1,5 @@
 package desutine.kismet.common.block;
 
-import desutine.kismet.common.block.BlockKismet;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;

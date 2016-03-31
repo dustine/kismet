@@ -213,7 +213,7 @@ public class BlockListHelper {
         String targetMod = null;
         for (String mod : metrics.keySet()) {
             sum += metrics.get(mod);
-            if(sum > r){
+            if (sum > r) {
                 targetMod = mod;
                 break;
             }
@@ -303,7 +303,7 @@ public class BlockListHelper {
                 GameData.getBlockRegistry().getKeys()) {
             Block block = GameData.getBlockRegistry().getObject(loc);
             ItemStack itemStack = new ItemStack(block);
-            if(itemStack.getItem() == null) continue;
+            if (itemStack.getItem() == null) continue;
             completeList.add(new InformedItemStack(itemStack));
         }
         // add items
@@ -311,7 +311,7 @@ public class BlockListHelper {
                 GameData.getItemRegistry().getKeys()) {
             Item item = GameData.getItemRegistry().getObject(loc);
             ItemStack itemStack = new ItemStack(item);
-            if(itemStack.getItem() == null) continue;
+            if (itemStack.getItem() == null) continue;
             completeList.add(new InformedItemStack(itemStack));
         }
     }

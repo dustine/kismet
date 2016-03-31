@@ -2,8 +2,8 @@ package desutine.kismet.common.block;
 
 import desutine.kismet.ModLogger;
 import desutine.kismet.client.JeiIntegration;
-import desutine.kismet.common.tile.TileDisplay;
 import desutine.kismet.common.init.ModItems;
+import desutine.kismet.common.tile.TileDisplay;
 import desutine.kismet.reference.Names;
 import mezz.jei.api.IItemListOverlay;
 import net.minecraft.block.properties.IProperty;
@@ -22,21 +22,16 @@ import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.*;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.property.ExtendedBlockState;
 import net.minecraftforge.common.property.IUnlistedProperty;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.apache.commons.lang3.time.DurationFormatUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-public class BlockDisplay extends ContainerKismet<TileDisplay>{
-//    public static final PropertyInteger STREAK = PropertyInteger.create("streak", 0, 20);
+public class BlockDisplay extends ContainerKismet<TileDisplay> {
+    //    public static final PropertyInteger STREAK = PropertyInteger.create("streak", 0, 20);
     public static final PropertyBool FULFILLED = PropertyBool.create("fulfilled");
     public static final PropertyEnum<EnumFacing> FACING = PropertyEnum.create("facing", EnumFacing.class);
 
@@ -50,7 +45,6 @@ public class BlockDisplay extends ContainerKismet<TileDisplay>{
                 .withProperty(FULFILLED, false)
                 .withProperty(FACING, EnumFacing.NORTH));
     }
-
 
 
     @Override
@@ -72,7 +66,7 @@ public class BlockDisplay extends ContainerKismet<TileDisplay>{
         int facing = state.getValue(FACING).getHorizontalIndex();
         facing &= 0b0011;
 
-        int fulfilled = state.getValue(FULFILLED)? 0b0100 : 0b0000;
+        int fulfilled = state.getValue(FULFILLED) ? 0b0100 : 0b0000;
         fulfilled &= 0b0100;
 
         return facing + fulfilled;
@@ -111,6 +105,13 @@ public class BlockDisplay extends ContainerKismet<TileDisplay>{
     }
 
     @Override
+    public boolean canPlaceBlockOnSide(World worldIn, BlockPos pos, EnumFacing side) {
+        // no placing blocks!
+//        return false;
+        return super.canPlaceBlockOnSide(worldIn, pos, side);
+    }
+
+    @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
         // correcting state not being correct -_-
         state = worldIn.getBlockState(pos);
@@ -121,33 +122,33 @@ public class BlockDisplay extends ContainerKismet<TileDisplay>{
 
         TileDisplay te = (TileDisplay) worldIn.getTileEntity(pos);
         // do nothing if tile-entity is borked
-        if(te == null) return false;
+        if (te == null) return false;
 
         // Check if the heldItem is the target
-        if(heldItem != null && heldItem.isItemEqual(te.getTarget()) && !state.getValue(FULFILLED)){
+        if (heldItem != null && heldItem.isItemEqual(te.getTarget()) && !state.getValue(FULFILLED)) {
             // fulfilled target~
             setTargetAsFulfilled(worldIn, pos);
             return true;
         }
 
-        if(worldIn.isRemote) {
+        if (worldIn.isRemote) {
             // logical client
             // no target = no gain
-            if(te.getTarget() == null) return false;
+            if (te.getTarget() == null) return false;
             // okay so, if right-clicked with a Kismetic Key, while it not being the target, because stuff happens at
             // server-side, return true
-            if(heldItem != null && heldItem.isItemEqual(new ItemStack(ModItems.itemKey)) && !state.getValue(FULFILLED)) {
+            if (heldItem != null && heldItem.isItemEqual(new ItemStack(ModItems.itemKey)) && !state.getValue(FULFILLED)) {
                 return true;
             }
 
-            if(hand==EnumHand.MAIN_HAND){
+            if (hand == EnumHand.MAIN_HAND) {
                 // only on main hand to avoid spam
                 // todo: I18n these strings
                 String targetString;
 
-                if(state.getValue(FULFILLED)){
+                if (state.getValue(FULFILLED)) {
                     // add the streak, or not, if it is 2+
-                    if(te.getStreak()>1){
+                    if (te.getStreak() > 1) {
                         targetString = String.format("[Kismet] Target §afulfilled§r (streak: %s), next target in %s",
                                 te.getStylizedStreak(), te.getStylizedDeadline());
                     } else {
@@ -166,7 +167,7 @@ public class BlockDisplay extends ContainerKismet<TileDisplay>{
                     // if it isn't fulfilled, the extra info goes into a second line
                     // streak goes in if 2+
                     String timedString;
-                    if(te.getStreak()>1){
+                    if (te.getStreak() > 1) {
                         timedString = String.format("Target expires in %s, ongoing streak of %s item(s)",
                                 te.getStylizedDeadline(), te.getStylizedStreak());
                     } else {
@@ -184,7 +185,7 @@ public class BlockDisplay extends ContainerKismet<TileDisplay>{
         } else {
             // logical server
             // If right-clicked with the key in any hand (while the target is unfulfilled), regen the item
-            if(heldItem != null && heldItem.isItemEqual(new ItemStack(ModItems.itemKey)) && !state.getValue(FULFILLED)){
+            if (heldItem != null && heldItem.isItemEqual(new ItemStack(ModItems.itemKey)) && !state.getValue(FULFILLED)) {
                 // key = free regen
                 te.getNewTarget();
                 return true;
@@ -194,40 +195,33 @@ public class BlockDisplay extends ContainerKismet<TileDisplay>{
         return super.onBlockActivated(worldIn, pos, state, playerIn, hand, heldItem, side, hitX, hitY, hitZ);
     }
 
-    @Override
-    public boolean canPlaceBlockOnSide(World worldIn, BlockPos pos, EnumFacing side) {
-        // no placing blocks!
-//        return false;
-        return super.canPlaceBlockOnSide(worldIn, pos, side);
+    public void setTargetAsFulfilled(World worldIn, BlockPos pos) {
+        TileDisplay te = (TileDisplay) worldIn.getTileEntity(pos);
+        te.setStreak(te.getStreak() + 1);
+        worldIn.setBlockState(pos, worldIn.getBlockState(pos).withProperty(FULFILLED, true));
     }
 
     private boolean doJeiIntegration(TileDisplay te, EntityPlayer playerIn) {
         IItemListOverlay itemList = JeiIntegration.itemListOverlay;
-        if(itemList != null) {
+        if (itemList != null) {
             try {
                 String oldFilter = itemList.getFilterText();
 
-                String filter=te.getTarget().getDisplayName();
+                String filter = te.getTarget().getDisplayName();
                 String mod = te.getTarget().getItem().getRegistryName();
                 mod = mod.substring(0, mod.indexOf(":"));
                 filter = String.format("%s @%s", filter, mod);
-                if(oldFilter.equalsIgnoreCase(filter)) return false;
+                if (oldFilter.equalsIgnoreCase(filter)) return false;
 
                 // empty hand = give information about the block
                 Minecraft.getMinecraft().displayGuiScreen(new GuiInventory(playerIn));
                 itemList.setFilterText(filter);
-            } catch (NullPointerException e){
+            } catch (NullPointerException e) {
                 return false;
             }
             return true;
         }
         return false;
-    }
-
-    public void setTargetAsFulfilled(World worldIn, BlockPos pos) {
-        TileDisplay te = (TileDisplay) worldIn.getTileEntity(pos);
-        te.setStreak(te.getStreak()+1);
-        worldIn.setBlockState(pos, worldIn.getBlockState(pos).withProperty(FULFILLED, true));
     }
 
     @Override

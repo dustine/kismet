@@ -17,6 +17,8 @@ import net.minecraftforge.fml.relauncher.Side;
 
 public class KismetPacketHandler {
 
+    private static int discriminator;
+    private final SimpleNetworkWrapper channel;
     public KismetPacketHandler() {
         // registering channel
         channel = NetworkRegistry.INSTANCE.newSimpleChannel(Reference.MODID);
@@ -25,22 +27,19 @@ public class KismetPacketHandler {
                 Side.CLIENT);
     }
 
-    private final SimpleNetworkWrapper channel;
-    private static int discriminator;
-
-    public void syncDisplayTargetToClient(int dimension, TileEntity tileEntity){
-        channel.sendToDimension(new SyncTileEntityNBTMessage(tileEntity), dimension);
-    }
-
     private int getDiscriminator() {
         return discriminator++;
+    }
+
+    public void syncDisplayTargetToClient(int dimension, TileEntity tileEntity) {
+        channel.sendToDimension(new SyncTileEntityNBTMessage(tileEntity), dimension);
     }
 
     public static class SyncClientTileDisplay implements IMessageHandler<SyncTileEntityNBTMessage,
             IMessage> {
         @Override
         public IMessage onMessage(final SyncTileEntityNBTMessage message, MessageContext ctx) {
-            if(message == null) return null;
+            if (message == null) return null;
 
             Minecraft.getMinecraft().addScheduledTask(new Runnable() {
                 @Override

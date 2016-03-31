@@ -1,13 +1,11 @@
 package desutine.kismet.client;
 
 import desutine.kismet.common.block.BlockDisplay;
-import desutine.kismet.common.init.ModBlocks;
 import desutine.kismet.reference.Colors;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.color.IBlockColor;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
-import net.minecraftforge.fml.common.Mod;
 
 public class ModBlockColor implements IBlockColor {
     public ModBlockColor() {

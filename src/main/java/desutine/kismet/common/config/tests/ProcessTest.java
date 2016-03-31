@@ -6,10 +6,10 @@ import net.minecraft.item.ItemStack;
 import java.util.Set;
 
 public abstract class ProcessTest implements InformedItemStack.ITest {
+    private final String name;
     protected boolean determined = false;
     protected boolean passed = false;
     protected Set<InformedItemStack> dependencies;
-    private final String name;
 
     protected ProcessTest(String name) {
         this.name = name;

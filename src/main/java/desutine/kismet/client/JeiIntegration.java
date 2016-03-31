@@ -1,7 +1,6 @@
 package desutine.kismet.client;
 
 import mezz.jei.api.*;
-import mezz.jei.gui.ItemListOverlay;
 
 import javax.annotation.Nonnull;
 
