@@ -2,9 +2,7 @@ package desutine.kismet.common.config;
 
 import desutine.kismet.ModLogger;
 import desutine.kismet.reference.Reference;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
@@ -14,7 +12,6 @@ import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 
 import java.io.File;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,7 +48,7 @@ public class ConfigKismet {
             config = new Configuration(configFile);
 
         // fill internal blacklist
-        BlockListHelper.addToInternalBlacklist(new String[]{"minecraft:air"});
+//        BlockListHelper.addToInternalBlacklist(new String[]{"minecraft:air"});
 
         syncFromFile();
     }

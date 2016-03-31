@@ -32,12 +32,12 @@ plugins {
     id "net.minecraftforge.gradle.forge" version "2.0.2"
 }
 */
-version = "1.9-0.0.3.1"
+version = "1.9-0.0.4.0"
 group= "desutine.kismet" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "Kismet"
 
 minecraft {
-    version = "1.9-12.16.0.1813-1.9"
+    version = "1.9-12.16.0.1816-1.9"
     runDir = "run"
     useDepAts = true
 
