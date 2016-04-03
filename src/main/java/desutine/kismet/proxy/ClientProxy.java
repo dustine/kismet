@@ -10,6 +10,7 @@ import desutine.kismet.reference.Names;
 import desutine.kismet.reference.Reference;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -20,7 +21,7 @@ public class ClientProxy extends CommonProxy {
         ModelLoader.setCustomModelResourceLocation(ModItems.itemKey, 0, new ModelResourceLocation(Reference.MODID + ':'
                 + Names.Items.KEY, "inventory"));
         ModelLoader.setCustomModelResourceLocation(Item.getItemFromBlock(ModBlocks.DISPLAY), 0, new
-                ModelResourceLocation(Reference.MODID + ':' + Names.Blocks.DISPLAY, "inventory"));
+                ModelResourceLocation(ModBlocks.DISPLAY.getRegistryName().toString(), "inventory"));
     }
 
     @Override
@@ -38,5 +39,10 @@ public class ClientProxy extends CommonProxy {
     public void registerBlockItemColor() {
         Minecraft.getMinecraft().getBlockColors().registerBlockColorHandler(new ModBlockColor(), ModBlocks
                 .DISPLAY);
+    }
+
+    @Override
+    public void sendConfigToClient(EntityPlayer player) {
+        // NOOP
     }
 }

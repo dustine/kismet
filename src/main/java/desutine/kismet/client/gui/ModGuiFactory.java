@@ -1,6 +1,7 @@
 package desutine.kismet.client.gui;
 
 
+import com.google.common.collect.ImmutableList;
 import desutine.kismet.common.config.ConfigKismet;
 import desutine.kismet.reference.Reference;
 import net.minecraft.client.Minecraft;
@@ -8,6 +9,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.I18n;
 import net.minecraftforge.common.config.ConfigElement;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.config.Property;
 import net.minecraftforge.fml.client.IModGuiFactory;
 import net.minecraftforge.fml.client.config.DummyConfigElement;
 import net.minecraftforge.fml.client.config.GuiConfig;
@@ -18,6 +20,7 @@ import net.minecraftforge.fml.client.config.IConfigElement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ModGuiFactory implements IModGuiFactory {
 
@@ -44,20 +47,24 @@ public class ModGuiFactory implements IModGuiFactory {
     public static class ModConfigGui extends GuiConfig {
 
         public ModConfigGui(GuiScreen parentScreen) {
-            super(parentScreen, getConfigElements(), Reference.MODID, false, false, null);
+            super(parentScreen, getConfigElements(Configuration.CATEGORY_GENERAL), Reference.MODID, false, false, null);
 
             this.title = ConfigKismet.getConfig().toString();
             this.titleLine2 = I18n.format("gui.config.category.main");
         }
 
-        private static List<IConfigElement> getConfigElements() {
+        private static List<IConfigElement> getConfigElements(String category) {
             // REMINDER Check FMLConfigGuiFactory.class for the extra "bells" you can add to the config
             List<IConfigElement> list = new ArrayList<IConfigElement>();
 
-            Configuration config = ConfigKismet.getConfig();
+            final ImmutableList<Property> catGeneral = ConfigKismet.getImmutableCategory(category);
+            list.addAll(catGeneral.stream().map(ConfigElement::new).collect(Collectors.toList()));
 
-            list.addAll(new ConfigElement(config.getCategory(Configuration.CATEGORY_GENERAL)).getChildElements());
-            list.add(new DummyConfigElement.DummyCategoryElement(ConfigKismet.getCategoryList(), "gui.config.category.list", CategoryEntryList.class));
+            if (category.equalsIgnoreCase(Configuration.CATEGORY_GENERAL)) {
+                // sub-categories
+                list.add(new DummyConfigElement.DummyCategoryElement(
+                        ConfigKismet.CATEGORY_LIST, "gui.config.category.list", CategoryEntryList.class));
+            }
 
             return list;
         }
@@ -68,6 +75,29 @@ public class ModGuiFactory implements IModGuiFactory {
             }
         }
 
+        // Config category for general configurations
+        @SuppressWarnings("WeakerAccess")
+        public static class CategoryEntryList extends CategoryEntry {
+            public CategoryEntryList(GuiConfig owningScreen, GuiConfigEntries owningEntryList, IConfigElement configElement) {
+                super(owningScreen, owningEntryList, configElement);
+            }
+
+            @Override
+            protected GuiScreen buildChildScreen() {
+                // Forge best practices say to put the path to the config file for the category as the title for the
+                // category config screen
+                Configuration configuration = ConfigKismet.getConfig();
+                String windowTitle = configuration.toString();
+
+                return new GuiConfig(this.owningScreen, getConfigElements(ConfigKismet.CATEGORY_LIST),
+                        this.owningScreen.modID,
+                        ConfigKismet.CATEGORY_LIST,
+                        this.configElement.requiresWorldRestart() || this.owningScreen.allRequireWorldRestart,
+                        this.configElement.requiresMcRestart() || this.owningScreen.allRequireMcRestart,
+                        windowTitle,
+                        I18n.format("gui.config.category.list"));
+            }
+        }
     }
 
 }

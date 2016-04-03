@@ -13,18 +13,31 @@ gui.config.category.main=Kismet
 gui.config.category.main.tooltip=Kismet Configurations
 
 ## Config fields
-gui.config.chill=Enable Chill Display
-gui.config.chill.tooltip=Allows crafting of a display variant that doesn't impose a time limit (no streaks though)
-gui.config.timed=Enable Timed Display
-gui.config.timed.tooltip=Allows crafting of a display variant with an imposed time limit before resetting the goal
-gui.config.timeLimit=Time between resets
-gui.config.timeLimit.tooltip=Defines how long you give the player between every new Kismet goal
-gui.config.category.list=Allowed Items
-gui.config.category.list.tooltip=Settings regarding the allowed/disallowed items to be picked as goals
+gui.config.general.chillEnabled=Enable Chill Display
+gui.config.general.chillEnabled.tooltip=Allows crafting of a display variant that doesn't impose a time limit (no streaks though).
 
-gui.config.list.strict=Strict Item Filtering
-gui.config.list.strict.tooltip=When true, Kismet will avoid picking any items that aren't craftable or present in any specific loot table\nWarning: Still applies if list is on whitelist mode, where it will further filter out the items present in the list
-gui.config.list.listMode=List Mode
-gui.config.list.listMode.tooltip=Determines the behaviour of the item list bellow
-gui.config.list.list=Targeted Items List
-gui.config.list.list.tooltip=List of items that can appear in the Kismet\nUse names, such as "mod:item", or just the mod name, as "mod", to blacklist it entirely!
+gui.config.general.timedEnabled=Enable Timed Display
+gui.config.general.timedEnabled.tooltip=Allows crafting of a display variant with an imposed time limit before resetting the goal.
+
+gui.config.general.nukedEnabled=Enable Nuked Display
+gui.config.general.nukedEnabled.tooltip=Allows crafting of a display variant with an imposed time limit where, if the goal isn't fulfilled before the limit is reached, it blows up. Yeah.
+
+gui.config.general.timedLimit=Timed Deadline
+gui.config.general.timedLimit.tooltip=Defines how long a target lasts on a timed display, in minutes.
+
+gui.config.general.nukedLimit=Nuked Deadline
+gui.config.general.nukedLimit.tooltip=Defines how long a target lasts on a nuked display (the one that blows up), in minutes.
+
+### List target
+
+gui.config.category.list=Targets
+gui.config.category.list.tooltip=Settings regarding the allowed/disallowed items to be picked as targets, either by a predetermined list or procedurally.
+
+gui.config.list.whitelist=Whitelist
+gui.config.list.whitelist.tooltip=Item strings present here will be used as possible random targets, alongside any added procedurally.\nUse the format "[!]mod[:name[:metadata]]", where [] indicates optional. The ! disables the entry without needing to remove it.
+
+gui.config.list.addMode=Add additional Items
+gui.config.list.addMode.tooltip=Kismet can add items beyond the ones present in the whitelist, depending on the behaviour specified on this field.\n§lWhitelist only§r: only the items present in the Whitelist will be used as targets.\n§lAdd only obtainable§r: Kismet will search which items can be obtainable in-game (craftable, world gen, etc.) and only add these as possible targets.\n§lAdd all others§r: Kismet will add all items that are registered in-game, no matter if they're obtainable or not.
+
+gui.config.list.blacklist=Added items Blacklist
+gui.config.list.blacklist.tooltip=Any items that could be added procedurally by Kismet (see "Add additional items" above) won't be added as targets if they're present on this list.\nUse the format "mod[:name[:metadata]]", where [] indicates optional. The ! disables the entry without needing to remove it.

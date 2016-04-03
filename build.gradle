@@ -22,22 +22,18 @@ repositories {
 
 apply plugin: 'net.minecraftforge.gradle.forge'
 
-dependencies {
-    deobfCompile "mezz.jei:jei_1.9:3.1.2.172"
-}
-
 /*
 // for people who want stable - not yet functional for MC 1.8.8 - we require the forgegradle 2.1 snapshot
 plugins {
     id "net.minecraftforge.gradle.forge" version "2.0.2"
 }
 */
-version = "1.9-0.0.4.0"
+version = "1.9-0.0.5.0"
 group= "desutine.kismet" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "Kismet"
 
 minecraft {
-    version = "1.9-12.16.0.1816-1.9"
+    version = "1.9-12.16.0.1832-1.9"
     runDir = "run"
     useDepAts = true
 
@@ -72,6 +68,7 @@ dependencies {
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
 
+    deobfCompile "mezz.jei:jei_1.9:3.2.4.177"
 }
 
 processResources
@@ -95,14 +92,14 @@ processResources
 }
 
 
-task clearLiveResources(type: Delete, group:"liveresources") {
+task clearLiveResources(type: Delete) {
     delete "run/resourcepacks/Live"
     doLast {
         new File("run/resourcepacks/Live").mkdirs()
     }
 }
 
-task syncLiveResources (type: Sync, dependsOn: "clearLiveResources", group:"liveresources") {
+task syncLiveResources(type: Sync, dependsOn: "clearLiveResources") {
     from "src/main/resources"
     into "run/resourcepacks/Live"
     exclude "mcmod.info"

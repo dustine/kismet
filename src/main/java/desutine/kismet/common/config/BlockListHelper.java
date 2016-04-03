@@ -6,7 +6,6 @@ import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.common.registry.GameData;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,13 +16,26 @@ public class BlockListHelper {
     public static ItemStack generateTarget(HashMap<String, Integer> weights, List<ItemStack> lastTargets) {
         // todo only do this (filtering stuff out of the complete list) on config change
         // declared this set outside for performance reasons, less gc required
-        final Set<String> configModList = new HashSet<>();
-        final Set<ItemStack> configList = new HashSet<>();
-        for (String s : ConfigKismet.getList()) {
+        final Set<String> modWhitelist = new HashSet<>();
+        final Set<ItemStack> whitelist = new HashSet<>();
+        for (String s : ConfigKismet.getWhitelist()) {
+            // skip entries that start with an !
+            if (s.startsWith("!")) continue;
             if (isMod(s)) {
-                configModList.add(s);
+                modWhitelist.add(s);
             } else {
-                configList.add(processName(s));
+                whitelist.add(processName(s));
+            }
+        }
+        final Set<String> modBlacklist = new HashSet<>();
+        final Set<ItemStack> blacklist = new HashSet<>();
+        for (String s : ConfigKismet.getWhitelist()) {
+            // skip entries that start with an !
+            if (s.startsWith("!")) continue;
+            if (isMod(s)) {
+                modBlacklist.add(s);
+            } else {
+                blacklist.add(processName(s));
             }
         }
 
@@ -33,17 +45,23 @@ public class BlockListHelper {
             if (input == null) return false;
             if (input.item == null) return false;
             if (input.item.getItem() == null) return false;
-            // if strict, it's a no-go
-            if (ConfigKismet.isStrict() && !input.isObtainable()) return false;
 
             // list compare
             String mod = input.getMod();
-            switch (ConfigKismet.getListMode()) {
-                case "blacklist":
-                    return !configModList.contains(mod) && !configList.contains(input.item);
-                case "whitelist":
-                    return configModList.contains(mod) || configList.contains(input.item);
+            // if it's on the whitelist, return true
+            if (modWhitelist.contains(mod) || whitelist.contains(input.item)) return true;
+            // and if it is on the blacklist (without being on the whitelist), return false
+            if (modBlacklist.contains(mod) || blacklist.contains(input.item)) return false;
+            // else it depends on the addMode if it gets added
+            switch (ConfigKismet.getAddMode()) {
+                case WHITELIST_ONLY:
+                    return false;
+                case ADD_STRICTLY_OBTAINABLE:
+                    return input.isObtainable();
+                case ADD_ALL_POSSIBLE:
+                    return true;
             }
+            // fail safe
             return false;
         }).collect(Collectors.toList());
 
@@ -80,6 +98,7 @@ public class BlockListHelper {
                 metrics.put(key, count.get(key) * weights.get(key));
             } else {
                 metrics.put(key, 0);
+                count.put(key, 0);
             }
         }
 
@@ -172,7 +191,7 @@ public class BlockListHelper {
                     // and to properly remove it, we have to take it out from configFilteredItems
                     // we can use this time to put them into targets too
                     targets = configFilteredItems.stream()
-                            .filter(informedItemStack -> informedItemStack.item.equals(previousTarget))
+                            .filter(informedItemStack -> !informedItemStack.item.equals(previousTarget))
                             .collect(Collectors.toList());
 
                     // reset weights too, seeing that to get here you needed to already consider it broken
@@ -259,27 +278,29 @@ public class BlockListHelper {
     private static ItemStack processName(String s) {
         ItemStack item;
         ResourceLocation loc = new ResourceLocation(s);
-        if (GameData.getBlockRegistry().getKeys().contains(loc)) {
+        if (Block.blockRegistry.getKeys().contains(loc)) {
             // block
-            item = new ItemStack(GameData.getBlockRegistry().getObject(loc));
-        } else if (GameData.getItemRegistry().getKeys().contains(loc)) {
+            item = new ItemStack(Block.blockRegistry.getObject(loc));
+        } else if (Block.blockRegistry.getKeys().contains(loc)) {
             // item
-            item = new ItemStack(GameData.getItemRegistry().getObject(loc));
+            item = new ItemStack(Block.blockRegistry.getObject(loc));
         } else {
             ModLogger.warning("Weird location: " + loc);
             return null;
         }
 
-        if (s.contains("@")) {
-            int metadata;
-            try {
-                metadata = Integer.valueOf(s.substring(s.indexOf("@")));
-            } catch (NumberFormatException e) {
-                ModLogger.warning(String.format("Weird metadata %s in %s", s.substring(s.indexOf("@")), loc));
-                return item;
+        // try to add metadata
+        final String[] split = s.split(":");
+        if (split.length > 2) {
+            Integer meta = tryParse(split[2]);
+            if (meta != null) {
+                // there's metadata, add it
+                item.setItemDamage(meta);
+            } else {
+                ModLogger.warning(String.format("Weird metadata %s in %s", split[2], loc));
             }
-            item.setItemDamage(metadata);
         }
+
         return item;
     }
 
@@ -295,21 +316,27 @@ public class BlockListHelper {
         return list;
     }
 
+    public static Integer tryParse(String text) {
+        try {
+            return Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
     public static void generateInternalList() {
         completeList = new HashSet<>();
 
         // add blocks
-        for (ResourceLocation loc :
-                GameData.getBlockRegistry().getKeys()) {
-            Block block = GameData.getBlockRegistry().getObject(loc);
-            ItemStack itemStack = new ItemStack(block);
-            if (itemStack.getItem() == null) continue;
-            completeList.add(new InformedItemStack(itemStack));
-        }
+//        for (ResourceLocation loc : Block.blockRegistry.getKeys()) {
+//            Block block = Block.blockRegistry.getObject(loc);
+//            ItemStack itemStack = new ItemStack(block);
+//            if (itemStack.getItem() == null) continue;
+//            completeList.add(new InformedItemStack(itemStack));
+//        }
         // add items
-        for (ResourceLocation loc :
-                GameData.getItemRegistry().getKeys()) {
-            Item item = GameData.getItemRegistry().getObject(loc);
+        for (ResourceLocation loc : Item.itemRegistry.getKeys()) {
+            Item item = Item.itemRegistry.getObject(loc);
             ItemStack itemStack = new ItemStack(item);
             if (itemStack.getItem() == null) continue;
             completeList.add(new InformedItemStack(itemStack));

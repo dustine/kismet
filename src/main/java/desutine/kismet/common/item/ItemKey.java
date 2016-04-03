@@ -12,8 +12,7 @@ import net.minecraft.world.World;
 
 public class ItemKey extends ItemKismet {
     public ItemKey() {
-        super();
-        this.setUnlocalizedName(Names.Items.KEY);
+        super(Names.Items.KEY);
     }
 
     @Override

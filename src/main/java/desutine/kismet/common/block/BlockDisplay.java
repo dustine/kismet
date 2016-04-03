@@ -1,18 +1,15 @@
 package desutine.kismet.common.block;
 
 import desutine.kismet.ModLogger;
-import desutine.kismet.client.JeiIntegration;
+import desutine.kismet.addon.JeiIntegration;
 import desutine.kismet.common.init.ModItems;
 import desutine.kismet.common.tile.TileDisplay;
 import desutine.kismet.reference.Names;
-import mezz.jei.api.IItemListOverlay;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -36,8 +33,7 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
     public static final PropertyEnum<EnumFacing> FACING = PropertyEnum.create("facing", EnumFacing.class);
 
     public BlockDisplay() {
-        super();
-        this.setUnlocalizedName(Names.Blocks.DISPLAY);
+        super(Names.Blocks.DISPLAY);
 
         // declaring properties
         setDefaultState(blockState.getBaseState()
@@ -178,7 +174,7 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
                 }
 
                 // try JEI/NEI integration
-                boolean success = doJeiIntegration(te, playerIn);
+                boolean success = JeiIntegration.doJeiIntegration(te, playerIn);
             }
 
             return false;
@@ -199,29 +195,6 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
         TileDisplay te = (TileDisplay) worldIn.getTileEntity(pos);
         te.setStreak(te.getStreak() + 1);
         worldIn.setBlockState(pos, worldIn.getBlockState(pos).withProperty(FULFILLED, true));
-    }
-
-    private boolean doJeiIntegration(TileDisplay te, EntityPlayer playerIn) {
-        IItemListOverlay itemList = JeiIntegration.itemListOverlay;
-        if (itemList != null) {
-            try {
-                String oldFilter = itemList.getFilterText();
-
-                String filter = te.getTarget().getDisplayName();
-                String mod = te.getTarget().getItem().getRegistryName();
-                mod = mod.substring(0, mod.indexOf(":"));
-                filter = String.format("%s @%s", filter, mod);
-                if (oldFilter.equalsIgnoreCase(filter)) return false;
-
-                // empty hand = give information about the block
-                Minecraft.getMinecraft().displayGuiScreen(new GuiInventory(playerIn));
-                itemList.setFilterText(filter);
-            } catch (NullPointerException e) {
-                return false;
-            }
-            return true;
-        }
-        return false;
     }
 
     @Override

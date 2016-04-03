@@ -8,6 +8,7 @@ import desutine.kismet.common.init.ModTiles;
 import desutine.kismet.network.KismetPacketHandler;
 import desutine.kismet.proxy.IProxy;
 import desutine.kismet.reference.Reference;
+import net.minecraft.item.Item;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -15,7 +16,6 @@ import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.registry.GameData;
 
 import java.util.Random;
 
@@ -67,8 +67,8 @@ public class Kismet {
         proxy.registerBlockItemColor();
 
         // debug logs
-        ModLogger.info(GameData.getItemRegistry().getRandomObject(Kismet.random).getRegistryName());
-        ModLogger.info(GameData.getItemRegistry().getKeys().size() + "items?");
+        ModLogger.info(Item.itemRegistry.getRandomObject(Kismet.random).getRegistryName());
+        ModLogger.info(Item.itemRegistry.getKeys().size() + "items?");
     }
 
     /**

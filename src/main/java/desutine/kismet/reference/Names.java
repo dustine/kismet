@@ -5,6 +5,7 @@ public final class Names {
 
     public static final class Items {
         public static final String KEY = "key";
+        public static final String NONE = "none";
     }
 
     public static final class Blocks {

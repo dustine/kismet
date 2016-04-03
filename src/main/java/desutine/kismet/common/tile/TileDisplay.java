@@ -28,12 +28,6 @@ import java.util.List;
 public class TileDisplay extends TileEntity implements ITickable {
     private static final int STREAK_MAX = 20;
     private static final int MAX_LAST_TARGET_COUNT = 50;
-    private int streak;
-    private long deadline;
-    private ItemStack target;
-    private List<ItemStack> lastTargets;
-    private HashMap<String, Integer> modWeights;
-    private boolean stateChanged;
     private final TextFormatting[] colors = new TextFormatting[] {
             TextFormatting.WHITE,
             TextFormatting.GREEN,
@@ -41,27 +35,17 @@ public class TileDisplay extends TileEntity implements ITickable {
             TextFormatting.DARK_PURPLE,
             TextFormatting.GOLD
     };
-
+    private int streak;
+    private long deadline;
+    private ItemStack target;
+    private List<ItemStack> lastTargets;
+    private HashMap<String, Integer> modWeights;
+    private boolean stateChanged;
 
     public TileDisplay() {
         super();
         modWeights = new HashMap<String, Integer>();
         lastTargets = new ArrayList<>();
-    }
-
-    /**
-     * Called whenever the block and/or its metadata changes
-     *
-     * @param world
-     * @param pos
-     * @param oldState
-     * @param newSate
-     * @return true forces the TE to be recreated
-     */
-    @Override
-    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
-        if (oldState.getBlock() != newSate.getBlock()) return true;
-        return oldState.getBlock() != ModBlocks.DISPLAY;
     }
 
     public String getStylizedDeadline() {
@@ -90,6 +74,31 @@ public class TileDisplay extends TileEntity implements ITickable {
         return styleCode + remainingTimeString + resetStyleCode;
     }
 
+    /**
+     * Called whenever the block and/or its metadata changes
+     *
+     * @param world
+     * @param pos
+     * @param oldState
+     * @param newSate
+     * @return true forces the TE to be recreated
+     */
+    @Override
+    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
+        if (oldState.getBlock() != newSate.getBlock()) return true;
+        return oldState.getBlock() != ModBlocks.DISPLAY;
+    }
+
+    public long getDeadline() {
+        return deadline;
+    }
+
+    public void setDeadline(long deadline) {
+        this.deadline = deadline;
+        // not really needed as it's not directly related to display
+//        this.stateChanged = true;
+    }
+
     public String getStylizedStreak() {
         int deliminator = getStreak() / 10;
         String styleCode;
@@ -104,6 +113,9 @@ public class TileDisplay extends TileEntity implements ITickable {
         return styleCode + streak + resetStyleCode;
     }
 
+    public int getStreak() {
+        return streak;
+    }
 
     public void setStreak(int streak) {
         int oldStreak = this.streak;
@@ -115,10 +127,6 @@ public class TileDisplay extends TileEntity implements ITickable {
         this.stateChanged = true;
     }
 
-    public long getDeadline() {
-        return deadline;
-    }
-
     @Override
     public void update() {
         // isDirty is set to true whenever the internal state of the tile is changed
@@ -133,41 +141,6 @@ public class TileDisplay extends TileEntity implements ITickable {
             stateChanged = false;
             // forceBlockStateUpdate();
         }
-    }
-
-    @Override
-    public void update() {
-        // isDirty is set to true whenever the internal state of the tile is changed
-        // name coming from the parent's method markDirty()
-        boolean isDirty;
-        isDirty = checkForDeadline();
-        isDirty |= checkForNullTarget();
-        if (isDirty) {
-            markDirty();
-        }
-        if (this.worldObj.isRemote && this.stateChanged) {
-            stateChanged = false;
-            // forceBlockStateUpdate();
-        }
-    }
-    @Override
-    public void update() {
-        // isDirty is set to true whenever the internal state of the tile is changed
-        // name coming from the parent's method markDirty()
-        boolean isDirty;
-        isDirty = checkForDeadline();
-        isDirty |= checkForNullTarget();
-        if (isDirty) {
-            markDirty();
-        }
-        if (this.worldObj.isRemote && this.stateChanged) {
-            stateChanged = false;
-            // forceBlockStateUpdate();
-        }
-    }
-
-    public int getStreak() {
-        return streak;
     }
 
     private boolean checkForNullTarget() {
@@ -176,7 +149,7 @@ public class TileDisplay extends TileEntity implements ITickable {
 
     private boolean checkForDeadline() {
         if (getDeadline() < worldObj.getTotalWorldTime()) {
-            setDeadline(worldObj.getTotalWorldTime() + ConfigKismet.getTimeLimit());
+            setDeadline(worldObj.getTotalWorldTime() + ConfigKismet.getTimedLimit() * 20);
 
             if (!isFulfilled()) {
                 lastTargets.clear();
@@ -215,16 +188,6 @@ public class TileDisplay extends TileEntity implements ITickable {
         return true;
     }
 
-    public void setStreak(int streak) {
-        int oldStreak = this.streak;
-        this.streak = streak;
-        // TO-DO: Unhardcode the streak limit
-        if (oldStreak == streak) return;
-        // don't cause a state update if the old streak was already over the max
-//            if(oldStreak > STREAK_MAX) return;
-        this.stateChanged = true;
-    }
-
     public IBlockState enrichState(IBlockState state) {
 //        return state.withProperty(BlockDisplay.STREAK, getStreak())
         return state;
@@ -237,12 +200,6 @@ public class TileDisplay extends TileEntity implements ITickable {
 
     public void setLastTargets(List<ItemStack> lastTargets) {
         this.lastTargets = lastTargets;
-    }
-
-    public void setDeadline(long deadline) {
-        this.deadline = deadline;
-        // not really needed as it's not directly related to display
-//        this.stateChanged = true;
     }
 
     public HashMap<String, Integer> getModWeights() {
@@ -265,6 +222,7 @@ public class TileDisplay extends TileEntity implements ITickable {
         state = state.withProperty(BlockDisplay.FULFILLED, fulfilled);
         worldObj.setBlockState(pos, state);
     }
+
 
     @Override
     public void readFromNBT(NBTTagCompound compound) {

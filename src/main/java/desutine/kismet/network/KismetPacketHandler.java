@@ -1,13 +1,14 @@
 package desutine.kismet.network;
 
 import desutine.kismet.ModLogger;
+import desutine.kismet.common.config.ConfigKismet;
+import desutine.kismet.network.packet.MessageKismetConfig;
+import desutine.kismet.network.packet.MessageTileEntity;
 import desutine.kismet.reference.Reference;
-import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
@@ -16,15 +17,15 @@ import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.relauncher.Side;
 
 public class KismetPacketHandler {
-
     private static int discriminator;
     private final SimpleNetworkWrapper channel;
     public KismetPacketHandler() {
         // registering channel
         channel = NetworkRegistry.INSTANCE.newSimpleChannel(Reference.MODID);
         // registering messages
-        channel.registerMessage(SyncClientTileDisplay.class, SyncTileEntityNBTMessage.class, getDiscriminator(),
+        channel.registerMessage(SyncClientTileDisplay.class, MessageTileEntity.class, getDiscriminator(),
                 Side.CLIENT);
+        channel.registerMessage(SendConfigToClient.class, MessageKismetConfig.class, getDiscriminator(), Side.CLIENT);
     }
 
     private int getDiscriminator() {
@@ -32,58 +33,43 @@ public class KismetPacketHandler {
     }
 
     public void syncDisplayTargetToClient(int dimension, TileEntity tileEntity) {
-        channel.sendToDimension(new SyncTileEntityNBTMessage(tileEntity), dimension);
+        channel.sendToDimension(new MessageTileEntity(tileEntity), dimension);
     }
 
-    public static class SyncClientTileDisplay implements IMessageHandler<SyncTileEntityNBTMessage,
-            IMessage> {
+    public void sendConfigToClient(EntityPlayerMP player) {
+        channel.sendTo(new MessageKismetConfig(), player);
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public static class SyncClientTileDisplay implements IMessageHandler<MessageTileEntity, IMessage> {
         @Override
-        public IMessage onMessage(final SyncTileEntityNBTMessage message, MessageContext ctx) {
-            if (message == null) return null;
+        public IMessage onMessage(final MessageTileEntity message, MessageContext ctx) {
+            Minecraft.getMinecraft().addScheduledTask(() -> {
+                int x, y, z;
+                x = message.nbtTagCompound.getInteger("x");
+                y = message.nbtTagCompound.getInteger("y");
+                z = message.nbtTagCompound.getInteger("z");
+                BlockPos pos = new BlockPos(x, y, z);
 
-            Minecraft.getMinecraft().addScheduledTask(new Runnable() {
-                @Override
-                public void run() {
-                    int x, y, z;
-                    x = message.nbtTagCompound.getInteger("x");
-                    y = message.nbtTagCompound.getInteger("y");
-                    z = message.nbtTagCompound.getInteger("z");
-                    BlockPos pos = new BlockPos(x, y, z);
+                TileEntity tileEntity = Minecraft.getMinecraft().theWorld.getTileEntity(pos);
+                if (tileEntity == null) return;
 
-                    TileEntity tileEntity = Minecraft.getMinecraft().theWorld.getTileEntity(pos);
-                    if (tileEntity == null) return;
-
-                    try {
-                        tileEntity.readFromNBT(message.nbtTagCompound);
-                    } catch (Throwable te) {
-                        ModLogger.error(te);
-                    }
+                try {
+                    tileEntity.readFromNBT(message.nbtTagCompound);
+                } catch (Throwable te) {
+                    ModLogger.error(te);
                 }
             });
             return null;
         }
     }
 
-    public static class SyncTileEntityNBTMessage implements IMessage {
-
-        public NBTTagCompound nbtTagCompound;
-
-        public SyncTileEntityNBTMessage() {
-        }
-
-        public SyncTileEntityNBTMessage(final TileEntity tileEntity) {
-            this.nbtTagCompound = new NBTTagCompound();
-            tileEntity.writeToNBT(nbtTagCompound);
-        }
-
+    @SuppressWarnings("WeakerAccess")
+    public static class SendConfigToClient implements IMessageHandler<MessageKismetConfig, IMessage> {
         @Override
-        public void fromBytes(ByteBuf buf) {
-            nbtTagCompound = ByteBufUtils.readTag(buf);
-        }
-
-        @Override
-        public void toBytes(ByteBuf buf) {
-            ByteBufUtils.writeTag(buf, nbtTagCompound);
+        public IMessage onMessage(MessageKismetConfig message, MessageContext ctx) {
+            Minecraft.getMinecraft().addScheduledTask(() -> ConfigKismet.clientSync(message.syncValues));
+            return null;
         }
     }
 }

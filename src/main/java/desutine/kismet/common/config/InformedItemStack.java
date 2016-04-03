@@ -3,7 +3,6 @@ package desutine.kismet.common.config;
 import desutine.kismet.common.config.tests.OriginTest;
 import desutine.kismet.common.config.tests.ProcessTest;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -27,7 +26,7 @@ public class InformedItemStack {
 
     public String getMod() {
         // gets the mod name from before the :
-        return new ResourceLocation(item.getItem().getRegistryName()).getResourceDomain();
+        return item.getItem().getRegistryName().getResourceDomain();
     }
 
     public void addOriginTest(OriginTest test) {
