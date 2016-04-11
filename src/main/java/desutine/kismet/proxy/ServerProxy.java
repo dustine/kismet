@@ -1,7 +1,7 @@
 package desutine.kismet.proxy;
 
 import desutine.kismet.Kismet;
-import desutine.kismet.common.config.ConfigKismet;
+import desutine.kismet.common.KismetConfig;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 
@@ -13,7 +13,7 @@ public class ServerProxy extends CommonProxy {
 
     @Override
     public void initConfig() {
-        ConfigKismet.preInit();
+        KismetConfig.preInit();
     }
 
     @Override

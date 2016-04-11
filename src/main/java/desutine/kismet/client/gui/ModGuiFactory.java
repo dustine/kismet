@@ -2,8 +2,8 @@ package desutine.kismet.client.gui;
 
 
 import com.google.common.collect.ImmutableList;
-import desutine.kismet.common.config.ConfigKismet;
-import desutine.kismet.reference.Reference;
+import desutine.kismet.Reference;
+import desutine.kismet.common.KismetConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.I18n;
@@ -47,9 +47,9 @@ public class ModGuiFactory implements IModGuiFactory {
     public static class ModConfigGui extends GuiConfig {
 
         public ModConfigGui(GuiScreen parentScreen) {
-            super(parentScreen, getConfigElements(Configuration.CATEGORY_GENERAL), Reference.MODID, false, false, null);
+            super(parentScreen, getConfigElements(Configuration.CATEGORY_GENERAL), Reference.MOD_ID, false, false, null);
 
-            this.title = ConfigKismet.getConfig().toString();
+            this.title = KismetConfig.getConfig().toString();
             this.titleLine2 = I18n.format("gui.config.category.main");
         }
 
@@ -57,13 +57,13 @@ public class ModGuiFactory implements IModGuiFactory {
             // REMINDER Check FMLConfigGuiFactory.class for the extra "bells" you can add to the config
             List<IConfigElement> list = new ArrayList<IConfigElement>();
 
-            final ImmutableList<Property> catGeneral = ConfigKismet.getImmutableCategory(category);
+            final ImmutableList<Property> catGeneral = KismetConfig.getImmutableCategory(category);
             list.addAll(catGeneral.stream().map(ConfigElement::new).collect(Collectors.toList()));
 
             if (category.equalsIgnoreCase(Configuration.CATEGORY_GENERAL)) {
                 // sub-categories
                 list.add(new DummyConfigElement.DummyCategoryElement(
-                        ConfigKismet.CATEGORY_LIST, "gui.config.category.list", CategoryEntryList.class));
+                        KismetConfig.CATEGORY_LIST, "gui.config.category.list", CategoryEntryList.class));
             }
 
             return list;
@@ -86,12 +86,12 @@ public class ModGuiFactory implements IModGuiFactory {
             protected GuiScreen buildChildScreen() {
                 // Forge best practices say to put the path to the config file for the category as the title for the
                 // category config screen
-                Configuration configuration = ConfigKismet.getConfig();
+                Configuration configuration = KismetConfig.getConfig();
                 String windowTitle = configuration.toString();
 
-                return new GuiConfig(this.owningScreen, getConfigElements(ConfigKismet.CATEGORY_LIST),
+                return new GuiConfig(this.owningScreen, getConfigElements(KismetConfig.CATEGORY_LIST),
                         this.owningScreen.modID,
-                        ConfigKismet.CATEGORY_LIST,
+                        KismetConfig.CATEGORY_LIST,
                         this.configElement.requiresWorldRestart() || this.owningScreen.allRequireWorldRestart,
                         this.configElement.requiresMcRestart() || this.owningScreen.allRequireMcRestart,
                         windowTitle,

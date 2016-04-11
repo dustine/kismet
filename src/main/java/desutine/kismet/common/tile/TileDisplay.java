@@ -1,9 +1,11 @@
 package desutine.kismet.common.tile;
 
 import desutine.kismet.Kismet;
+import desutine.kismet.ModLogger;
+import desutine.kismet.common.KismetConfig;
 import desutine.kismet.common.block.BlockDisplay;
-import desutine.kismet.common.config.ConfigKismet;
-import desutine.kismet.common.init.ModBlocks;
+import desutine.kismet.common.registry.ModBlocks;
+import desutine.kismet.util.Target;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -41,6 +43,7 @@ public class TileDisplay extends TileEntity implements ITickable {
     private List<ItemStack> lastTargets;
     private HashMap<String, Integer> modWeights;
     private boolean stateChanged;
+    private long timeout;
 
     public TileDisplay() {
         super();
@@ -74,6 +77,10 @@ public class TileDisplay extends TileEntity implements ITickable {
         return styleCode + remainingTimeString + resetStyleCode;
     }
 
+    public long getDeadline() {
+        return deadline;
+    }
+
     /**
      * Called whenever the block and/or its metadata changes
      *
@@ -89,10 +96,6 @@ public class TileDisplay extends TileEntity implements ITickable {
         return oldState.getBlock() != ModBlocks.DISPLAY;
     }
 
-    public long getDeadline() {
-        return deadline;
-    }
-
     public void setDeadline(long deadline) {
         this.deadline = deadline;
         // not really needed as it's not directly related to display
@@ -103,7 +106,7 @@ public class TileDisplay extends TileEntity implements ITickable {
         int deliminator = getStreak() / 10;
         String styleCode;
         if (deliminator >= colors.length) {
-            // set the last colour
+            // use the last colour
             styleCode = colors[colors.length - 1].toString();
         } else {
             styleCode = colors[deliminator].toString();
@@ -149,7 +152,7 @@ public class TileDisplay extends TileEntity implements ITickable {
 
     private boolean checkForDeadline() {
         if (getDeadline() < worldObj.getTotalWorldTime()) {
-            setDeadline(worldObj.getTotalWorldTime() + ConfigKismet.getTimedLimit() * 20);
+            setDeadline(worldObj.getTotalWorldTime() + KismetConfig.getTimedLimit() * 20);
 
             if (!isFulfilled()) {
                 lastTargets.clear();
@@ -177,9 +180,18 @@ public class TileDisplay extends TileEntity implements ITickable {
     public boolean getNewTarget() {
         // only server pls
         if (worldObj.isRemote) return false;
+        // a timeout for server issues
+        if (timeout > worldObj.getTotalWorldTime()) return false;
 
-        ItemStack target = ConfigKismet.generateTarget(modWeights, lastTargets);
-        setTarget(target);
+        Target targetResult = KismetConfig.generateTarget(modWeights, lastTargets);
+        if (targetResult.hasTarget()) {
+            target = targetResult.getValue();
+        } else {
+            // todo set a timeout in this to avoid spam and server workload
+            this.timeout = worldObj.getTotalWorldTime() + 5 * 20;
+            ModLogger.warning("Failed to get target, " + targetResult.getFlag());
+            setTarget(null);
+        }
         if (target == null) return false;
         // new target, no fulfillment
         setFulfilled(false);
@@ -278,9 +290,9 @@ public class TileDisplay extends TileEntity implements ITickable {
         compound.setTag("modWeights", modWeightsNbt);
 
         NBTTagList lastTargetsNbt = new NBTTagList();
-        for (int i = 0; i < lastTargets.size(); i++) {
+        for (ItemStack lastTarget : lastTargets) {
             NBTTagCompound nbtTagCompound = new NBTTagCompound();
-            lastTargets.get(i).writeToNBT(nbtTagCompound);
+            lastTarget.writeToNBT(nbtTagCompound);
             lastTargetsNbt.appendTag(nbtTagCompound);
         }
         compound.setTag("lastTargets", lastTargetsNbt);

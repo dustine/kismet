@@ -5,6 +5,9 @@ import mezz.jei.api.IItemListOverlay;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiInventory;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
+
+import java.util.List;
 
 public class JeiIntegration {
     public static boolean doJeiIntegration(TileDisplay te, EntityPlayer playerIn) {
@@ -15,7 +18,6 @@ public class JeiIntegration {
 
                 String filter = te.getTarget().getDisplayName();
                 String mod = te.getTarget().getItem().getRegistryName().getResourceDomain();
-                mod = mod.substring(0, mod.indexOf(":"));
                 filter = String.format("%s @%s", filter, mod);
                 if (oldFilter.equalsIgnoreCase(filter)) return false;
 
@@ -28,5 +30,9 @@ public class JeiIntegration {
             return true;
         }
         return false;
+    }
+
+    public static List<ItemStack> enrich(List<ItemStack> list) {
+        return AddonJei.stackHelper.getAllSubtypes(list);
     }
 }

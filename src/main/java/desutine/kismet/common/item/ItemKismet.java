@@ -1,14 +1,14 @@
 package desutine.kismet.common.item;
 
+import desutine.kismet.Reference;
 import desutine.kismet.client.CreativeTabKismet;
-import desutine.kismet.reference.Reference;
 import net.minecraft.item.Item;
 
 public class ItemKismet extends Item {
     public ItemKismet(String name) {
         super();
 
-        setRegistryName(Reference.MODID, name);
+        setRegistryName(Reference.MOD_ID.toLowerCase(), name);
         setUnlocalizedName(name);
         // this.setMaxStackSize(64);
 

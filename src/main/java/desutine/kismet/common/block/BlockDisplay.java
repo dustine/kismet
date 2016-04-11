@@ -1,10 +1,9 @@
 package desutine.kismet.common.block;
 
-import desutine.kismet.ModLogger;
+import desutine.kismet.Reference;
 import desutine.kismet.addon.JeiIntegration;
-import desutine.kismet.common.init.ModItems;
+import desutine.kismet.common.registry.ModItems;
 import desutine.kismet.common.tile.TileDisplay;
-import desutine.kismet.reference.Names;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.properties.PropertyEnum;
@@ -33,7 +32,7 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
     public static final PropertyEnum<EnumFacing> FACING = PropertyEnum.create("facing", EnumFacing.class);
 
     public BlockDisplay() {
-        super(Names.Blocks.DISPLAY);
+        super(Reference.Names.Blocks.DISPLAY);
 
         // declaring properties
         setDefaultState(blockState.getBaseState()
@@ -111,10 +110,6 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
         // correcting state not being correct -_-
         state = worldIn.getBlockState(pos);
-
-        // just consume the event if block is fulfilled
-        ModLogger.info(String.format("%s %s %s", state, playerIn, hand
-                .toString()));
 
         TileDisplay te = (TileDisplay) worldIn.getTileEntity(pos);
         // do nothing if tile-entity is borked

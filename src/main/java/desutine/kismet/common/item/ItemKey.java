@@ -1,7 +1,7 @@
 package desutine.kismet.common.item;
 
-import desutine.kismet.common.init.ModBlocks;
-import desutine.kismet.reference.Names;
+import desutine.kismet.Reference;
+import desutine.kismet.common.registry.ModBlocks;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumActionResult;
@@ -12,7 +12,7 @@ import net.minecraft.world.World;
 
 public class ItemKey extends ItemKismet {
     public ItemKey() {
-        super(Names.Items.KEY);
+        super(Reference.Names.Items.KEY);
     }
 
     @Override

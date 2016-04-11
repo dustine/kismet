@@ -8,6 +8,13 @@ item.key.name=Kismetic Key
 # Creative Tabs
 itemGroup.kismet=Kismet
 
+# Command
+commands.kismet.usage=/kismet <regen>
+
+# Addons
+## JEI
+jei.description.block.display=A timed display of your Kismet. Before the timer runs out you have to right-click the display with your own version of whatever it holds.\nIt also keeps track of your score so far, the latest streak of successful Kismets you've done in a row.
+
 # GUI
 gui.config.category.main=Kismet
 gui.config.category.main.tooltip=Kismet Configurations
@@ -30,14 +37,17 @@ gui.config.general.nukedLimit.tooltip=Defines how long a target lasts on a nuked
 
 ### List target
 
-gui.config.category.list=Targets
-gui.config.category.list.tooltip=Settings regarding the allowed/disallowed items to be picked as targets, either by a predetermined list or procedurally.
+gui.config.category.target=Targets
+gui.config.category.target.tooltip=Settings regarding the allowed/disallowed items to be picked as targets, either by a predetermined set or procedurally.
 
-gui.config.list.whitelist=Whitelist
-gui.config.list.whitelist.tooltip=Item strings present here will be used as possible random targets, alongside any added procedurally.\nUse the format "[!]mod[:name[:metadata]]", where [] indicates optional. The ! disables the entry without needing to remove it.
+gui.config.target.whitelist=Targets
+gui.config.target.whitelist.tooltip=Item strings present here will be used as possible random targets, alongside any additionally added procedurally.\nUse the format "[!]mod:name[:metadata]", where [] indicates optional. The ! disables the entry without needing to remove it.
 
-gui.config.list.addMode=Add additional Items
-gui.config.list.addMode.tooltip=Kismet can add items beyond the ones present in the whitelist, depending on the behaviour specified on this field.\n§lWhitelist only§r: only the items present in the Whitelist will be used as targets.\n§lAdd only obtainable§r: Kismet will search which items can be obtainable in-game (craftable, world gen, etc.) and only add these as possible targets.\n§lAdd all others§r: Kismet will add all items that are registered in-game, no matter if they're obtainable or not.
+gui.config.target.addMode=Generate Additional Targets
+gui.config.target.addMode.tooltip=Kismet can add items beyond the ones present in the whitelist, depending on the behaviour specified on this field.\n§lWhitelist only§r: only the items present in the Whitelist will be used as targets.\n§lAdd only obtainable§r: Kismet will search which items can be obtainable in-game (craftable, world gen, etc.) and only add these as possible targets.\n§lAdd all others§r: Kismet will add all items that are registered in-game, no matter if they're obtainable or not.
 
-gui.config.list.blacklist=Added items Blacklist
-gui.config.list.blacklist.tooltip=Any items that could be added procedurally by Kismet (see "Add additional items" above) won't be added as targets if they're present on this list.\nUse the format "mod[:name[:metadata]]", where [] indicates optional. The ! disables the entry without needing to remove it.
+gui.config.target.addedStacks=Generated Targets Filter
+gui.config.target.addedStacks.tooltip=Only items that follow the rules present in this list will be added as possible targets to the game (if Generate Additional Targets allows so).\nUse the format "[!]mod[:name[:metadata]]", where [] indicates optional. The ! disables the entry without needing to remove it.
+
+gui.config.target.filterMode=Filter Mode
+gui.config.target.filterMode.tooltip=Toggles the additional target's filter behaviour between whitelist and blacklist

@@ -1,14 +1,12 @@
 package desutine.kismet;
 
-import desutine.kismet.common.config.BlockListHelper;
-import desutine.kismet.common.init.ModBlocks;
-import desutine.kismet.common.init.ModItems;
-import desutine.kismet.common.init.ModRecipes;
-import desutine.kismet.common.init.ModTiles;
-import desutine.kismet.network.KismetPacketHandler;
+import desutine.kismet.common.registry.ModBlocks;
+import desutine.kismet.common.registry.ModItems;
+import desutine.kismet.common.registry.ModRecipes;
+import desutine.kismet.common.registry.ModTiles;
+import desutine.kismet.network.NetworkHandlerKismet;
 import desutine.kismet.proxy.IProxy;
-import desutine.kismet.reference.Reference;
-import net.minecraft.item.Item;
+import desutine.kismet.server.CommandKismet;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -16,14 +14,16 @@ import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
 
 import java.util.Random;
 
-@Mod(modid = Reference.MODID, version = Reference.VERSION, guiFactory = Reference.GUI_FACTORY_CLASS)
+@Mod(modid = Reference.MOD_ID, name = Reference.Names.MOD, version = Reference.VERSION, guiFactory = Reference.GUI_FACTORY_CLASS)
 public class Kismet {
     public static final Random random = new Random();
-    public static KismetPacketHandler packetHandler;
-    @Mod.Instance(Reference.MODID)
+    public final static CommandKismet command = new CommandKismet();
+    public static NetworkHandlerKismet packetHandler;
+    @Mod.Instance(Reference.MOD_ID)
     public static Kismet instance;
     @SidedProxy(clientSide = Reference.CLIENT_PROXY_CLASS, serverSide = Reference.SERVER_PROXY_CLASS)
     public static IProxy proxy;
@@ -34,7 +34,7 @@ public class Kismet {
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         // register logger
-        ModLogger.logger = (event.getModLog());
+        ModLogger.logger = event.getModLog();
 
         // load configs
         proxy.initConfig();
@@ -51,7 +51,7 @@ public class Kismet {
 //        MinecraftForge.EVENT_BUS.register(new EventHandlerBlock());
 
         // start network channels
-        packetHandler = new KismetPacketHandler();
+        packetHandler = new NetworkHandlerKismet();
     }
 
     /**
@@ -65,10 +65,6 @@ public class Kismet {
 
         // register tints
         proxy.registerBlockItemColor();
-
-        // debug logs
-        ModLogger.info(Item.itemRegistry.getRandomObject(Kismet.random).getRegistryName());
-        ModLogger.info(Item.itemRegistry.getKeys().size() + "items?");
     }
 
     /**
@@ -76,7 +72,16 @@ public class Kismet {
      */
     @EventHandler
     public void postInit(FMLPostInitializationEvent event) {
+//        event.buildSoftDependProxy()
+//        event.buildSoftDependProxy()
         // finish generating item tree
-        BlockListHelper.generateInternalList();
+//        TargetHelper.generateList(null);
     }
+
+    @EventHandler
+    public void serverStarting(FMLServerStartingEvent event) {
+        ModLogger.info("server starting...");
+        event.registerServerCommand(command);
+    }
+
 }

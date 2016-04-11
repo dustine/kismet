@@ -1,9 +1,11 @@
-package desutine.kismet.common.config;
+package desutine.kismet.common;
 
 import com.google.common.collect.ImmutableList;
 import desutine.kismet.Kismet;
 import desutine.kismet.ModLogger;
-import desutine.kismet.reference.Reference;
+import desutine.kismet.Reference;
+import desutine.kismet.util.Target;
+import desutine.kismet.util.TargetHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
@@ -26,7 +28,7 @@ import static net.minecraftforge.common.config.Configuration.CATEGORY_GENERAL;
  * Heavily based on TheGreyGhost's MinecraftByExample
  * Source: https://github.com/TheGreyGhost/MinecraftByExample
  */
-public class ConfigKismet {
+public class KismetConfig {
     // CONFIG: TARGET LIST
     public static final String CATEGORY_LIST = "list";
 
@@ -37,6 +39,7 @@ public class ConfigKismet {
             .collect(Collectors.toList()).toArray(new String[0]);
     private static final int TIMED_LIMIT_DEFAULT = 24000 / 20 / 60;
     private static final int TIMED_LIMIT_MIN = 1;
+    public static File configDir;
     // CONFIG: GENERAL
     // enables the chill display (no time limit)
     private static boolean chillEnabled;
@@ -50,7 +53,7 @@ public class ConfigKismet {
     private static int nukedLimit;
     // if nuking causes block destruction
     private static boolean nukingGriefable;
-    // list of blocks that will DEFINITELY be added
+    // items of blocks that will DEFINITELY be added
     private static String[] whitelist;
     // gamelogic for if it'll add blocks beyond the whitelist, and which
     private static EnumListMode addMode;
@@ -60,12 +63,12 @@ public class ConfigKismet {
     private static Configuration config;
 
     public static void preInit() {
-        File configFile = new File(Loader.instance().getConfigDir(), Reference.MODID + ".cfg");
+        File configFile = new File(Loader.instance().getConfigDir(), Reference.MOD_ID + ".cfg");
         if (config == null)
             config = new Configuration(configFile);
 
         // fill internal blacklist
-//        BlockListHelper.addToInternalBlacklist(new String[]{"minecraft:air"});
+//        TargetHelper.addToInternalBlacklist(new String[]{"minecraft:air"});
 
         syncFromFile();
     }
@@ -186,20 +189,21 @@ public class ConfigKismet {
         ArrayList<Property> catList = new ArrayList<>();
         categories.put(CATEGORY_LIST, catList);
 
-        Pattern listPattern = Pattern.compile("(!?[a-zA-Z]\\w*)((:[a-zA-Z]\\w*)(:\\d+)?)?");
+        // whitelist doesn't allow just having the mod so it's obligated to have
+        Pattern whitelistPattern = Pattern.compile("(!?[a-zA-Z]\\w*:[a-zA-Z]\\w*)(:\\d+)?");
+        Pattern blacklistPattern = Pattern.compile("(!?[a-zA-Z]\\w*)((:[a-zA-Z]\\w*)(:\\d+)?)?");
 
         Property propWhitelist = config.get(CATEGORY_LIST, "whitelist", new String[] {})
-                .setValidationPattern(listPattern);
+                .setValidationPattern(whitelistPattern);
         catList.add(propWhitelist);
 
 
         Property propAddMode = config.get(CATEGORY_LIST, "addMode", EnumListMode.ADD_STRICTLY_OBTAINABLE.getValue())
-                .setValidValues(ADD_MODE_VALUES)
-                .setRequiresWorldRestart(true);
+                .setValidValues(ADD_MODE_VALUES);
         catList.add(propAddMode);
 
         Property propBlacklist = config.get(CATEGORY_LIST, "blacklist", new String[] {})
-                .setValidationPattern(listPattern);
+                .setValidationPattern(blacklistPattern);
         catList.add(propBlacklist);
 
         // final operation: adding language keys
@@ -240,8 +244,8 @@ public class ConfigKismet {
         syncConfig(false, false);
     }
 
-    public static ItemStack generateTarget(HashMap<String, Integer> modWeights, List<ItemStack> lastTargets) {
-        return BlockListHelper.generateTarget(modWeights, lastTargets);
+    public static Target generateTarget(HashMap<String, Integer> modWeights, List<ItemStack> lastTargets) {
+        return TargetHelper.generateTarget(modWeights, lastTargets);
     }
 
     public static void clientSync(Map<String, Object> syncValues) {
@@ -253,7 +257,7 @@ public class ConfigKismet {
     }
 
     public static void setTimedLimit(int timedLimit) {
-        ConfigKismet.timedLimit = timedLimit;
+        KismetConfig.timedLimit = timedLimit;
         syncFromFields();
     }
 
@@ -262,7 +266,7 @@ public class ConfigKismet {
     }
 
     public static void setWhitelist(String[] whitelist) {
-        ConfigKismet.whitelist = whitelist;
+        KismetConfig.whitelist = whitelist;
     }
 
     public static EnumListMode getAddMode() {
@@ -270,7 +274,7 @@ public class ConfigKismet {
     }
 
     public static void setAddMode(EnumListMode addMode) {
-        ConfigKismet.addMode = addMode;
+        KismetConfig.addMode = addMode;
     }
 
     public static String[] getBlacklist() {
@@ -278,7 +282,7 @@ public class ConfigKismet {
     }
 
     public static void setBlacklist(String[] blacklist) {
-        ConfigKismet.blacklist = blacklist;
+        KismetConfig.blacklist = blacklist;
     }
 
     public enum EnumListMode {
@@ -304,17 +308,19 @@ public class ConfigKismet {
          */
         @SubscribeEvent(priority = EventPriority.NORMAL)
         public void onEvent(ConfigChangedEvent.OnConfigChangedEvent event) {
-            if (Reference.MODID.equals(event.getModID())) {
+            if (Reference.MOD_ID.equals(event.getModID())) {
                 syncFromGUI();
-                if (event.getConfigID() != null) {
-                    ModLogger.info("Config changed on GUI, category " + event.getConfigID());
+                final String category = event.getConfigID();
+                if (category != null) {
+                    if (category.equals(KismetConfig.CATEGORY_LIST)) {
+                        ModLogger.trace("Updating filtered stacks...");
+                        TargetHelper.refreshFilteredStacks();
+                    }
+                    ModLogger.debug("Config changed on GUI, category " + category);
                 } else {
-                    ModLogger.info("Config changed on GUI, no category");
+                    ModLogger.debug("Config changed on GUI, no category");
                 }
             }
-
-            // no matter the changes, if server-side we need to update the config
-            BlockListHelper.generateInternalList();
         }
     }
 

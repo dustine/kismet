@@ -1,4 +1,4 @@
-package desutine.kismet.common.init;
+package desutine.kismet.common.registry;
 
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;

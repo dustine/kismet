@@ -1,10 +1,10 @@
-package desutine.kismet.common.init;
+package desutine.kismet.common.registry;
 
+import desutine.kismet.Reference;
 import desutine.kismet.common.block.BlockDisplay;
-import desutine.kismet.reference.Reference;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
-@GameRegistry.ObjectHolder(Reference.MODID)
+@GameRegistry.ObjectHolder(Reference.MOD_ID)
 public class ModBlocks {
     public static final BlockDisplay DISPLAY = new BlockDisplay();
 //    public static final Block doubleStoneSlab = Blocks.double_stone_slab;

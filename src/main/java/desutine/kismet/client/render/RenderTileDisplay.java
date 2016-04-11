@@ -1,4 +1,4 @@
-package desutine.kismet.client.renderer;
+package desutine.kismet.client.render;
 
 import desutine.kismet.common.block.BlockDisplay;
 import desutine.kismet.common.tile.TileDisplay;
@@ -27,9 +27,9 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         if (te == null) return;
 
         // if we don't have a fulfilled target, show it
-        if (!te.isFulfilled()) {
+//        if (!te.isFulfilled()) {
             renderTargetItem(te, x, y, z);
-        }
+//        }
 
         // always show the label above though
         // BUT make it snazzy: only show the streak if 2+
@@ -49,7 +49,7 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         RenderItem itemRenderer = Minecraft.getMinecraft().getRenderItem();
         EnumFacing direction = state.getValue(BlockDisplay.FACING);
         float facingRot = direction.getHorizontalAngle();
-        double push = state.getValue(BlockDisplay.FULFILLED) ? 0 : 0.0625;
+        double push = (state.getValue(BlockDisplay.FULFILLED) ? -0.03125 : 0.03125);
         double xPush = (0.5 + push) * direction.getFrontOffsetX() + 0.5;
         double zPush = (0.5 + push) * direction.getFrontOffsetZ() + 0.5;
 
@@ -59,31 +59,49 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         GlStateManager.rotate(180 - facingRot, 0, 1, 0);
         GlStateManager.scale(0.5, 0.5, 0.5);
 
-
         // item rendering!
         if (te.getTarget() != null) {
-//            IBakedModel model = Minecraft.getMinecraft().getRenderItem().getItemModelMesher().getItemModel(te.getTarget());
-//            ModLogger.info(model.getQuads(null, null, 0));
-//            TRSRTransformation
-
             if (!itemRenderer.shouldRenderItemIn3D(te.getTarget()) || te.getTarget().getItem() instanceof ItemSkull) {
                 GlStateManager.rotate(180.0F, 0.0F, -1.0F, 0.0F);
             } else {
                 GlStateManager.scale(1.25, 1.25, 1.25);
             }
 
+//            if (itemRenderer.shouldRenderItemIn3D(te.getTarget())) {
+//                switch (direction){
+//                    case DOWN:
+//                        break;
+//                    case UP:
+//                        break;
+//                    case NORTH:
+//                        GlStateManager.scale(0.02, 1, 1);
+//                        break;
+//                    case SOUTH:
+//                        GlStateManager.scale(direction.getFrontOffsetX(), 1, direction.getFrontOffsetZ());
+//                        break;
+//                    case WEST:
+//                        GlStateManager.scale(direction.getFrontOffsetX(), 1, direction.getFrontOffsetZ());
+//                        break;
+//                    case EAST:
+//                        GlStateManager.scale(direction.getFrontOffsetX(), 1, direction.getFrontOffsetZ());
+//                        break;
+//                }
+//            }
+
+//            GlStateManager.disableLighting();
             GlStateManager.pushAttrib();
             RenderHelper.enableStandardItemLighting();
             itemRenderer.renderItem(te.getTarget(), ItemCameraTransforms.TransformType.FIXED);
             RenderHelper.disableStandardItemLighting();
             GlStateManager.popAttrib();
+            GlStateManager.enableLighting();
         }
 
         GlStateManager.popMatrix();
     }
 
     private void renderTextBox(double x, double y, double z, List<String> lines) {
-        // render happens in the opposite order ^^"
+        // text render happens in the opposite order ^^"
         Collections.reverse(lines);
         // start the rendering
         GlStateManager.pushMatrix();
@@ -104,22 +122,17 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         // scale it so IT DOESN'T TAKE THE WHOLE SKY, OMG
         GlStateManager.scale(0.025, 0.025, 0.025);
 
-        // ?
         GlStateManager.disableLighting();
 
-        // ?
         GlStateManager.depthMask(true);
         GlStateManager.disableDepth();
 
         // target string
         FontRenderer fontRenderer = getFontRenderer();
 
-        // ?
         GlStateManager.enableBlend();
-        // ?
         GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 
-        // ?
         GlStateManager.disableTexture2D();
         // all this is to draw the dark box behind the name
         int stringWidth = fontRenderer.getStringWidth(
@@ -131,15 +144,13 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         VertexBuffer vertexBuffer = tessellator.getBuffer();
         // this sets the format of the vertexBuffer : position,color
         // the coordinates are 4 because we're defining a rectangle
-        // no weird coordinates because we already set everything up on the tranforms
-        // 7?
+        // no weird coordinates because we already moved everything up on the tranforms
         vertexBuffer.begin(7, DefaultVertexFormats.POSITION_COLOR);
         vertexBuffer.pos(-stringWidth - 1, -(9 * lines.size() - 8), 0).color(0.0f, 0.0f, 0.0f, 0.25f).endVertex();
         vertexBuffer.pos(-stringWidth - 1, 8, 0).color(0.0f, 0.0f, 0.0f, 0.25f).endVertex();
         vertexBuffer.pos(stringWidth + 1, 8, -0).color(0.0f, 0.0f, 0.0f, 0.25f).endVertex();
         vertexBuffer.pos(stringWidth + 1, -(9 * lines.size() - 8), 0).color(0.0f, 0.0f, 0.0f, 0.25f).endVertex();
         tessellator.draw();
-        // ?
         GlStateManager.enableTexture2D();
 
         for (int i = 0; i < lines.size(); i++)
@@ -148,13 +159,9 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
 
         GlStateManager.enableDepth();
 
-        // ?
         GlStateManager.depthMask(true);
-        // ?
         GlStateManager.enableLighting();
-        // ?
         GlStateManager.disableBlend();
-        // ?
 //        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 
         // finish the GL rendering
