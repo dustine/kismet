@@ -1,40 +1,20 @@
 package desutine.kismet.util;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.reflect.TypeToken;
 import desutine.kismet.Kismet;
 import desutine.kismet.ModLogger;
-import desutine.kismet.common.KismetConfig;
-import desutine.kismet.server.TargetsWorldSavedData;
-import desutine.kismet.server.TargetsWorldSavedData.WrapperTarget;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.Item;
+import desutine.kismet.util.TargetGenerationResult.EnumTargetFailure;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.WorldServer;
-import net.minecraft.world.storage.loot.*;
-import net.minecraft.world.storage.loot.conditions.LootCondition;
-import net.minecraft.world.storage.loot.conditions.LootConditionManager;
-import net.minecraft.world.storage.loot.functions.LootFunction;
-import net.minecraft.world.storage.loot.functions.LootFunctionManager;
-import net.minecraftforge.common.DimensionManager;
-import net.minecraftforge.oredict.OreDictionary;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 public class TargetHelper {
-    //    private static boolean isReady;
-    // "based" on LootTableManager's Gson
-    private static final Gson gson = (new GsonBuilder()).registerTypeAdapter(RandomValueRange.class, new RandomValueRange.Serializer()).registerTypeAdapter(LootPool.class, new LootPool.Serializer()).registerTypeAdapter(LootTable.class, new LootTable.Serializer()).registerTypeHierarchyAdapter(LootEntry.class, new LootEntry.Serializer()).registerTypeHierarchyAdapter(LootFunction.class, new LootFunctionManager.Serializer()).registerTypeHierarchyAdapter(LootCondition.class, new LootConditionManager.Serializer()).registerTypeHierarchyAdapter(LootContext.EntityTarget.class, new LootContext.EntityTarget.Serializer()).create();
-    // private static Set<ItemStack> tempStacks = new HashSet<>();
-    private static List<WrapperTarget> tempStacks;
-    private static List<ItemStack> filteredStacks;
-    private static int remainingPackets;
-    private static TargetsWorldSavedData targetsWorldSavedData;
+
+    private static List<ItemStack> targetLibrary;
 
     /**
      * todo rewrite this all and remove comments from function body
@@ -54,11 +34,11 @@ public class TargetHelper {
      * @param lastTargets
      * @return
      */
-    public static Target generateTarget(@Nonnull final Map<String, Integer> weights, @Nonnull List<ItemStack> lastTargets) {
-        if (filteredStacks == null) return new Target(Target.EnumTargetFailure.LIST_NOT_READY);
+    public static TargetGenerationResult generateTarget(@Nonnull final Map<String, Integer> weights, @Nonnull List<ItemStack> lastTargets) {
+        if (targetLibrary == null) return new TargetGenerationResult(EnumTargetFailure.LIST_NOT_READY);
 
         // saving the mod weights before we removed stacks according to previousTargets
-        Map<String, Integer> statelessCount = getModItemCount(filteredStacks);
+        Map<String, Integer> statelessCount = getModItemCount(targetLibrary);
 
         // add missing keys to weights
         // using statelessCount because it's the one with less filtering, and hence more possible mod keys
@@ -74,7 +54,7 @@ public class TargetHelper {
                 .forEach(weights::remove);
 
         // remove the previous targets too while you're at it~
-        List<ItemStack> targets = filteredStacks.stream()
+        List<ItemStack> targets = targetLibrary.stream()
                 .filter(stack -> lastTargets.stream().noneMatch(stack1 -> StackHelper.isEquivalent(stack, stack1)))
                 .collect(Collectors.toList());
 
@@ -136,7 +116,7 @@ public class TargetHelper {
                 max = metrics.values().stream().reduce(0, (i, j) -> i + j);
                 if (max <= 1) {
                     // we ran out of targets completely, report failure
-                    return new Target(Target.EnumTargetFailure.NO_TARGETS_AVAILABLE);
+                    return new TargetGenerationResult(EnumTargetFailure.NO_TARGETS_AVAILABLE);
                 } else {
                     // solution to edge case: remove lastTargets, recalculate everything
 
@@ -147,7 +127,7 @@ public class TargetHelper {
 
                     // and to properly remove it, we have to take it out from configFilteredItems
                     // we can use this time to put them into targets too
-                    targets = filteredStacks.stream()
+                    targets = targetLibrary.stream()
                             .filter(item -> !StackHelper.isEquivalent(item, previousTarget))
                             .collect(Collectors.toList());
 
@@ -193,7 +173,7 @@ public class TargetHelper {
         // target should always be assigned a value, but just in case...
         if (targetMod == null) {
             ModLogger.error(String.format("Failed to get a targeted mod, from %s and %s", weights, lastTargets));
-            return new Target(Target.EnumTargetFailure.NO_TARGET_MODS_AVAILABLE);
+            return new TargetGenerationResult(EnumTargetFailure.NO_TARGET_MODS_AVAILABLE);
         }
         // a mod has been chosen, now time to get some random block from within!
         //   oh but first we update the mod weights, so that they all increase by 1 EXCEPT the chosen one, that one
@@ -213,7 +193,7 @@ public class TargetHelper {
         // random index and returning the contents on that index
         final String finalTarget = targetMod;
         List<ItemStack> decapsulatedTargets = targets.stream()
-                .filter(item -> getMod(item).equalsIgnoreCase(finalTarget))
+                .filter(item -> StackHelper.getMod(item).equalsIgnoreCase(finalTarget))
                 .collect(Collectors.toList());
         int targetIndex = random.nextInt(decapsulatedTargets.size());
         ItemStack newTarget = decapsulatedTargets.get(targetIndex);
@@ -221,13 +201,13 @@ public class TargetHelper {
         // finally, we have a target.
         // but ah, before finishing, we have to add the newly generated target to the lastTarget stacks!
         lastTargets.add(newTarget);
-        return new Target(newTarget);
+        return new TargetGenerationResult(newTarget);
     }
 
     private static Map<String, Integer> getModItemCount(Iterable<ItemStack> filteredCompleteList) {
         HashMap<String, Integer> map = new HashMap<>();
         for (ItemStack item : filteredCompleteList) {
-            String mod = getMod(item);
+            String mod = StackHelper.getMod(item);
             if (!map.containsKey(mod)) {
                 map.put(mod, 1);
             } else
@@ -236,212 +216,11 @@ public class TargetHelper {
         return map;
     }
 
-    private static String getMod(ItemStack item) {
-        return item.getItem().getRegistryName().getResourceDomain();
+    public static List<ItemStack> getTargetLibrary() {
+        return targetLibrary;
     }
 
-    private static boolean isMod(String s) {
-        return !s.contains(":");
+    public static void setTargetLibrary(List<ItemStack> targetLibrary) {
+        TargetHelper.targetLibrary = targetLibrary;
     }
-
-    private static String standardizeFilter(@Nonnull String s, boolean wildcard) {
-        // try to add metadata
-        final String[] split = s.split(":");
-        if (split.length == 1) {
-            // mod
-            // todo check if the mod is present
-            // todo check if it's a valid mod name
-            return split[0];
-        } else if (split.length == 2 || split.length == 3) {
-            // item (with possible metadata
-            ItemStack stack;
-            // if we have metadata, creating a resourceLocation with it is a baaaad idea
-            stack = getItemStack(s, wildcard);
-            if (stack == null) return null;
-
-            return StackHelper.stackToString(stack);
-        } else {
-            ModLogger.warning("Weird location: " + s);
-            return null;
-        }
-    }
-
-    private static ItemStack getItemStack(@Nonnull String s, boolean wildcard) {
-        final String[] split = s.split(":");
-
-        ItemStack stack;
-        ResourceLocation loc = new ResourceLocation(split[0], split[1]);
-        if (Item.itemRegistry.getKeys().contains(loc)) {
-            stack = new ItemStack(Item.itemRegistry.getObject(loc));
-        } else {
-            ModLogger.warning("Weird location: " + s);
-            return null;
-        }
-
-        if (split.length > 2) {
-            // input metadata
-            Integer meta = tryParse(split[2]);
-            if (meta != null) {
-                // there's metadata, add it
-                stack.setItemDamage(meta);
-            } else {
-                ModLogger.warning(String.format("Weird metadata %s in %s", split[2], loc));
-                // metadata ignored
-                if (wildcard) addWildcardIfSubtypes(stack);
-            }
-        } else {
-            // no inputted metadata
-            if (wildcard) addWildcardIfSubtypes(stack);
-        }
-        return stack;
-    }
-
-    private static void addWildcardIfSubtypes(ItemStack stack) {
-        if (stack.getHasSubtypes()) {
-            // if we have subtypes, the rule means all variations are allowed
-            stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
-        }
-    }
-
-    private static Integer tryParse(String text) {
-        try {
-            return Integer.parseInt(text);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Generates the target lists within the game.
-     *
-     * @param player The player entity to use to enrich the state
-     */
-    public static void generateStacks(EntityPlayerMP player) {
-        boolean generating = true;
-        tempStacks = new ArrayList<>();
-        addRegisteredItems();
-        identifyLoot();
-
-        // separate the stacks per mod, for smaller packets
-        Map<String, List<WrapperTarget>> modSortedStacks = new HashMap<>();
-        for (WrapperTarget wrapper : tempStacks) {
-            String mod = getMod(wrapper.getStack());
-            if (!modSortedStacks.containsKey(mod)) {
-                final ArrayList<WrapperTarget> wrappers = new ArrayList<>();
-                wrappers.add(wrapper);
-                modSortedStacks.put(mod, wrappers);
-            } else {
-                modSortedStacks.get(mod).add(wrapper);
-            }
-        }
-        tempStacks.clear();
-
-//        modSortedStacks.values().stream().map(List::size).reduce((i, j) -> i+j);
-        remainingPackets = modSortedStacks.size();
-        modSortedStacks.forEach((s, list) -> {
-            targetsWorldSavedData = TargetsWorldSavedData.get(player.getServerForPlayer());
-            Kismet.packetHandler.enrichStacks(list, player);
-        });
-    }
-
-    private static void addRegisteredItems() {
-        // add stacks from ItemRegistery
-        for (ResourceLocation loc : Item.itemRegistry.getKeys()) {
-            Item item = Item.itemRegistry.getObject(loc);
-            ItemStack stack = new ItemStack(item);
-            if (item.getHasSubtypes()) {
-                // if it has subtypes, be a lovely dear and schedule it for enrichment later
-                // using the wildcard value
-                stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
-            }
-            if (stack.getItem() == null) continue;
-            // false as we're unsure if it's craftable or not yet
-            tempStacks.add(new WrapperTarget(stack, false));
-        }
-    }
-
-    private static void identifyLoot() {
-        final WorldServer world = DimensionManager.getWorld(0);
-        final LootTableManager lootTableManager = world.getLootTableManager();
-        final List<LootTable> allTables = LootTableList.getAll().stream()
-                .map(lootTableManager::getLootTableFromLocation)
-                .collect(Collectors.toList());
-
-        for (LootTable table : allTables) {
-//            tableSerializer = new LootTable.Serializer();
-            final JsonElement s = gson.toJsonTree(table, new TypeToken<LootTable>() {
-            }.getType());
-//            ModLogger.info(s);
-        }
-    }
-
-    public static void enrichItems(List<WrapperTarget> newStacks) {
-        TargetHelper.tempStacks.addAll(newStacks);
-        --remainingPackets;
-        if (remainingPackets <= 0) {
-            targetsWorldSavedData.setStacks(tempStacks);
-            refreshFilteredStacks();
-        }
-    }
-
-    public static void refreshFilteredStacks() {
-        updateForcedStacks();
-
-        final List<ItemStack> forcedStacks = targetsWorldSavedData.getForcedStacks();
-        // whitelist (based from forcedStacks)
-        final List<String> whitelist = forcedStacks.stream()
-                .map(StackHelper::stackToString)
-                .collect(Collectors.toList());
-
-        // blacklist
-        final Set<String> blacklist = new HashSet<>();
-        for (String s : KismetConfig.getWhitelist()) {
-            // skip entries that start with an !
-            if (s.startsWith("!")) continue;
-            blacklist.add(standardizeFilter(s, true));
-        }
-
-        // filtered iterable
-        List<ItemStack> newFilteredStacks = targetsWorldSavedData.getStacks().stream().filter(wrapper -> {
-            // no nulls pls
-            if (wrapper == null) return false;
-
-            String name = StackHelper.stackToString(wrapper.getStack());
-            // if it's on the whitelist, return false, as they will be on the filter already
-            // but it needs to be an exact match, to avoid duplicates and/or missing stacks
-            if (whitelist.stream().anyMatch(name::equals)) return false;
-            // and if it is on the blacklist, return false
-            if (blacklist.stream().anyMatch(name::startsWith)) return false;
-            // else it depends on the addMode if it gets added
-            switch (KismetConfig.getAddMode()) {
-                case WHITELIST_ONLY:
-                    return false;
-                case ADD_STRICTLY_OBTAINABLE:
-                    return wrapper.isObtainable();
-                case ADD_ALL_POSSIBLE:
-                    return true;
-            }
-            // fail safe
-            return false;
-        }).map(WrapperTarget::getStack).collect(Collectors.toList());
-
-        newFilteredStacks.addAll(forcedStacks);
-
-        filteredStacks = newFilteredStacks;
-    }
-
-    private static void updateForcedStacks() {
-        List<ItemStack> forcedStacks = new ArrayList<>();
-
-        // whitelist, only create the stacks outright
-        for (String s : KismetConfig.getWhitelist()) {
-            // skip entries that start with an !
-            // also skip mods on the whitelist as it's only for specific tempStacks
-            if (s.startsWith("!") || isMod(s)) continue;
-            forcedStacks.add(getItemStack(s, false));
-        }
-
-        targetsWorldSavedData.setForcedStacks(forcedStacks);
-    }
-
 }

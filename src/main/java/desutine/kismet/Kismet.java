@@ -7,14 +7,15 @@ import desutine.kismet.common.registry.ModTiles;
 import desutine.kismet.network.NetworkHandlerKismet;
 import desutine.kismet.proxy.IProxy;
 import desutine.kismet.server.CommandKismet;
+import desutine.kismet.util.TargetLibraryFactory;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import net.minecraftforge.fml.common.event.*;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 
 import java.util.Random;
 
@@ -48,7 +49,6 @@ public class Kismet {
 
         // register eventhandlers
         MinecraftForge.EVENT_BUS.register(new desutine.kismet.common.event.EventHandler());
-//        MinecraftForge.EVENT_BUS.register(new EventHandlerBlock());
 
         // start network channels
         packetHandler = new NetworkHandlerKismet();
@@ -82,6 +82,21 @@ public class Kismet {
     public void serverStarting(FMLServerStartingEvent event) {
         ModLogger.info("server starting...");
         event.registerServerCommand(command);
+
+        MinecraftForge.EVENT_BUS.register(new Object() {
+            @SubscribeEvent
+            public void onceEmbeddedServerPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
+                if (event.player instanceof EntityPlayerMP) {
+                    Kismet.proxy.cleanTargetLibrary((EntityPlayerMP) event.player);
+                    MinecraftForge.EVENT_BUS.unregister(this);
+                }
+            }
+        });
+    }
+
+    @EventHandler
+    public void serverStopping(FMLServerStoppingEvent event) {
+        TargetLibraryFactory.clear();
     }
 
 }

@@ -41,7 +41,7 @@ public class StackHelper {
         return "";
     }
 
-    public static String stackToString(ItemStack stack) {
+    public static String toUniqueKey(ItemStack stack) {
         if (stack == null || stack.getItem() == null) return "";
 
         ResourceLocation loc = stack.getItem().getRegistryName();
@@ -61,5 +61,9 @@ public class StackHelper {
             }
         }
         return result.toString();
+    }
+
+    public static String getMod(ItemStack item) {
+        return item.getItem().getRegistryName().getResourceDomain();
     }
 }

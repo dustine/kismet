@@ -2,11 +2,11 @@ package desutine.kismet.util;
 
 import net.minecraft.item.ItemStack;
 
-public class Target {
+public class TargetGenerationResult {
     private final ItemStack value;
     private final EnumTargetFailure flag;
 
-    public Target(ItemStack value) {
+    public TargetGenerationResult(ItemStack value) {
         if (value.getItem() == null) {
             this.value = null;
             this.flag = EnumTargetFailure.EMPTY_ITEMSTACK;
@@ -16,7 +16,7 @@ public class Target {
         }
     }
 
-    public Target(EnumTargetFailure flag) {
+    public TargetGenerationResult(EnumTargetFailure flag) {
         value = null;
         this.flag = flag;
     }

@@ -5,7 +5,8 @@ import desutine.kismet.ModLogger;
 import desutine.kismet.common.KismetConfig;
 import desutine.kismet.common.block.BlockDisplay;
 import desutine.kismet.common.registry.ModBlocks;
-import desutine.kismet.util.Target;
+import desutine.kismet.util.TargetGenerationResult;
+import desutine.kismet.util.TargetHelper;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -81,6 +82,12 @@ public class TileDisplay extends TileEntity implements ITickable {
         return deadline;
     }
 
+    public void setDeadline(long deadline) {
+        this.deadline = deadline;
+        // not really needed as it's not directly related to display
+//        this.stateChanged = true;
+    }
+
     /**
      * Called whenever the block and/or its metadata changes
      *
@@ -94,12 +101,6 @@ public class TileDisplay extends TileEntity implements ITickable {
     public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
         if (oldState.getBlock() != newSate.getBlock()) return true;
         return oldState.getBlock() != ModBlocks.DISPLAY;
-    }
-
-    public void setDeadline(long deadline) {
-        this.deadline = deadline;
-        // not really needed as it's not directly related to display
-//        this.stateChanged = true;
     }
 
     public String getStylizedStreak() {
@@ -183,7 +184,7 @@ public class TileDisplay extends TileEntity implements ITickable {
         // a timeout for server issues
         if (timeout > worldObj.getTotalWorldTime()) return false;
 
-        Target targetResult = KismetConfig.generateTarget(modWeights, lastTargets);
+        TargetGenerationResult targetResult = TargetHelper.generateTarget(modWeights, lastTargets);
         if (targetResult.hasTarget()) {
             target = targetResult.getValue();
         } else {

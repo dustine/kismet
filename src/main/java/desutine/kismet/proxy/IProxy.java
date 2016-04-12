@@ -1,6 +1,7 @@
 package desutine.kismet.proxy;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 
 public interface IProxy {
     void addInventoryModels();
@@ -12,4 +13,6 @@ public interface IProxy {
     void registerBlockItemColor();
 
     void sendConfigToClient(EntityPlayer player);
+
+    void cleanTargetLibrary(EntityPlayerMP player);
 }

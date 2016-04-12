@@ -1,7 +1,7 @@
 package desutine.kismet.common.event;
 
 import desutine.kismet.Kismet;
-import desutine.kismet.util.TargetHelper;
+import desutine.kismet.util.TargetLibraryFactory;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
@@ -27,7 +27,7 @@ public class EventOnceEnrichOnPlayerLogin {
             // fixme the event should only be dropped once it succeeds
             MinecraftForge.EVENT_BUS.unregister(this);
 
-            TargetHelper.generateStacks((EntityPlayerMP) event.player);
+            TargetLibraryFactory.generateStacks((EntityPlayerMP) event.player);
         }
 
     }

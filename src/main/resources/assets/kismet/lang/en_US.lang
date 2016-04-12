@@ -37,17 +37,17 @@ gui.config.general.nukedLimit.tooltip=Defines how long a target lasts on a nuked
 
 ### List target
 
-gui.config.category.target=Targets
-gui.config.category.target.tooltip=Settings regarding the allowed/disallowed items to be picked as targets, either by a predetermined set or procedurally.
+gui.config.category.targets=Targets
+gui.config.category.targets.tooltip=Settings regarding the allowed/disallowed items to be picked as targets, either by a predetermined set or procedurally.
 
-gui.config.target.whitelist=Targets
-gui.config.target.whitelist.tooltip=Item strings present here will be used as possible random targets, alongside any additionally added procedurally.\nUse the format "[!]mod:name[:metadata]", where [] indicates optional. The ! disables the entry without needing to remove it.
+gui.config.targets.forceAdd=Targets
+gui.config.targets.forceAdd.tooltip=Item strings present here will be used as possible random targets, alongside any additionally added procedurally.\nUse the format "[!]mod:name[:metadata]", where [] indicates optional. The ! disables the entry without needing to remove it.
 
-gui.config.target.addMode=Generate Additional Targets
-gui.config.target.addMode.tooltip=Kismet can add items beyond the ones present in the whitelist, depending on the behaviour specified on this field.\n§lWhitelist only§r: only the items present in the Whitelist will be used as targets.\n§lAdd only obtainable§r: Kismet will search which items can be obtainable in-game (craftable, world gen, etc.) and only add these as possible targets.\n§lAdd all others§r: Kismet will add all items that are registered in-game, no matter if they're obtainable or not.
+gui.config.targets.genMode=Generate Additional Targets
+gui.config.targets.genMode.tooltip=Kismet can add items beyond the ones present in the forceAdd, depending on the behaviour specified on this field.\n§lWhitelist only§r: only the items present in the Whitelist will be used as targets.\n§lAdd only obtainable§r: Kismet will search which items can be obtainable in-game (craftable, world gen, etc.) and only add these as possible targets.\n§lAdd all others§r: Kismet will add all items that are registered in-game, no matter if they're obtainable or not.
 
-gui.config.target.addedStacks=Generated Targets Filter
-gui.config.target.addedStacks.tooltip=Only items that follow the rules present in this list will be added as possible targets to the game (if Generate Additional Targets allows so).\nUse the format "[!]mod[:name[:metadata]]", where [] indicates optional. The ! disables the entry without needing to remove it.
+gui.config.targets.genFilter=Generated Targets Filter
+gui.config.targets.genStacksFilter.tooltip=Only items that follow the rules present in this list will be added as possible targets to the game (if Generate Additional Targets allows so).\nUse the format "[!]mod[:name[:metadata]]", where [] indicates optional. The ! disables the entry without needing to remove it.
 
-gui.config.target.filterMode=Filter Mode
-gui.config.target.filterMode.tooltip=Toggles the additional target's filter behaviour between whitelist and blacklist
+gui.config.targets.filterMode=Filter Mode
+gui.config.targets.filterMode.tooltip=Toggles the additional target's filter behaviour between forceAdd and genFilter

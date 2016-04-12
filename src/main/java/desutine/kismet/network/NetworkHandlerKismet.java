@@ -11,8 +11,9 @@ import desutine.kismet.network.packet.MessageKismetConfig;
 import desutine.kismet.network.packet.MessageReceiveEnrichedTargets;
 import desutine.kismet.network.packet.MessageSendRawTargets;
 import desutine.kismet.network.packet.MessageTileEntity;
-import desutine.kismet.server.TargetsWorldSavedData.WrapperTarget;
-import desutine.kismet.util.TargetHelper;
+import desutine.kismet.server.StackWrapper;
+import desutine.kismet.server.WorldSavedDataTargets;
+import desutine.kismet.util.TargetLibraryFactory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.tileentity.TileEntity;
@@ -55,12 +56,12 @@ public class NetworkHandlerKismet {
         channel.sendTo(new MessageKismetConfig(), player);
     }
 
-    public void enrichStacks(List<WrapperTarget> stacks, EntityPlayerMP player) {
-        channel.sendTo(new MessageSendRawTargets(stacks), player);
+    public void enrichStacks(List<StackWrapper> targets, EntityPlayerMP player) {
+        channel.sendTo(new MessageSendRawTargets(targets), player);
     }
 
-    private void sendEnriched(List<WrapperTarget> isObtainable) {
-        channel.sendToServer(new MessageReceiveEnrichedTargets(isObtainable));
+    private void sendEnriched(List<StackWrapper> targets) {
+        channel.sendToServer(new MessageReceiveEnrichedTargets(targets));
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -103,19 +104,19 @@ public class NetworkHandlerKismet {
         @Override
         public MessageSendRawTargets onMessage(MessageSendRawTargets message, MessageContext ctx) {
             Minecraft.getMinecraft().addScheduledTask(() -> {
-                List<WrapperTarget> isObtainable = message.stacks;
+                List<StackWrapper> targets = message.stacks;
                 if (isJeiReady()) {
-                    AddonJei.enrich(isObtainable);
+                    AddonJei.enrich(targets);
                 } else {
-                    ClientTargetHelper.vanillaEnrich(isObtainable);
+                    ClientTargetHelper.vanillaEnrich(targets);
                 }
-                Kismet.packetHandler.sendEnriched(isObtainable);
+                Kismet.packetHandler.sendEnriched(targets);
             });
             return null;
         }
 
         private boolean isJeiReady() {
-            return true;
+            return AddonJei.recipeRegistry != null && AddonJei.stackHelper != null;
         }
     }
 
@@ -123,11 +124,11 @@ public class NetworkHandlerKismet {
     public static class ReceiveEnrichedItemStacks implements IMessageHandler<MessageReceiveEnrichedTargets, IMessage> {
         @Override
         public IMessage onMessage(final MessageReceiveEnrichedTargets message, MessageContext ctx) {
-            ((WorldServer) (ctx.getServerHandler().playerEntity.worldObj)).addScheduledTask(() -> {
-                for (WrapperTarget wrapper : message.stacks) {
-//                    ModLogger.trace(StackHelper.stackToString(wrapper.getStack()));
-                }
-                TargetHelper.enrichItems(message.stacks);
+            final WorldServer world = (WorldServer) (ctx.getServerHandler().playerEntity.worldObj);
+            world.addScheduledTask(() -> {
+                final WorldSavedDataTargets wsdStacks = WorldSavedDataTargets.get(world);
+                wsdStacks.enrichStacks(message.stacks);
+                TargetLibraryFactory.generateLibrary(world);
             });
             return null;
         }

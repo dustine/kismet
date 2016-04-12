@@ -1,6 +1,6 @@
 package desutine.kismet.network.packet;
 
-import desutine.kismet.server.TargetsWorldSavedData;
+import desutine.kismet.server.StackWrapper;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ public class MessageSendRawTargets extends MessageTargets {
         super();
     }
 
-    public MessageSendRawTargets(List<TargetsWorldSavedData.WrapperTarget> stacks) {
+    public MessageSendRawTargets(List<StackWrapper> stacks) {
         super(stacks);
     }
 }

@@ -30,4 +30,9 @@ public class ServerProxy extends CommonProxy {
     public void sendConfigToClient(EntityPlayer player) {
         Kismet.packetHandler.sendConfigToClient((EntityPlayerMP) player);
     }
+
+    @Override
+    public void cleanTargetLibrary(EntityPlayerMP player) {
+        // NOOP
+    }
 }

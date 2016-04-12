@@ -11,7 +11,7 @@ import net.minecraftforge.common.config.ConfigElement;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
 import net.minecraftforge.fml.client.IModGuiFactory;
-import net.minecraftforge.fml.client.config.DummyConfigElement;
+import net.minecraftforge.fml.client.config.DummyConfigElement.DummyCategoryElement;
 import net.minecraftforge.fml.client.config.GuiConfig;
 import net.minecraftforge.fml.client.config.GuiConfigEntries;
 import net.minecraftforge.fml.client.config.GuiConfigEntries.CategoryEntry;
@@ -44,6 +44,7 @@ public class ModGuiFactory implements IModGuiFactory {
         return null;
     }
 
+    @SuppressWarnings("WeakerAccess")
     public static class ModConfigGui extends GuiConfig {
 
         public ModConfigGui(GuiScreen parentScreen) {
@@ -55,30 +56,33 @@ public class ModGuiFactory implements IModGuiFactory {
 
         private static List<IConfigElement> getConfigElements(String category) {
             // REMINDER Check FMLConfigGuiFactory.class for the extra "bells" you can add to the config
-            List<IConfigElement> list = new ArrayList<IConfigElement>();
+            List<IConfigElement> list = new ArrayList<>();
 
             final ImmutableList<Property> catGeneral = KismetConfig.getImmutableCategory(category);
             list.addAll(catGeneral.stream().map(ConfigElement::new).collect(Collectors.toList()));
 
             if (category.equalsIgnoreCase(Configuration.CATEGORY_GENERAL)) {
                 // sub-categories
-                list.add(new DummyConfigElement.DummyCategoryElement(
-                        KismetConfig.CATEGORY_LIST, "gui.config.category.list", CategoryEntryList.class));
+                list.add(new DummyCategoryElement(
+                        KismetConfig.CATEGORY_TARGETS, "gui.config.category." + KismetConfig.CATEGORY_TARGETS,
+                        CategoryEntryTargets.class));
             }
 
             return list;
         }
 
-        public static class CategoryEntryGeneral extends CategoryEntry {
-            public CategoryEntryGeneral(GuiConfig owningScreen, GuiConfigEntries owningEntryList, IConfigElement configElement) {
-                super(owningScreen, owningEntryList, configElement);
-            }
-        }
+//        public static class CategoryEntryGeneral extends CategoryEntry {
+//            public CategoryEntryGeneral(GuiConfig owningScreen, GuiConfigEntries owningEntryList,
+//                                        IConfigElement configElement) {
+//                super(owningScreen, owningEntryList, configElement);
+//            }
+//        }
 
-        // Config category for general configurations
+        // Config category for category:targets configurations
         @SuppressWarnings("WeakerAccess")
-        public static class CategoryEntryList extends CategoryEntry {
-            public CategoryEntryList(GuiConfig owningScreen, GuiConfigEntries owningEntryList, IConfigElement configElement) {
+        public static class CategoryEntryTargets extends CategoryEntry {
+            public CategoryEntryTargets(GuiConfig owningScreen, GuiConfigEntries owningEntryList,
+                                        IConfigElement configElement) {
                 super(owningScreen, owningEntryList, configElement);
             }
 
@@ -89,13 +93,13 @@ public class ModGuiFactory implements IModGuiFactory {
                 Configuration configuration = KismetConfig.getConfig();
                 String windowTitle = configuration.toString();
 
-                return new GuiConfig(this.owningScreen, getConfigElements(KismetConfig.CATEGORY_LIST),
+                return new GuiConfig(this.owningScreen, getConfigElements(KismetConfig.CATEGORY_TARGETS),
                         this.owningScreen.modID,
-                        KismetConfig.CATEGORY_LIST,
+                        KismetConfig.CATEGORY_TARGETS,
                         this.configElement.requiresWorldRestart() || this.owningScreen.allRequireWorldRestart,
                         this.configElement.requiresMcRestart() || this.owningScreen.allRequireMcRestart,
                         windowTitle,
-                        I18n.format("gui.config.category.list"));
+                        I18n.format("gui.config.category." + KismetConfig.CATEGORY_TARGETS));
             }
         }
     }

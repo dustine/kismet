@@ -7,9 +7,11 @@ import desutine.kismet.common.KismetConfig;
 import desutine.kismet.common.registry.ModBlocks;
 import desutine.kismet.common.registry.ModItems;
 import desutine.kismet.common.tile.TileDisplay;
+import desutine.kismet.util.TargetLibraryFactory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -43,5 +45,13 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void sendConfigToClient(EntityPlayer player) {
         // NOOP
+    }
+
+    @Override
+    public void cleanTargetLibrary(EntityPlayerMP player) {
+        // yeah, client proxy + isRemote = embedded server thread
+        if (player.worldObj.isRemote) return;
+
+        TargetLibraryFactory.generateStacks(player);
     }
 }

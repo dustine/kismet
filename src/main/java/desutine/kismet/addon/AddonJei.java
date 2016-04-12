@@ -1,7 +1,8 @@
 package desutine.kismet.addon;
 
 import desutine.kismet.common.registry.ModBlocks;
-import desutine.kismet.server.TargetsWorldSavedData.WrapperTarget;
+import desutine.kismet.server.StackWrapper;
+import desutine.kismet.util.StackHelper;
 import mezz.jei.api.*;
 import mezz.jei.api.recipe.IRecipeCategory;
 import mezz.jei.api.recipe.IStackHelper;
@@ -10,6 +11,7 @@ import net.minecraft.item.ItemStack;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @JEIPlugin
@@ -18,26 +20,28 @@ public class AddonJei implements IModPlugin {
     public static IRecipeRegistry recipeRegistry;
     public static IStackHelper stackHelper;
 
-    public static void enrich(List<WrapperTarget> stacks) {
-        final ArrayList<WrapperTarget> tempWrappers = new ArrayList<>();
-        // add all subtypes
-        for (WrapperTarget wrapper : stacks) {
-            List<ItemStack> subtypes = stackHelper.getSubtypes(wrapper.getStack());
-            if (subtypes.size() <= 1) continue;
-            // drop the first one as it already exists on the other
-            subtypes = subtypes.subList(1, subtypes.size() - 1);
-            tempWrappers.addAll(subtypes.stream()
-                    .map(stack -> new WrapperTarget(stack, false))
-                    .collect(Collectors.toList()));
-        }
-        stacks.addAll(tempWrappers);
+    public static void enrich(List<StackWrapper> stacks) {
+        final Set<String> stackKeys = stacks.stream()
+                .map(wrapper -> StackHelper.toUniqueKey(wrapper.getStack()))
+                .collect(Collectors.toSet());
 
-//        // world-gen
-//        ClientHelperTarget.identifyWorldGen(oldItems, items);
+        final ArrayList<StackWrapper> subtypeStacks = new ArrayList<>();
+        // add all subtypes
+        for (StackWrapper wrapper : stacks) {
+            List<ItemStack> subtypes = stackHelper.getSubtypes(wrapper.getStack());
+            // check if the subtype stack is already in the stacks
+            // using a set of all unique keys for the items
+            for (ItemStack stack : subtypes) {
+                String name = StackHelper.toUniqueKey(stack);
+                if (!stackKeys.contains(name))
+                    subtypeStacks.add(new StackWrapper(stack, false));
+            }
+        }
+        stacks.addAll(subtypeStacks);
 
         // crafting algorithm
         // algorithm 0: if recipe = can be crafted
-        for (WrapperTarget wrapper : stacks) {
+        for (StackWrapper wrapper : stacks) {
             // skip the ones already positive
             if (wrapper.isObtainable()) continue;
 
