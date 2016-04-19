@@ -1,9 +1,8 @@
 package desutine.kismet.server;
 
+import desutine.kismet.Kismet;
 import desutine.kismet.ModLogger;
 import desutine.kismet.Reference;
-import desutine.kismet.util.StackHelper;
-import desutine.kismet.util.TargetLibraryFactory;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -11,6 +10,7 @@ import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
 
 import java.util.List;
 
@@ -26,14 +26,16 @@ public class CommandKismet extends CommandBase {
     }
 
     @Override
+    public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos) {
+        return getListOfStringsMatchingLastWord(args, "reset", "dump");
+    }
+
+    @Override
     public String getCommandName() {
         return Reference.MOD_ID;
     }
 
-    @Override
-    public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos) {
-        return getListOfStringsMatchingLastWord(args, "rebuild", "dump");
-    }
+
 
 
     @Override
@@ -46,12 +48,16 @@ public class CommandKismet extends CommandBase {
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
         if (args.length == 0 || "help".equals(args[0])) {
             throw new WrongUsageException(getCommandName());
-        } else if ("rebuild".equals(args[0])) {
+        } else if ("reset".equals(args[0])) {
             // regen command
-            TargetLibraryFactory.generateStacks((EntityPlayerMP) sender);
+            if (Kismet.libraryFactory != null)
+                Kismet.libraryFactory.generateStacks((EntityPlayerMP) sender);
+            else {
+                sender.addChatMessage(new TextComponentString("[Kismet] Error, target library factory not found"));
+            }
         } else if ("dump".equals(args[0])) {
             for (StackWrapper wrapper : WorldSavedDataTargets.get(sender.getEntityWorld()).getStacks()) {
-                ModLogger.info(StackHelper.toUniqueKey(wrapper.getStack()) + " = " + wrapper.isObtainable());
+                ModLogger.info(wrapper.toCompleteString());
             }
         } else {
             throw new WrongUsageException(getCommandName());

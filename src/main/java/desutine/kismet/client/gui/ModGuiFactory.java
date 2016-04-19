@@ -3,7 +3,7 @@ package desutine.kismet.client.gui;
 
 import com.google.common.collect.ImmutableList;
 import desutine.kismet.Reference;
-import desutine.kismet.common.KismetConfig;
+import desutine.kismet.common.ConfigKismet;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.I18n;
@@ -50,7 +50,7 @@ public class ModGuiFactory implements IModGuiFactory {
         public ModConfigGui(GuiScreen parentScreen) {
             super(parentScreen, getConfigElements(Configuration.CATEGORY_GENERAL), Reference.MOD_ID, false, false, null);
 
-            this.title = KismetConfig.getConfig().toString();
+            this.title = ConfigKismet.getConfig().toString();
             this.titleLine2 = I18n.format("gui.config.category.main");
         }
 
@@ -58,13 +58,13 @@ public class ModGuiFactory implements IModGuiFactory {
             // REMINDER Check FMLConfigGuiFactory.class for the extra "bells" you can add to the config
             List<IConfigElement> list = new ArrayList<>();
 
-            final ImmutableList<Property> catGeneral = KismetConfig.getImmutableCategory(category);
+            final ImmutableList<Property> catGeneral = ConfigKismet.getImmutableCategory(category);
             list.addAll(catGeneral.stream().map(ConfigElement::new).collect(Collectors.toList()));
 
             if (category.equalsIgnoreCase(Configuration.CATEGORY_GENERAL)) {
                 // sub-categories
                 list.add(new DummyCategoryElement(
-                        KismetConfig.CATEGORY_TARGETS, "gui.config.category." + KismetConfig.CATEGORY_TARGETS,
+                        ConfigKismet.CATEGORY_TARGETS, "gui.config.category." + ConfigKismet.CATEGORY_TARGETS,
                         CategoryEntryTargets.class));
             }
 
@@ -90,16 +90,16 @@ public class ModGuiFactory implements IModGuiFactory {
             protected GuiScreen buildChildScreen() {
                 // Forge best practices say to put the path to the config file for the category as the title for the
                 // category config screen
-                Configuration configuration = KismetConfig.getConfig();
+                Configuration configuration = ConfigKismet.getConfig();
                 String windowTitle = configuration.toString();
 
-                return new GuiConfig(this.owningScreen, getConfigElements(KismetConfig.CATEGORY_TARGETS),
+                return new GuiConfig(this.owningScreen, getConfigElements(ConfigKismet.CATEGORY_TARGETS),
                         this.owningScreen.modID,
-                        KismetConfig.CATEGORY_TARGETS,
+                        ConfigKismet.CATEGORY_TARGETS,
                         this.configElement.requiresWorldRestart() || this.owningScreen.allRequireWorldRestart,
                         this.configElement.requiresMcRestart() || this.owningScreen.allRequireMcRestart,
                         windowTitle,
-                        I18n.format("gui.config.category." + KismetConfig.CATEGORY_TARGETS));
+                        I18n.format("gui.config.category." + ConfigKismet.CATEGORY_TARGETS));
             }
         }
     }

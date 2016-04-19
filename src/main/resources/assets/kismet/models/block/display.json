@@ -1,77 +1,144 @@
 {
   "elements": [
     {
-      "from": [0, 0, 0],
-      "to": [16, 2, 16],
-      "faces": {
-        "up": {
-          "texture": "#bottom"
-        },
-        "down": {
-          "texture": "#bottom"
-        },
-        "north": {
-          "texture": "#bottom-side"
-        },
-        "east": {
-          "texture": "#bottom-side"
-        },
-        "south": {
-          "texture": "#bottom-side"
-        },
-        "west": {
-          "texture": "#bottom-side"
-        }
-      }
-    },
-    {
-      "from": [4, 16, 4],
-      "to": [12, 16.001, 12],
-      "faces": {
-        "up": {
-          "texture": "#pivot"
-        }
-      }
-    },
-    {
-      "from": [0, 14, 0],
+      "from": [0, 0, 13],
       "to": [16, 16, 16],
       "faces": {
         "up": {
-          "texture": "#top"
+          "texture": "#body",
+          "cullface": "up",
+          "uv": [0, 0, 16, 3]
         },
         "down": {
-          "texture": "#top"
+          "texture": "#body",
+          "cullface": "down",
+          "uv": [0, 13, 16, 16]
         },
         "north": {
-          "texture": "#top-side"
+          "texture": "#body"
         },
         "east": {
-          "texture": "#top-side"
+          "texture": "#body",
+          "cullface": "east",
+          "uv": [13, 0, 16, 16]
         },
         "south": {
-          "texture": "#top-side"
+          "texture": "#body",
+          "cullface": "south"
         },
         "west": {
-          "texture": "#top-side"
+          "texture": "#body",
+          "cullface": "west",
+          "uv": [0, 0, 3, 16]
         }
       }
     },
     {
-      "from": [1, 0.5, 1],
-      "to": [15, 15.5, 15],
+      "from": [3, 3, 12],
+      "to": [13, 13, 13],
       "faces": {
-        "north": {
-          "texture": "#body"
+        "up": {
+          "texture": "#slab",
+          "uv": [0, 0, 16, 2],
+          "tintindex": 0
+        },
+        "down": {
+          "texture": "#slab",
+          "uv": [0, 14, 16, 16],
+          "tintindex": 0
         },
         "east": {
-          "texture": "#body"
+          "texture": "#slab",
+          "uv": [14, 0, 16, 16],
+          "tintindex": 0
         },
-        "south": {
-          "texture": "#body"
+        "north": {
+          "texture": "#slab",
+          "uv": [0, 0, 16, 16],
+          "tintindex": 0
         },
         "west": {
-          "texture": "#body"
+          "texture": "#slab",
+          "uv": [0, 0, 2, 16],
+          "tintindex": 0
+        }
+      }
+    },
+    {
+      "from": [7, 8, 11.5],
+      "to": [9, 10, 12.5],
+      "faces": {
+        "up": {
+          "texture": "#gem",
+          "uv": [4, 0, 8, 4]
+        },
+        "down": {
+          "texture": "#gem",
+          "uv": [4, 0, 8, 4]
+        },
+        "east": {
+          "texture": "#gem",
+          "uv": [4, 0, 8, 4]
+        },
+        "north": {
+          "texture": "#gem",
+          "uv": [0, 0, 4, 4]
+        },
+        "west": {
+          "texture": "#gem",
+          "uv": [4, 0, 8, 4]
+        }
+      }
+    },
+    {
+      "from": [8, 6, 11.5],
+      "to": [10, 8, 12.5],
+      "faces": {
+        "up": {
+          "texture": "#gem",
+          "uv": [4, 4, 8, 8]
+        },
+        "down": {
+          "texture": "#gem",
+          "uv": [4, 4, 8, 8]
+        },
+        "east": {
+          "texture": "#gem",
+          "uv": [4, 4, 8, 8]
+        },
+        "north": {
+          "texture": "#gem",
+          "uv": [0, 4, 4, 8]
+        },
+        "west": {
+          "texture": "#gem",
+          "uv": [4, 4, 8, 8]
+        }
+      }
+    },
+    {
+      "from": [6, 6, 11.5],
+      "to": [8, 8, 12.5],
+      "faces": {
+        "up": {
+          "texture": "#gem",
+          "uv": [4, 8, 8, 12]
+        },
+        "down": {
+          "texture": "#gem",
+          "uv": [4, 8, 8, 12]
+        },
+        "east": {
+          "texture": "#gem",
+          "uv": [4, 8, 8, 12]
+        },
+        "north": {
+          "texture": "#gem",
+          "uv": [0, 8, 4, 12]
+        },
+        "west": {
+          "texture": "#gem",
+          "uv": [4, 8, 8, 12]
         }
       }
     }

@@ -48,10 +48,9 @@ public class TargetHelper {
         statelessCount.keySet().stream()
                 .filter(key -> !weights.containsKey(key))
                 .forEach(key -> weights.put(key, 1));
+
         // clears old keys (ones not present in the current filtered list)
-        weights.keySet().stream()
-                .filter(key -> !statelessCount.containsKey(key))
-                .forEach(weights::remove);
+        weights.keySet().removeIf(key -> !statelessCount.containsKey(key));
 
         // remove the previous targets too while you're at it~
         List<ItemStack> targets = targetLibrary.stream()

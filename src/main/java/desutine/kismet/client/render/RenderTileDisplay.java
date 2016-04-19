@@ -27,89 +27,80 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         if (te == null) return;
 
         // if we don't have a fulfilled target, show it
-//        if (!te.isFulfilled()) {
-            renderTargetItem(te, x, y, z);
-//        }
+        if (!te.isFulfilled()) {
+            renderTargetItem(te, x, y, z, partialTicks);
+        }
 
         // always show the label above though
         // BUT make it snazzy: only show the streak if 2+
         final float textBoxOffset = 0.4f;
         if (te.getStreak() > 1) {
-            renderTextBox(x, y + textBoxOffset, z,
-                    Arrays.asList("Streak: " + te.getStylizedStreak(), te.getStylizedDeadline()));
+            renderTextBox(te, x, y + textBoxOffset,
+                    z, Arrays.asList("Streak: " + te.getStylizedStreak(), te.getStylizedDeadline()));
         } else {
-            renderTextLabel(x, y + textBoxOffset, z, te.getStylizedDeadline());
+            renderTextLabel(te, x, y + textBoxOffset, z, te.getStylizedDeadline());
         }
     }
 
-    private void renderTargetItem(TileDisplay te, double x, double y, double z) {
-        VertexBuffer worldRenderer = Tessellator.getInstance().getBuffer();
+    private void renderTargetItem(TileDisplay te, double x, double y, double z, float partialTicks) {
+        double loopTime = 10;
+        double tick = (getWorld().getTotalWorldTime() + partialTicks) % (20 * loopTime) / (20 * loopTime);
+
         IBlockState state = te.getWorld().getBlockState(te.getPos());
 
         RenderItem itemRenderer = Minecraft.getMinecraft().getRenderItem();
         EnumFacing direction = state.getValue(BlockDisplay.FACING);
-        float facingRot = direction.getHorizontalAngle();
-        double push = (state.getValue(BlockDisplay.FULFILLED) ? -0.03125 : 0.03125);
-        double xPush = (0.5 + push) * direction.getFrontOffsetX() + 0.5;
-        double zPush = (0.5 + push) * direction.getFrontOffsetZ() + 0.5;
+//        float facingRot = direction.getHorizontalAngle();
+//        double push = (state.getValue(BlockDisplay.FULFILLED) ? -0.03125 : 0.03125);
+        double xPush = 0.1 * direction.getFrontOffsetX() + 0.5;
+        double yPush = 0.1 * direction.getFrontOffsetY() + 0.5;
+        double zPush = 0.1 * direction.getFrontOffsetZ() + 0.5;
+
+        float facingRot = (float) (tick * 360);
 
         GlStateManager.pushMatrix();
 
-        GlStateManager.translate(x + xPush, y + 0.5, z + zPush);
-        GlStateManager.rotate(180 - facingRot, 0, 1, 0);
-        GlStateManager.scale(0.5, 0.5, 0.5);
+        GlStateManager.translate(x + xPush, y + yPush, z + zPush);
+        GlStateManager.rotate(facingRot, 0, 1, 0);
 
         // item rendering!
         if (te.getTarget() != null) {
-            if (!itemRenderer.shouldRenderItemIn3D(te.getTarget()) || te.getTarget().getItem() instanceof ItemSkull) {
-                GlStateManager.rotate(180.0F, 0.0F, -1.0F, 0.0F);
+            if (!itemRenderer.shouldRenderItemIn3D(te.getTarget()) ||
+                    te.getTarget().getItem() instanceof ItemSkull) {
+                GlStateManager.rotate(180, 0, -1, 0);
+                GlStateManager.scale(0.5, 0.5, 0.5);
             } else {
-                GlStateManager.scale(1.25, 1.25, 1.25);
+//                GlStateManager.scale(1.25, 1.25, 1.25);
             }
 
-//            if (itemRenderer.shouldRenderItemIn3D(te.getTarget())) {
-//                switch (direction){
-//                    case DOWN:
-//                        break;
-//                    case UP:
-//                        break;
-//                    case NORTH:
-//                        GlStateManager.scale(0.02, 1, 1);
-//                        break;
-//                    case SOUTH:
-//                        GlStateManager.scale(direction.getFrontOffsetX(), 1, direction.getFrontOffsetZ());
-//                        break;
-//                    case WEST:
-//                        GlStateManager.scale(direction.getFrontOffsetX(), 1, direction.getFrontOffsetZ());
-//                        break;
-//                    case EAST:
-//                        GlStateManager.scale(direction.getFrontOffsetX(), 1, direction.getFrontOffsetZ());
-//                        break;
-//                }
-//            }
+            GlStateManager.disableLighting();
 
-//            GlStateManager.disableLighting();
             GlStateManager.pushAttrib();
             RenderHelper.enableStandardItemLighting();
             itemRenderer.renderItem(te.getTarget(), ItemCameraTransforms.TransformType.FIXED);
             RenderHelper.disableStandardItemLighting();
             GlStateManager.popAttrib();
+
             GlStateManager.enableLighting();
         }
 
         GlStateManager.popMatrix();
     }
 
-    private void renderTextBox(double x, double y, double z, List<String> lines) {
+    private void renderTextBox(TileDisplay te, double x, double y, double z, List<String> lines) {
         // text render happens in the opposite order ^^"
         Collections.reverse(lines);
         // start the rendering
         GlStateManager.pushMatrix();
 
-        // move stuff to right above the block
-        GlStateManager.translate(x + 0.5f, y + 1f, z + 0.5f);
-        // sets the normal vector of the lightcast aka light angle
-//        GlStateManager.glNormal3f(0.0F, 1.0F, 0.0F);
+        // move stuff to right above the item
+        IBlockState state = te.getWorld().getBlockState(te.getPos());
+        EnumFacing direction = state.getValue(BlockDisplay.FACING);
+        double xPush = 0.1 * direction.getFrontOffsetX() + 0.5;
+        double yPush = 0.1 * direction.getFrontOffsetY() + 0.6;
+        double zPush = 0.1 * direction.getFrontOffsetZ() + 0.5;
+
+        GlStateManager.translate(x + xPush, y + yPush, z + zPush);
 
         // rotate so it faces the player
         RenderManager renderManager = Minecraft.getMinecraft().getRenderManager();
@@ -162,17 +153,16 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         GlStateManager.depthMask(true);
         GlStateManager.enableLighting();
         GlStateManager.disableBlend();
-//        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
 
         // finish the GL rendering
         GlStateManager.popMatrix();
     }
 
-    private void renderTextLabel(double x, double y, double z, String str) {
+    private void renderTextLabel(TileDisplay te, double x, double y, double z, String str) {
     /*
     Next up: rendering the string above the block
     code shamesly taken from source game on Render::renderLivingLabel
      */
-        renderTextBox(x, y, z, Collections.singletonList(str));
+        renderTextBox(te, x, y, z, Collections.singletonList(str));
     }
 }

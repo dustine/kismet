@@ -2,9 +2,10 @@ package desutine.kismet.common.tile;
 
 import desutine.kismet.Kismet;
 import desutine.kismet.ModLogger;
-import desutine.kismet.common.KismetConfig;
+import desutine.kismet.common.ConfigKismet;
 import desutine.kismet.common.block.BlockDisplay;
 import desutine.kismet.common.registry.ModBlocks;
+import desutine.kismet.util.StackHelper;
 import desutine.kismet.util.TargetGenerationResult;
 import desutine.kismet.util.TargetHelper;
 import net.minecraft.block.state.IBlockState;
@@ -20,8 +21,6 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 
 import java.util.ArrayList;
@@ -29,8 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 
 public class TileDisplay extends TileEntity implements ITickable {
-    private static final int STREAK_MAX = 20;
-    private static final int MAX_LAST_TARGET_COUNT = 50;
     private final TextFormatting[] colors = new TextFormatting[] {
             TextFormatting.WHITE,
             TextFormatting.GREEN,
@@ -48,7 +45,7 @@ public class TileDisplay extends TileEntity implements ITickable {
 
     public TileDisplay() {
         super();
-        modWeights = new HashMap<String, Integer>();
+        modWeights = new HashMap<>();
         lastTargets = new ArrayList<>();
     }
 
@@ -84,8 +81,22 @@ public class TileDisplay extends TileEntity implements ITickable {
 
     public void setDeadline(long deadline) {
         this.deadline = deadline;
-        // not really needed as it's not directly related to display
+        // not really needed as it's not directly related to tile display render
 //        this.stateChanged = true;
+    }
+
+    public String getStylizedStreak() {
+        int deliminator = getStreak() / 10;
+        String styleCode;
+        if (deliminator >= colors.length) {
+            // use the last colour
+            styleCode = colors[colors.length - 1].toString();
+        } else {
+            styleCode = colors[deliminator].toString();
+        }
+
+        String resetStyleCode = TextFormatting.RESET.toString();
+        return styleCode + streak + resetStyleCode;
     }
 
     /**
@@ -101,20 +112,6 @@ public class TileDisplay extends TileEntity implements ITickable {
     public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
         if (oldState.getBlock() != newSate.getBlock()) return true;
         return oldState.getBlock() != ModBlocks.DISPLAY;
-    }
-
-    public String getStylizedStreak() {
-        int deliminator = getStreak() / 10;
-        String styleCode;
-        if (deliminator >= colors.length) {
-            // use the last colour
-            styleCode = colors[colors.length - 1].toString();
-        } else {
-            styleCode = colors[deliminator].toString();
-        }
-
-        String resetStyleCode = TextFormatting.RESET.toString();
-        return styleCode + streak + resetStyleCode;
     }
 
     public int getStreak() {
@@ -143,7 +140,7 @@ public class TileDisplay extends TileEntity implements ITickable {
         }
         if (this.worldObj.isRemote && this.stateChanged) {
             stateChanged = false;
-            // forceBlockStateUpdate();
+            forceBlockStateUpdate();
         }
     }
 
@@ -153,7 +150,7 @@ public class TileDisplay extends TileEntity implements ITickable {
 
     private boolean checkForDeadline() {
         if (getDeadline() < worldObj.getTotalWorldTime()) {
-            setDeadline(worldObj.getTotalWorldTime() + KismetConfig.getTimedLimit() * 20);
+            setDeadline(worldObj.getTotalWorldTime() + ConfigKismet.getTimedLimit() * 20);
 
             if (!isFulfilled()) {
                 lastTargets.clear();
@@ -165,7 +162,6 @@ public class TileDisplay extends TileEntity implements ITickable {
         return false;
     }
 
-    @SideOnly(Side.CLIENT)
     private void forceBlockStateUpdate() {
         IBlockState oldState = worldObj.getBlockState(pos);
         IBlockState newState = ModBlocks.DISPLAY.getActualState(oldState, worldObj, pos);
@@ -197,14 +193,8 @@ public class TileDisplay extends TileEntity implements ITickable {
         // new target, no fulfillment
         setFulfilled(false);
         // sync client with server as target picking only happens server-wise (for safety)
-        Kismet.packetHandler.syncDisplayTargetToClient(worldObj.provider.getDimension(), this);
+        Kismet.network.syncDisplayTargetToClient(worldObj.provider.getDimension(), this);
         return true;
-    }
-
-    public IBlockState enrichState(IBlockState state) {
-//        return state.withProperty(BlockDisplay.STREAK, getStreak())
-        return state;
-//                .withProperty(BlockDisplay.FULFILLED, isFulfilled());
     }
 
     public List<ItemStack> getLastTargets() {
@@ -236,6 +226,9 @@ public class TileDisplay extends TileEntity implements ITickable {
         worldObj.setBlockState(pos, state);
     }
 
+    public boolean isReady() {
+        return this.target != null && this.target.getItem() != null;
+    }
 
     @Override
     public void readFromNBT(NBTTagCompound compound) {
@@ -244,9 +237,11 @@ public class TileDisplay extends TileEntity implements ITickable {
         setDeadline(compound.getLong("deadline"));
         setStreak(compound.getInteger("streak"));
 //        setFulfilled(compound.getBoolean("fulfilled"));
+
         if (compound.hasKey("target")) {
-            if (target == null) setTarget(ItemStack.loadItemStackFromNBT(compound.getCompoundTag("target")));
-            else getTarget().readFromNBT(compound.getCompoundTag("target"));
+            target = ItemStack.loadItemStackFromNBT(compound.getCompoundTag("target"));
+        } else {
+            target = null;
         }
 
         // 10 for COMPOUND, check NBTBase
@@ -266,7 +261,6 @@ public class TileDisplay extends TileEntity implements ITickable {
         }
     }
 
-
     @Override
     public void writeToNBT(NBTTagCompound compound) {
         super.writeToNBT(compound);
@@ -274,6 +268,7 @@ public class TileDisplay extends TileEntity implements ITickable {
         compound.setLong("deadline", getDeadline());
         compound.setInteger("streak", getStreak());
 //        compound.setBoolean("fulfilled", isFulfilled());
+
         // target can be null :/
         if (getTarget() != null) {
             NBTTagCompound targetTag = new NBTTagCompound();
@@ -297,8 +292,8 @@ public class TileDisplay extends TileEntity implements ITickable {
             lastTargetsNbt.appendTag(nbtTagCompound);
         }
         compound.setTag("lastTargets", lastTargetsNbt);
-    }
 
+    }
 
     @Override
     public Packet<INetHandlerPlayClient> getDescriptionPacket() {
@@ -307,21 +302,30 @@ public class TileDisplay extends TileEntity implements ITickable {
         return new SPacketUpdateTileEntity(this.pos, getBlockMetadata(), nbtTagCompound);
     }
 
-
     @Override
     public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
         readFromNBT(pkt.getNbtCompound());
     }
-
 
     public ItemStack getTarget() {
         return target;
     }
 
     public void setTarget(ItemStack target) {
-        this.target = target;
-        // fixme why is this not needed?
-//        this.stateChanged = true;
+        boolean oldReady = isReady();
+
+        if (!StackHelper.isEquivalent(this.target, target)) {
+            this.target = target;
+        }
+
+        if (isReady()) {
+            // fulfillment change causes a block update so we don't need to worry about state changing
+            setFulfilled(false);
+        } else {
+            // check if we need to force a block update regarding the ready
+            if (oldReady != isReady())
+                this.stateChanged = true;
+        }
     }
 
 

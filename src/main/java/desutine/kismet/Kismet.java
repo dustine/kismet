@@ -7,15 +7,15 @@ import desutine.kismet.common.registry.ModTiles;
 import desutine.kismet.network.NetworkHandlerKismet;
 import desutine.kismet.proxy.IProxy;
 import desutine.kismet.server.CommandKismet;
-import desutine.kismet.util.TargetLibraryFactory;
-import net.minecraft.entity.player.EntityPlayerMP;
+import desutine.kismet.server.event.EventRegenLibraryOnce;
+import desutine.kismet.target.TargetLibraryFactory;
+import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.*;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 
 import java.util.Random;
 
@@ -23,11 +23,14 @@ import java.util.Random;
 public class Kismet {
     public static final Random random = new Random();
     public final static CommandKismet command = new CommandKismet();
-    public static NetworkHandlerKismet packetHandler;
+    public static NetworkHandlerKismet network;
+    public static TargetLibraryFactory libraryFactory;
     @Mod.Instance(Reference.MOD_ID)
     public static Kismet instance;
     @SidedProxy(clientSide = Reference.CLIENT_PROXY_CLASS, serverSide = Reference.SERVER_PROXY_CLASS)
     public static IProxy proxy;
+    private boolean jeiLoaded;
+    private EventRegenLibraryOnce eventRegenLibraryOnce;
 
     /**
      * Run before anything else. Read your config, create blocks, items, etc, and register them with the GameRegistry
@@ -51,7 +54,7 @@ public class Kismet {
         MinecraftForge.EVENT_BUS.register(new desutine.kismet.common.event.EventHandler());
 
         // start network channels
-        packetHandler = new NetworkHandlerKismet();
+        network = new NetworkHandlerKismet();
     }
 
     /**
@@ -62,6 +65,8 @@ public class Kismet {
     public void init(FMLInitializationEvent event) {
         // register recipes
         ModRecipes.init();
+
+        jeiLoaded = Loader.isModLoaded("JEI");
 
         // register tints
         proxy.registerBlockItemColor();
@@ -80,23 +85,20 @@ public class Kismet {
 
     @EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
-        ModLogger.info("server starting...");
+        // register commands
         event.registerServerCommand(command);
 
-        MinecraftForge.EVENT_BUS.register(new Object() {
-            @SubscribeEvent
-            public void onceEmbeddedServerPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
-                if (event.player instanceof EntityPlayerMP) {
-                    Kismet.proxy.cleanTargetLibrary((EntityPlayerMP) event.player);
-                    MinecraftForge.EVENT_BUS.unregister(this);
-                }
-            }
-        });
+        libraryFactory = new TargetLibraryFactory((WorldServer) event.getServer().getEntityWorld());
+
+        // register the hook to restart the targetLibrary on single-player
+        eventRegenLibraryOnce = new EventRegenLibraryOnce();
+        MinecraftForge.EVENT_BUS.register(eventRegenLibraryOnce);
     }
 
     @EventHandler
     public void serverStopping(FMLServerStoppingEvent event) {
-        TargetLibraryFactory.clear();
+        // unregister the thing if it wasn't unfulfilled yet
+        MinecraftForge.EVENT_BUS.unregister(Kismet.instance.eventRegenLibraryOnce);
     }
 
 }

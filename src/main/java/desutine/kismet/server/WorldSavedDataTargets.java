@@ -2,22 +2,23 @@ package desutine.kismet.server;
 
 import com.google.common.collect.ImmutableList;
 import desutine.kismet.Reference;
-import net.minecraft.item.ItemStack;
+import desutine.kismet.util.StackHelper;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldSavedData;
 import net.minecraft.world.storage.MapStorage;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("WeakerAccess")
 public class WorldSavedDataTargets extends WorldSavedData {
     private static final String NAME = Reference.MOD_ID + "_TargetsData";
 
     private boolean valid = false;
-    private List<StackWrapper> stacks = new ArrayList<>();
+    private Map<String, StackWrapper> stacks = new HashMap<>();
 
     public WorldSavedDataTargets() {
         super(NAME);
@@ -48,9 +49,10 @@ public class WorldSavedDataTargets extends WorldSavedData {
         NBTTagList proceduralNbt = nbt.getTagList("stacks", 10);
         for (int i = 0; i < proceduralNbt.tagCount(); i++) {
             NBTTagCompound tagCompound = proceduralNbt.getCompoundTagAt(i);
-            final ItemStack stack = ItemStack.loadItemStackFromNBT(tagCompound.getCompoundTag("stack"));
-            boolean obtainable = tagCompound.getBoolean("obtainable");
-            stacks.add(new StackWrapper(stack, obtainable));
+//            final ItemStack stack = ItemStack.loadItemStackFromNBT(tagCompound.getCompoundTag("stack"));
+//            boolean obtainable = tagCompound.getBoolean("obtainable");
+            final StackWrapper wrapper = new StackWrapper(tagCompound);
+            stacks.put(wrapper.toString(), wrapper);
         }
     }
 
@@ -59,32 +61,53 @@ public class WorldSavedDataTargets extends WorldSavedData {
         nbt.setBoolean("valid", valid);
 
         NBTTagList stacksNbt = new NBTTagList();
-        for (StackWrapper wrapper : stacks) {
-            NBTTagCompound tagCompound = new NBTTagCompound();
-            tagCompound.setTag("stack", wrapper.getStack().serializeNBT());
-            tagCompound.setBoolean("obtainable", wrapper.isObtainable());
-            stacksNbt.appendTag(tagCompound);
+        for (StackWrapper wrapper : stacks.values()) {
+            NBTTagCompound tagCompound = wrapper.serializeNBT();
+            if (tagCompound != null) {
+                stacksNbt.appendTag(tagCompound);
+            }
         }
         nbt.setTag("stacks", stacksNbt);
     }
 
     public ImmutableList<StackWrapper> getStacks() {
-        return ImmutableList.copyOf(stacks);
+        return ImmutableList.copyOf(stacks.values());
     }
 
-    public void setStacks(List<StackWrapper> stacks) {
+    public void setStacks(Map<String, StackWrapper> stacks) {
         this.stacks = stacks;
-        valid = true;
+        if (stacks.isEmpty())
+            valid = false;
         markDirty();
+    }
+
+    @Override
+    public void markDirty() {
+        super.markDirty();
+        valid = true;
     }
 
     public boolean isValid() {
         return valid;
     }
 
-    public void enrichStacks(List<StackWrapper> stacks) {
-        this.stacks.addAll(stacks);
-        // useless setStacks to force the valid/mark dirty
-        setStacks(this.stacks);
+    /**
+     * @param newStacks
+     * @return number of skipped (joined with already existing) stacks
+     */
+    public int enrichStacks(List<StackWrapper> newStacks) {
+        final int[] skipped = {0};
+        newStacks.forEach(wrapper -> {
+            String key = StackHelper.toUniqueKey(wrapper.getStack());
+            if (stacks.containsKey(key)) {
+                stacks.get(key).joinWith(wrapper);
+                ++skipped[0];
+            } else {
+                stacks.put(key, wrapper);
+            }
+        });
+
+        markDirty();
+        return skipped[0];
     }
 }

@@ -4,57 +4,44 @@
     "textures": {
       "particle": "blocks/lapis_block",
       "body": "blocks/lapis_block",
-      "top": "blocks/stone_slab_top",
-      "top-side": "blocks/stone_slab_side",
-      "pivot": "kismet:blocks/pillar-top",
-      "bottom": "blocks/lapis_block",
-      "bottom-side": "blocks/lapis_block",
-      "rim": "blocks/planks_birch",
-      "frame": "blocks/itemframe_background"
+      "gem": "kismet:blocks/gem",
+      "slab": "blocks/stone_slab_top"
     },
     "model": "kismet:display",
     "transform": "forge:default-block"
   },
   "variants": {
     "normal": [{}],
-    "inventory": [
-      {
-        "model": "kismet:display",
-        "transform": "forge:default-block"
-      }
-    ],
+    "inventory": [{}],
     "facing": {
-      "up": {},
-      "down": {},
-      "north": {},
+      "west": {
+        "y": -90
+      },
       "east": {
         "y": 90
       },
+      "north": {},
       "south": {
         "y": 180
       },
-      "west": {
-        "y": 270
+      "up": {
+        "x": -90
+      },
+      "down": {
+        "x": 90
       }
     },
     "fulfilled": {
+      "false": {},
+      "true": {}
+    },
+    "ready": {
       "false": {
-        "submodel": {
-          "frame-out": {
-            "model": "kismet:frame",
-            "transform": {
-              "translation": [0, 0, -0.0625]
-            }
-          }
+        "textures": {
+          "gem": "kismet:blocks/brokenGem"
         }
       },
-      "true": {
-        "submodel": {
-          "frame-in": {
-            "model": "kismet:frame"
-          }
-        }
-      }
+      "true": {}
     }
   }
 }

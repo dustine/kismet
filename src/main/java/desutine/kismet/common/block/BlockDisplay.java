@@ -17,6 +17,7 @@ import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.IBlockAccess;
@@ -28,8 +29,16 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class BlockDisplay extends ContainerKismet<TileDisplay> {
     //    public static final PropertyInteger STREAK = PropertyInteger.create("streak", 0, 20);
+    public static final PropertyBool READY = PropertyBool.create("ready");
     public static final PropertyBool FULFILLED = PropertyBool.create("fulfilled");
     public static final PropertyEnum<EnumFacing> FACING = PropertyEnum.create("facing", EnumFacing.class);
+    private static final double slabSize = 3 / 16.0;
+    private static final AxisAlignedBB upAABB = new AxisAlignedBB(0, 0, 0, 1, slabSize, 1);
+    private static final AxisAlignedBB downAABB = new AxisAlignedBB(0, 1 - slabSize, 0, 1, 1, 1);
+    private static final AxisAlignedBB southAABB = new AxisAlignedBB(0, 0, 0, 1, 1, slabSize);
+    private static final AxisAlignedBB northAABB = new AxisAlignedBB(0, 0, 1 - slabSize, 1, 1, 1);
+    private static final AxisAlignedBB eastAABB = new AxisAlignedBB(0, 0, 0, slabSize, 1, 1);
+    private static final AxisAlignedBB westAABB = new AxisAlignedBB(1 - slabSize, 0, 0, 1, 1, 1);
 
     public BlockDisplay() {
         super(Reference.Names.Blocks.DISPLAY);
@@ -37,6 +46,7 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
         // declaring properties
         setDefaultState(blockState.getBaseState()
 //                .withProperty(STREAK, 0)
+                .withProperty(READY, false)
                 .withProperty(FULFILLED, false)
                 .withProperty(FACING, EnumFacing.NORTH));
     }
@@ -51,18 +61,17 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
     @Override
     public IBlockState getStateFromMeta(int meta) {
         return getDefaultState()
-                .withProperty(FULFILLED, ((meta & 0b0100) == 0b0100))
-                .withProperty(FACING, EnumFacing.HORIZONTALS[meta & 0b0011]);
+                .withProperty(FULFILLED, (meta & 0b1000) == 0b1000)
+                .withProperty(FACING, EnumFacing.VALUES[meta & 0b0111]);
     }
 
     // convert to metadata
     @Override
     public int getMetaFromState(IBlockState state) {
-        int facing = state.getValue(FACING).getHorizontalIndex();
-        facing &= 0b0011;
+        int facing = state.getValue(FACING).getIndex();
+        facing &= 0b0111;
 
-        int fulfilled = state.getValue(FULFILLED) ? 0b0100 : 0b0000;
-        fulfilled &= 0b0100;
+        int fulfilled = state.getValue(FULFILLED) ? 0b1000 : 0b0000;
 
         return facing + fulfilled;
     }
@@ -70,10 +79,11 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
     @Override
     public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
         IBlockState newState = super.getActualState(state, worldIn, pos);
-        TileDisplay tileEntity = (TileDisplay) worldIn.getTileEntity(pos);
-        if (tileEntity != null)
-            return tileEntity.enrichState(newState);
-        else return newState;
+        TileDisplay tile = (TileDisplay) worldIn.getTileEntity(pos);
+        if (tile != null) {
+            newState.withProperty(READY, tile.isReady());
+        }
+        return newState;
     }
 
     // used by the renderer to control lighting and visibility of other blocks, also by
@@ -86,6 +96,35 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
     @Override
     public EnumBlockRenderType getRenderType(IBlockState state) {
         return EnumBlockRenderType.MODEL;
+    }
+
+    @Override
+    public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos) {
+        final EnumFacing facing = state.getValue(FACING);
+        final AxisAlignedBB axisAlignedBB;
+        switch (facing) {
+            case DOWN:
+                axisAlignedBB = downAABB;
+                break;
+            case UP:
+                axisAlignedBB = upAABB;
+                break;
+            case NORTH:
+                axisAlignedBB = northAABB;
+                break;
+            case SOUTH:
+                axisAlignedBB = southAABB;
+                break;
+            case WEST:
+                axisAlignedBB = westAABB;
+                break;
+            case EAST:
+                axisAlignedBB = eastAABB;
+                break;
+            default:
+                return super.getBoundingBox(state, source, pos);
+        }
+        return axisAlignedBB;
     }
 
     // used by the renderer to control lighting and visibility of other blocks.
@@ -194,14 +233,13 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
 
     @Override
     public IBlockState onBlockPlaced(World worldIn, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
-        return this.getDefaultState().withProperty(FACING, placer.getHorizontalFacing().getOpposite());
+        return this.getDefaultState().withProperty(FACING, facing);
     }
 
     // returning block state
     @Override
     protected BlockStateContainer createBlockState() {
-//        IProperty[] listedProperties = new IProperty[] {STREAK, FULFILLED, FACING};
-        IProperty[] listedProperties = new IProperty[] {FULFILLED, FACING};
+        IProperty[] listedProperties = new IProperty[] {FULFILLED, FACING, READY};
         IUnlistedProperty[] unlistedProperties = new IUnlistedProperty[] {};
         return new ExtendedBlockState(this, listedProperties, unlistedProperties);
     }

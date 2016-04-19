@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import desutine.kismet.Kismet;
 import desutine.kismet.ModLogger;
 import desutine.kismet.Reference;
-import desutine.kismet.util.TargetLibraryFactory;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
@@ -26,32 +25,28 @@ import static net.minecraftforge.common.config.Configuration.CATEGORY_GENERAL;
  * Heavily based on TheGreyGhost's MinecraftByExample
  * Source: https://github.com/TheGreyGhost/MinecraftByExample
  */
-public class KismetConfig {
+public class ConfigKismet {
     public static final String CATEGORY_TARGETS = "targets";
 
-    private static final int TIMED_LIMIT_DEFAULT = 24000 / 20 / 60;
+    private static final int TIMED_LIMIT_DEFAULT = 24000 / 20 / 60; // a minecraft day
     private static final int TIMED_LIMIT_MIN = 1;
     private static final String genModeName = "genMode";
     private static final String genFilterName = "genFilter";
-    private static final String filterModeName = "filterMode";
     private static final String timedLimitName = "timedLimit";
     private static final String[] GEN_MODE_VALUES = getEnumValues(EnumGenMode.class);
-    private static final String[] FILTER_MODE_VALUES = getEnumValues(EnumFilterMode.class);
     private static final EnumGenMode GEN_MODE_DEFAULT = EnumGenMode.STRICTLY_OBTAINABLE;
-    private static final EnumFilterMode FILTER_MODE_DEFAULT = EnumFilterMode.BLACKLIST;
-    public static File configDir;
-    private static EnumFilterMode filterMode;
+    private static final boolean HAS_CHILL_DEFAULT = true;
+    private static final boolean HAS_TIMED_DEFAULT = true;
     private static boolean chillEnabled;
     private static boolean timedEnabled;
-    private static boolean nukedEnabled;
     private static int timedLimit;
-    private static int nukedLimit;
-    private static boolean nukingGriefable;
     private static String[] forceAdd;
     private static EnumGenMode genMode;
     private static String[] genFilter;
     private static Configuration config;
     private static String forceAddName = "forceAdd";
+    private static String chillEnabledName = "chillEnabled";
+    private static String timedEnabledName = "timedEnabled";
 
     private static String[] getEnumValues(Class<? extends Enum<?>> e) {
         return Arrays.asList(e.getEnumConstants())
@@ -97,11 +92,12 @@ public class KismetConfig {
 
         // ---- step 2 - define the properties in the config file
         final Map<String, List<Property>> categories = getCategories();
+        final Property propChillEnabled = getProperty(categories, CATEGORY_GENERAL, chillEnabledName);
+        final Property propTimedEnabled = getProperty(categories, CATEGORY_GENERAL, timedEnabledName);
         final Property propTimedLimit = getProperty(categories, CATEGORY_GENERAL, timedLimitName);
         final Property propForceAdd = getProperty(categories, CATEGORY_TARGETS, forceAddName);
         final Property propGenMode = getProperty(categories, CATEGORY_TARGETS, genModeName);
         final Property propGenFilter = getProperty(categories, CATEGORY_TARGETS, genFilterName);
-        final Property propFilterMode = getProperty(categories, CATEGORY_TARGETS, filterModeName);
 
         // config field order, one per category
         for (String catKey : categories.keySet()) {
@@ -119,6 +115,10 @@ public class KismetConfig {
         */
 
         if (readFieldsFromConfig) {
+            chillEnabled = propChillEnabled.getBoolean();
+
+            timedEnabled = propTimedEnabled.getBoolean();
+
             timedLimit = propTimedLimit.getInt();
             if (timedLimit < TIMED_LIMIT_MIN) {
                 timedLimit = TIMED_LIMIT_DEFAULT;
@@ -135,14 +135,6 @@ public class KismetConfig {
             }
 
             genFilter = propGenFilter.getStringList();
-
-            filterMode = FILTER_MODE_DEFAULT;
-            String currentFilterMode = propFilterMode.getString();
-            for (EnumFilterMode m : EnumFilterMode.values()) {
-                if (m.toString().equals(currentFilterMode)) {
-                    filterMode = m;
-                }
-            }
         }
 
         // ---- step 4 - write the class's variables back into the config properties and save to disk
@@ -150,11 +142,12 @@ public class KismetConfig {
         //  This is done even for a loadFromFile==true, because some of the properties may have been assigned default
         //    values if the file was empty or corrupt.
 
+        propChillEnabled.set(chillEnabled);
+        propTimedEnabled.set(timedEnabled);
         propTimedLimit.set(timedLimit);
         propForceAdd.set(forceAdd);
         propGenMode.set(genMode.toString());
         propGenFilter.set(genFilter);
-        propFilterMode.set(filterMode.toString());
 
         if (config.hasChanged()) {
             config.save();
@@ -168,15 +161,19 @@ public class KismetConfig {
     }
 
     private static Map<String, List<Property>> getCategories() {
-        Map<String, List<Property>> categories = new HashMap<String, List<Property>>();
+        Map<String, List<Property>> categories = new HashMap<>();
 
         // CATEGORY: GENERAL
-
-//        Property propHasChill = config.get(CATEGORY_GENERAL, "chillEnabled", HAS_CHILL_DEFAULT)
-//                .setLanguageKey("gui.config.chill")
-//                .setRequiresMcRestart(true);
         ArrayList<Property> catGeneral = new ArrayList<>();
         categories.put(CATEGORY_GENERAL, catGeneral);
+
+        Property propHasChill = config.get(CATEGORY_GENERAL, chillEnabledName, HAS_CHILL_DEFAULT)
+                .setRequiresMcRestart(true);
+        catGeneral.add(propHasChill);
+
+        Property propHasTimed = config.get(CATEGORY_GENERAL, timedEnabledName, HAS_TIMED_DEFAULT)
+                .setRequiresMcRestart(true);
+        catGeneral.add(propHasTimed);
 
         Property propTimeLimit = config.get(CATEGORY_GENERAL, timedLimitName, TIMED_LIMIT_DEFAULT)
                 .setMinValue(TIMED_LIMIT_MIN);
@@ -188,11 +185,12 @@ public class KismetConfig {
         categories.put(CATEGORY_TARGETS, catList);
 
         // forceAdd doesn't allow just having the mod so it's obligated to have
-        Pattern whitelistPattern = Pattern.compile("(!?[a-zA-Z]\\w*:[a-zA-Z]\\w*)(:\\d+)?");
-        Pattern blacklistPattern = Pattern.compile("(!?[a-zA-Z]\\w*)((:[a-zA-Z]\\w*)(:\\d+)?)?");
+        Pattern whitelistPattern = Pattern.compile("!?\\w+:\\w+(:\\d+)?");
+        Pattern blacklistPattern = Pattern.compile("!?\\w+(:\\w+(:\\d+)?)?");
 
         Property propForceAdd = config.get(CATEGORY_TARGETS, forceAddName, new String[] {})
-                .setValidationPattern(whitelistPattern);
+                .setValidationPattern(whitelistPattern)
+                .setShowInGui(false);
         catList.add(propForceAdd);
 
         Property propGenMode = config.get(CATEGORY_TARGETS, genModeName, GEN_MODE_DEFAULT.toString())
@@ -202,10 +200,6 @@ public class KismetConfig {
         Property propGenFilter = config.get(CATEGORY_TARGETS, genFilterName, new String[] {})
                 .setValidationPattern(blacklistPattern);
         catList.add(propGenFilter);
-
-        Property propFilterMode = config.get(CATEGORY_TARGETS, filterModeName, FILTER_MODE_DEFAULT.toString())
-                .setValidValues(FILTER_MODE_VALUES);
-        catList.add(propFilterMode);
 
         // final operation: adding language keys
         for (String categoryName : categories.keySet()) {
@@ -223,7 +217,7 @@ public class KismetConfig {
     /**
      * Returns an immutable copy of the properties and their categories within the mod
      *
-     * @return
+     * @return An immutable list of all properties in this config
      */
     public static ImmutableList<Property> getImmutableCategory(String category) {
         return ImmutableList.copyOf(getCategories().get(category));
@@ -255,7 +249,7 @@ public class KismetConfig {
     }
 
     public static void setTimedLimit(int timedLimit) {
-        KismetConfig.timedLimit = timedLimit;
+        ConfigKismet.timedLimit = timedLimit;
         syncFromFields();
     }
 
@@ -272,7 +266,7 @@ public class KismetConfig {
     }
 
     public static void setForceAdd(String[] forceAdd) {
-        KismetConfig.forceAdd = forceAdd;
+        ConfigKismet.forceAdd = forceAdd;
         syncFromFields();
     }
 
@@ -281,7 +275,7 @@ public class KismetConfig {
     }
 
     public static void setGenMode(EnumGenMode genMode) {
-        KismetConfig.genMode = genMode;
+        ConfigKismet.genMode = genMode;
         syncFromFields();
     }
 
@@ -290,16 +284,25 @@ public class KismetConfig {
     }
 
     public static void setGenFilter(String[] genFilter) {
-        KismetConfig.genFilter = genFilter;
+        ConfigKismet.genFilter = genFilter;
         syncFromFields();
     }
 
-    public static EnumFilterMode getFilterMode() {
-        return filterMode;
+    public static boolean isChillEnabled() {
+        return chillEnabled;
     }
 
-    public static void setFilterMode(EnumFilterMode filterMode) {
-        KismetConfig.filterMode = filterMode;
+    public static void setChillEnabled(boolean chillEnabled) {
+        ConfigKismet.chillEnabled = chillEnabled;
+        syncFromFields();
+    }
+
+    public static boolean isTimedEnabled() {
+        return timedEnabled;
+    }
+
+    public static void setTimedEnabled(boolean timedEnabled) {
+        ConfigKismet.timedEnabled = timedEnabled;
         syncFromFields();
     }
 
@@ -320,21 +323,6 @@ public class KismetConfig {
         }
     }
 
-    public enum EnumFilterMode {
-        WHITELIST("Whitelist"), BLACKLIST("Blacklist");
-
-        private String value;
-
-        EnumFilterMode(String value) {
-            this.value = value;
-        }
-
-        @Override
-        public String toString() {
-            return value;
-        }
-    }
-
     private static class ClientConfigEventHandler {
         /*
          * This class, when instantiated as an object, will listen on the FML
@@ -346,9 +334,11 @@ public class KismetConfig {
                 syncFromGUI();
                 final String category = event.getConfigID();
                 if (category != null) {
-                    if (category.equals(KismetConfig.CATEGORY_TARGETS)) {
+                    // force a library refresh if in-world and any changes occured regarding the target category
+                    if (category.equals(ConfigKismet.CATEGORY_TARGETS)) {
                         ModLogger.trace("Updating filtered stacks...");
-                        TargetLibraryFactory.generateLibrary(null);
+                        if (Kismet.libraryFactory != null)
+                            Kismet.libraryFactory.recreateLibrary();
                     }
                     ModLogger.debug("Config changed on GUI, category " + category);
                 } else {

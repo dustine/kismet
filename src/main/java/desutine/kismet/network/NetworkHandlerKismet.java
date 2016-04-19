@@ -5,7 +5,7 @@ import desutine.kismet.ModLogger;
 import desutine.kismet.Reference;
 import desutine.kismet.addon.AddonJei;
 import desutine.kismet.client.util.ClientTargetHelper;
-import desutine.kismet.common.KismetConfig;
+import desutine.kismet.common.ConfigKismet;
 import desutine.kismet.common.tile.TileDisplay;
 import desutine.kismet.network.packet.MessageKismetConfig;
 import desutine.kismet.network.packet.MessageReceiveEnrichedTargets;
@@ -13,11 +13,12 @@ import desutine.kismet.network.packet.MessageSendRawTargets;
 import desutine.kismet.network.packet.MessageTileEntity;
 import desutine.kismet.server.StackWrapper;
 import desutine.kismet.server.WorldSavedDataTargets;
-import desutine.kismet.util.TargetLibraryFactory;
+import desutine.kismet.util.StackHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
@@ -26,7 +27,9 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.relauncher.Side;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class NetworkHandlerKismet {
     private static int discriminator;
@@ -94,7 +97,7 @@ public class NetworkHandlerKismet {
     public static class SendConfigToClient implements IMessageHandler<MessageKismetConfig, IMessage> {
         @Override
         public IMessage onMessage(MessageKismetConfig message, MessageContext ctx) {
-            Minecraft.getMinecraft().addScheduledTask(() -> KismetConfig.clientSync(message.syncValues));
+            Minecraft.getMinecraft().addScheduledTask(() -> ConfigKismet.clientSync(message.syncValues));
             return null;
         }
     }
@@ -106,11 +109,11 @@ public class NetworkHandlerKismet {
             Minecraft.getMinecraft().addScheduledTask(() -> {
                 List<StackWrapper> targets = message.stacks;
                 if (isJeiReady()) {
-                    AddonJei.enrich(targets);
+                    targets = AddonJei.enrich(message.stacks);
                 } else {
-                    ClientTargetHelper.vanillaEnrich(targets);
+                    targets = ClientTargetHelper.vanillaEnrich(message.stacks);
                 }
-                Kismet.packetHandler.sendEnriched(targets);
+                Kismet.network.sendEnriched(targets);
             });
             return null;
         }
@@ -126,11 +129,29 @@ public class NetworkHandlerKismet {
         public IMessage onMessage(final MessageReceiveEnrichedTargets message, MessageContext ctx) {
             final WorldServer world = (WorldServer) (ctx.getServerHandler().playerEntity.worldObj);
             world.addScheduledTask(() -> {
-                final WorldSavedDataTargets wsdStacks = WorldSavedDataTargets.get(world);
-                wsdStacks.enrichStacks(message.stacks);
-                TargetLibraryFactory.generateLibrary(world);
+                final EntityPlayerMP player = ctx.getServerHandler().playerEntity;
+                if (Kismet.libraryFactory != null) {
+                    final WorldSavedDataTargets wsdStacks = WorldSavedDataTargets.get(world);
+                    int skipped = wsdStacks.enrichStacks(message.stacks);
+                    Kismet.libraryFactory.recreateLibrary();
+
+                    player.addChatMessage(
+                            new TextComponentString(String.format("[Kismet] Added %d targets, mods:%s", message
+                                    .stacks.size() - skipped, getMods(message.stacks))));
+                }
+
+                Kismet.libraryFactory.sendNextPacket(player);
             });
             return null;
+        }
+
+        private Set<String> getMods(List<StackWrapper> stacks) {
+            final Set<String> mods = new HashSet<>();
+            for (StackWrapper wrapper : stacks) {
+                String mod = StackHelper.getMod(wrapper.getStack());
+                mods.add(mod);
+            }
+            return mods;
         }
     }
 }
