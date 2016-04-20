@@ -1,6 +1,11 @@
 # Blocks
-tile.chillDisplay.name=Enable Chill Kismet Display
-tile.display.name=Current Kismet Display
+tile.chillDisplay.name=Kismetic Display
+tile.timedDisplay.name=Timed Kismetic Display
+
+tile.timedDisplay.tag.streak=Streak: %s
+tile.timedDisplay.tag.done=§bDone!
+
+tile.chillDisplay.tag.score=Score: %s
 
 # Items
 item.key.name=Kismetic Key
@@ -13,7 +18,8 @@ commands.kismet.usage=/kismet <regen>
 
 # Addons
 ## JEI
-jei.description.block.display=A timed display of your Kismet. Before the timer runs out you have to right-click the display with your own version of whatever it holds.\nIt also keeps track of your score so far, the latest streak of successful Kismets you've done in a row.
+jei.description.block.chillDisplay=No time here fam.
+jei.description.block.timedDisplay=A timed display of your Kismet. Before the timer runs out you have to right-click the display with your own version of whatever it holds.\nIt also keeps track of your score so far, the latest streak of successful Kismets you've done in a row.
 
 # GUI
 gui.config.category.main=Kismet
@@ -41,13 +47,13 @@ gui.config.category.targets=Targets
 gui.config.category.targets.tooltip=Settings regarding the allowed/disallowed items to be picked as targets, either by a predetermined set or procedurally.
 
 gui.config.targets.forceAdd=Targets
-gui.config.targets.forceAdd.tooltip=Item strings present here will be used as possible random targets, alongside any additionally added procedurally.\nUse the format "[!]mod:name[:metadata]", where [] indicates optional. The ! disables the entry without needing to remove it.
+gui.config.targets.forceAdd.tooltip=Item strings present here will be used as possible random targets, alongside any additionally added procedurally.\nUse the format "[!]mod:name[:metadata]", where [] indicates optional, ! disables the entry.
 
 gui.config.targets.genMode=Generate Additional Targets
 gui.config.targets.genMode.tooltip=Kismet can add items beyond the ones present in the forceAdd, depending on the behaviour specified on this field.\n§lWhitelist only§r: only the items present in the Whitelist will be used as targets.\n§lAdd only obtainable§r: Kismet will search which items can be obtainable in-game (craftable, world gen, etc.) and only add these as possible targets.\n§lAdd all others§r: Kismet will add all items that are registered in-game, no matter if they're obtainable or not.
 
 gui.config.targets.genFilter=Generated Targets Filter
-gui.config.targets.genStacksFilter.tooltip=Only items that follow the rules present in this list will be added as possible targets to the game (if Generate Additional Targets allows so).\nUse the format "[!]mod[:name[:metadata]]", where [] indicates optional. The ! disables the entry without needing to remove it.
+gui.config.targets.genStacksFilter.tooltip=Only items that follow the rules present in this list will be added as possible targets to the game (if Generate Additional Targets allows so).\nUse the format "[!]mod[:name[:metadata]]", where [] indicates optional, ! disables the entry.
 
 gui.config.targets.filterMode=Filter Mode
 gui.config.targets.filterMode.tooltip=Toggles the additional target's filter behaviour between forceAdd and genFilter

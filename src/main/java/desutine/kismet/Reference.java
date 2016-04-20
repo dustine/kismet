@@ -11,6 +11,7 @@ public final class Reference {
     public static class Colors {
         public static final int LIME = 0x00ff00;
         public static final int RED = 0xff0000;
+        public static final int CYAN = 0x00ffff;
     }
 
     public static final class Names {
@@ -22,7 +23,8 @@ public final class Reference {
         }
 
         public static final class Blocks {
-            public static final String DISPLAY = "display";
+            public static final String TIMED_DISPLAY = "timedDisplay";
+            public static final String CHILL_DISPLAY = "chillDisplay";
         }
 
         public static final class Tiles {

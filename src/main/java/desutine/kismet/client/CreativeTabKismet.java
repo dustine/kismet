@@ -9,7 +9,7 @@ public class CreativeTabKismet {
     public static final CreativeTabs KISMET_TAB = new CreativeTabs(Reference.MOD_ID.toLowerCase()) {
         @Override
         public Item getTabIconItem() {
-            return Item.getItemFromBlock(ModBlocks.DISPLAY);
+            return Item.getItemFromBlock(ModBlocks.CHILL_DISPLAY);
         }
     };
 }

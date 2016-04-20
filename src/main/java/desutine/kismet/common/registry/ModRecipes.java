@@ -16,7 +16,7 @@ public class ModRecipes {
 //
 //            = Chill Kismet Display
             // todo create the chill display
-            GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ModBlocks.DISPLAY), " e ", " s ", "fLc",
+            GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ModBlocks.CHILL_DISPLAY), " e ", " s ", "fLc",
                     's', new ItemStack(Blocks.stone_slab),
                     'e', "gemEmerald",
                     'f', new ItemStack(Items.item_frame),
@@ -31,7 +31,7 @@ public class ModRecipes {
 //            item frame | :blockLapis | clock
 //
 //            = Timed Kismet Display
-            GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ModBlocks.DISPLAY), " e ", " s ", "fLc",
+            GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ModBlocks.TIMED_DISPLAY), " e ", " s ", "fLc",
                     's', new ItemStack(Blocks.stone_slab),
                     'e', "gemEmerald",
                     'f', new ItemStack(Items.item_frame),

@@ -22,7 +22,7 @@ public class ServerProxy extends CommonProxy {
     }
 
     @Override
-    public void registerBlockItemColor() {
+    public void registerColorHandlers() {
         // NOOP
     }
 

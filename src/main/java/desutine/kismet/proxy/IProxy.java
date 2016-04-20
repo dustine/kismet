@@ -10,7 +10,7 @@ public interface IProxy {
 
     void registerTESR();
 
-    void registerBlockItemColor();
+    void registerColorHandlers();
 
     void sendConfigToClient(EntityPlayer player);
 

@@ -69,7 +69,7 @@ public class Kismet {
         jeiLoaded = Loader.isModLoaded("JEI");
 
         // register tints
-        proxy.registerBlockItemColor();
+        proxy.registerColorHandlers();
     }
 
     /**

@@ -4,7 +4,6 @@ import desutine.kismet.Reference;
 import desutine.kismet.client.CreativeTabKismet;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.util.ResourceLocation;
 
 public class BlockKismet extends Block {
     public BlockKismet(String name) {
@@ -13,7 +12,7 @@ public class BlockKismet extends Block {
 
     public BlockKismet(String name, Material material) {
         super(material);
-        setRegistryName(new ResourceLocation(Reference.MOD_ID + ':' + name));
+        setRegistryName(Reference.MOD_ID, name);
         setUnlocalizedName(name);
         setCreativeTab(CreativeTabKismet.KISMET_TAB);
     }

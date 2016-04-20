@@ -106,7 +106,7 @@ public class AddonJei implements IModPlugin {
 
     @Override
     public void register(@Nonnull IModRegistry registry) {
-        registry.addDescription(new ItemStack(ModBlocks.DISPLAY), "jei.description.block.display");
+        registry.addDescription(new ItemStack(ModBlocks.CHILL_DISPLAY), "jei.description.block.display");
         stackHelper = registry.getJeiHelpers().getStackHelper();
     }
 

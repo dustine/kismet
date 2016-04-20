@@ -26,12 +26,15 @@ public class TargetGenerationResult {
     }
 
     public ItemStack getValue() {
-        if (value == null) throw new NullPointerException(flag.toString());
         return value;
     }
 
     public EnumTargetFailure getFlag() {
         return flag;
+    }
+
+    public boolean hasFlag() {
+        return flag != null;
     }
 
     public enum EnumTargetFailure {

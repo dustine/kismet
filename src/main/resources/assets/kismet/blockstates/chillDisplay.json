@@ -33,7 +33,11 @@
     },
     "fulfilled": {
       "false": {},
-      "true": {}
+      "true": {
+        "textures": {
+          "gem": "kismet:blocks/fulfilledGem"
+        }
+      }
     },
     "ready": {
       "false": {

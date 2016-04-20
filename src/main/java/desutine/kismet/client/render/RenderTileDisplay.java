@@ -1,6 +1,7 @@
 package desutine.kismet.client.render;
 
 import desutine.kismet.common.block.BlockDisplay;
+import desutine.kismet.common.block.BlockTimedDisplay;
 import desutine.kismet.common.tile.TileDisplay;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -10,10 +11,11 @@ import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemSkull;
 import net.minecraft.util.EnumFacing;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -26,19 +28,33 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
     public void renderTileEntityAt(TileDisplay te, double x, double y, double z, float partialTicks, int destroyStage) {
         if (te == null) return;
 
+        // check if we have a blockTimedDisplay, and if so, its status on fulfillment
+        final Boolean fulfilled = getWorld().getBlockState(te.getPos()).getValue(BlockDisplay.FULFILLED);
+
         // if we don't have a fulfilled target, show it
-        if (!te.isFulfilled()) {
+        if (!fulfilled) {
             renderTargetItem(te, x, y, z, partialTicks);
         }
 
-        // always show the label above though
-        // BUT make it snazzy: only show the streak if 2+
-        final float textBoxOffset = 0.4f;
-        if (te.getStreak() > 1) {
-            renderTextBox(te, x, y + textBoxOffset,
-                    z, Arrays.asList("Streak: " + te.getStylizedStreak(), te.getStylizedDeadline()));
+        List<String> lines = new ArrayList<>();
+        if (te.getBlockType() instanceof BlockTimedDisplay) {
+            // BUT make it snazzy: only show the streak if 2+
+            if (te.getScore() > 1) {
+                lines.add(I18n.format("tile.timedDisplay.tag.streak", te.getStylizedScore()));
+            }
+            if (!fulfilled) {
+                lines.add(te.getStylizedDeadline());
+            } else {
+                lines.add(I18n.format("tile.timedDisplay.tag.done"));
+            }
         } else {
-            renderTextLabel(te, x, y + textBoxOffset, z, te.getStylizedDeadline());
+            lines.add(I18n.format("tile.chillDisplay.tag.score", te.getStylizedScore()));
+        }
+
+        // always show the label above though
+        if (!lines.isEmpty()) {
+            final float textBoxOffset = 0.4f;
+            renderTextBox(te, x, y + textBoxOffset, z, lines);
         }
     }
 
@@ -70,7 +86,7 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
                 GlStateManager.rotate(180, 0, -1, 0);
                 GlStateManager.scale(0.5, 0.5, 0.5);
             } else {
-//                GlStateManager.scale(1.25, 1.25, 1.25);
+                GlStateManager.scale(0.75, 0.75, 0.75);
             }
 
             GlStateManager.disableLighting();

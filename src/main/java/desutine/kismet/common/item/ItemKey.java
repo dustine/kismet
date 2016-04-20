@@ -1,7 +1,7 @@
 package desutine.kismet.common.item;
 
 import desutine.kismet.Reference;
-import desutine.kismet.common.registry.ModBlocks;
+import desutine.kismet.common.block.BlockDisplay;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumActionResult;
@@ -17,9 +17,9 @@ public class ItemKey extends ItemKismet {
 
     @Override
     public EnumActionResult onItemUse(ItemStack stack, EntityPlayer playerIn, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-        if (worldIn.getBlockState(pos).getBlock().isAssociatedBlock(ModBlocks.DISPLAY)) {
+        if (worldIn.getBlockState(pos).getBlock() instanceof BlockDisplay) {
             stack.stackSize--;
         }
-        return EnumActionResult.PASS;
+        return EnumActionResult.SUCCESS;
     }
 }

@@ -1,0 +1,51 @@
+{
+  "forge_marker": 1,
+  "defaults": {
+    "textures": {
+      "particle": "blocks/lapis_block",
+      "body": "blocks/lapis_block",
+      "gem": "kismet:blocks/gem",
+      "slab": "blocks/stone_slab_top"
+    },
+    "model": "kismet:display",
+    "transform": "forge:default-block"
+  },
+  "variants": {
+    "normal": [{}],
+    "inventory": [{}],
+    "facing": {
+      "west": {
+        "y": -90
+      },
+      "east": {
+        "y": 90
+      },
+      "north": {},
+      "south": {
+        "y": 180
+      },
+      "up": {
+        "x": -90
+      },
+      "down": {
+        "x": 90
+      }
+    },
+    "fulfilled": {
+      "false": {},
+      "true": {
+        "textures": {
+          "gem": "kismet:blocks/fulfilledGem"
+        }
+      }
+    },
+    "ready": {
+      "false": {
+        "textures": {
+          "gem": "kismet:blocks/brokenGem"
+        }
+      },
+      "true": {}
+    }
+  }
+}
