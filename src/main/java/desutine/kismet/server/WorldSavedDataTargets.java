@@ -1,6 +1,7 @@
 package desutine.kismet.server;
 
 import com.google.common.collect.ImmutableList;
+import desutine.kismet.Kismet;
 import desutine.kismet.Reference;
 import desutine.kismet.util.StackHelper;
 import net.minecraft.nbt.NBTTagCompound;
@@ -54,6 +55,8 @@ public class WorldSavedDataTargets extends WorldSavedData {
             final StackWrapper wrapper = new StackWrapper(tagCompound);
             stacks.put(wrapper.toString(), wrapper);
         }
+
+        Kismet.libraryFactory.recreateLibrary();
     }
 
     @Override

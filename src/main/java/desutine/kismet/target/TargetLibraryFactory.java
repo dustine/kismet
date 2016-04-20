@@ -49,6 +49,7 @@ public class TargetLibraryFactory {
     private Queue<List<StackWrapper>> remainingPackets = new ArrayDeque<>();
 
     public TargetLibraryFactory(WorldServer world) {
+        // fixme cyclic reference when running on dedicated server
         worldSavedDataTargets = WorldSavedDataTargets.get(world);
     }
 
@@ -97,6 +98,52 @@ public class TargetLibraryFactory {
                 }
             }
         });
+    }
+
+    private static ItemStack getItemStack(@Nonnull String s) {
+        final String[] split = s.split(":");
+
+        if (split.length < 2) {
+            ModLogger.warning("Weird location: " + s);
+            return null;
+        }
+
+        ItemStack stack;
+        ResourceLocation loc = new ResourceLocation(split[0], split[1]);
+        if (Item.itemRegistry.getKeys().contains(loc)) {
+            stack = new ItemStack(Item.itemRegistry.getObject(loc));
+        } else {
+            ModLogger.warning("Weird location: " + s);
+            return null;
+        }
+
+        if (split.length > 2) {
+            // input metadata
+            Integer meta = tryParse(split[2]);
+            if (meta != null) {
+                // there's metadata, add it
+                stack.setItemDamage(meta);
+            } else {
+                ModLogger.warning(String.format("Weird metadata %s in %s", split[2], loc));
+                if (stack.getHasSubtypes()) {
+                    stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
+                }
+            }
+        } else {
+            if (stack.getHasSubtypes()) {
+                stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
+            }
+        }
+
+        return stack;
+    }
+
+    private static Integer tryParse(String text) {
+        try {
+            return Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     /**
@@ -244,52 +291,6 @@ public class TargetLibraryFactory {
             }
         }
         return items;
-    }
-
-    private static ItemStack getItemStack(@Nonnull String s) {
-        final String[] split = s.split(":");
-
-        if (split.length < 2) {
-            ModLogger.warning("Weird location: " + s);
-            return null;
-        }
-
-        ItemStack stack;
-        ResourceLocation loc = new ResourceLocation(split[0], split[1]);
-        if (Item.itemRegistry.getKeys().contains(loc)) {
-            stack = new ItemStack(Item.itemRegistry.getObject(loc));
-        } else {
-            ModLogger.warning("Weird location: " + s);
-            return null;
-        }
-
-        if (split.length > 2) {
-            // input metadata
-            Integer meta = tryParse(split[2]);
-            if (meta != null) {
-                // there's metadata, add it
-                stack.setItemDamage(meta);
-            } else {
-                ModLogger.warning(String.format("Weird metadata %s in %s", split[2], loc));
-                if (stack.getHasSubtypes()) {
-                    stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
-                }
-            }
-        } else {
-            if (stack.getHasSubtypes()) {
-                stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
-            }
-        }
-
-        return stack;
-    }
-
-    private static Integer tryParse(String text) {
-        try {
-            return Integer.parseInt(text);
-        } catch (NumberFormatException e) {
-            return null;
-        }
     }
 
     /**
