@@ -36,8 +36,6 @@ import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.oredict.OreDictionary;
 
 import javax.annotation.Nonnull;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -142,38 +140,38 @@ public class TargetLibraryFactory {
     private static Set<String> getSilkDrops(Block block, IBlockState state) {
         Set<String> drops = new HashSet<>();
 
-        ItemStack silkDrop = null;
-        Class<?> currentClass = block.getClass();
+        ItemStack silkDrop = block.createStackedBlock(state);
+//        Class<?> currentClass = block.getClass();
         // try while we don't have Block.class
-        while (currentClass != null && Block.class.isAssignableFrom(currentClass)) {
-            Method silkDrops = null;
-            try {
-                // as the method is protected, I'll "just" access it with reflection
-                silkDrops = currentClass.getDeclaredMethod("createStackedBlock", IBlockState.class);
-            } catch (SecurityException e) {
-                // no access to the class, abort
-                ModLogger.error("", e);
-                break;
-            } catch (NoSuchMethodException ignored) {
-            }
-
-            if (silkDrops != null) {
-                try {
-                    silkDrops.setAccessible(true);
-                    silkDrop = (ItemStack) silkDrops.invoke(block, state);
-                    // if we reached here, the function was sucessfully invoked
-                    // so we can break the loop and see what we got
-                    break;
-                } catch (IllegalAccessException | InvocationTargetException e) {
-                    // no access to the method, or state is not correctly setup, abort
-                    ModLogger.error("", e);
-                    break;
-                }
-            }
-
-            // loop hasn't terminated, so let's go up one level and try again
-            currentClass = currentClass.getSuperclass();
-        }
+//        while (currentClass != null && Block.class.isAssignableFrom(currentClass)) {
+//            Method silkDrops = null;
+//            try {
+//                // as the method is protected, I'll "just" access it with reflection
+//                silkDrops = currentClass.getDeclaredMethod("createStackedBlock", IBlockState.class);
+//            } catch (SecurityException e) {
+//                // no access to the class, abort
+//                ModLogger.error("", e);
+//                break;
+//            } catch (NoSuchMethodException ignored) {
+//            }
+//
+//            if (silkDrops != null) {
+//                try {
+//                    silkDrops.setAccessible(true);
+//                    silkDrop = (ItemStack) silkDrops.invoke(block, state);
+//                    // if we reached here, the function was sucessfully invoked
+//                    // so we can break the loop and see what we got
+//                    break;
+//                } catch (IllegalAccessException | InvocationTargetException e) {
+//                    // no access to the method, or state is not correctly setup, abort
+//                    ModLogger.error("", e);
+//                    break;
+//                }
+//            }
+//
+//            // loop hasn't terminated, so let's go up one level and try again
+//            currentClass = currentClass.getSuperclass();
+//        }
 
         if (silkDrop != null)
             drops.add(StackHelper.toUniqueKey(silkDrop));

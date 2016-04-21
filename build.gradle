@@ -20,8 +20,14 @@ repositories {
     }
 }
 
+
 apply plugin: 'net.minecraftforge.gradle.forge'
 
+jar {
+    manifest {
+        attributes 'FMLAT': 'accessTransformer.cfg'
+    }
+}
 /*
 // for people who want stable - not yet functional for MC 1.8.8 - we require the forgegradle 2.1 snapshot
 plugins {
@@ -90,6 +96,9 @@ processResources
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
     }
+
+    // Move access transformers to META-INF
+    rename '(.+_at.cfg)', 'META-INF/$1'
 }
 
 
