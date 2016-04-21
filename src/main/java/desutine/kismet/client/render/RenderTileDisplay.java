@@ -3,6 +3,7 @@ package desutine.kismet.client.render;
 import desutine.kismet.common.block.BlockDisplay;
 import desutine.kismet.common.block.BlockTimedDisplay;
 import desutine.kismet.common.tile.TileDisplay;
+import desutine.kismet.server.InformedStack;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
@@ -13,6 +14,7 @@ import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.item.ItemSkull;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 
 import java.util.ArrayList;
@@ -80,9 +82,10 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         GlStateManager.rotate(facingRot, 0, 1, 0);
 
         // item rendering!
-        if (te.getTarget() != null) {
-            if (!itemRenderer.shouldRenderItemIn3D(te.getTarget()) ||
-                    te.getTarget().getItem() instanceof ItemSkull) {
+        final InformedStack target = te.getTarget();
+        if (target != null && target.hasItem()) {
+            ItemStack stack = target.getStack();
+            if (!itemRenderer.shouldRenderItemIn3D(stack) || stack.getItem() instanceof ItemSkull) {
                 GlStateManager.rotate(180, 0, -1, 0);
                 GlStateManager.scale(0.5, 0.5, 0.5);
             } else {
@@ -93,7 +96,7 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
 
             GlStateManager.pushAttrib();
             RenderHelper.enableStandardItemLighting();
-            itemRenderer.renderItem(te.getTarget(), ItemCameraTransforms.TransformType.FIXED);
+            itemRenderer.renderItem(stack, ItemCameraTransforms.TransformType.FIXED);
             RenderHelper.disableStandardItemLighting();
             GlStateManager.popAttrib();
 

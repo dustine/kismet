@@ -2,8 +2,8 @@ package desutine.kismet.util;
 
 import desutine.kismet.Kismet;
 import desutine.kismet.ModLogger;
+import desutine.kismet.server.InformedStack;
 import desutine.kismet.util.TargetGenerationResult.EnumTargetFailure;
-import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 public class TargetHelper {
 
-    private static List<ItemStack> targetLibrary;
+    private static List<InformedStack> targetLibrary;
 
     /**
      * todo rewrite this all and remove comments from function body
@@ -34,7 +34,7 @@ public class TargetHelper {
      * @param lastTargets
      * @return
      */
-    public static TargetGenerationResult generateTarget(@Nonnull final Map<String, Integer> weights, @Nonnull List<ItemStack> lastTargets) {
+    public static TargetGenerationResult generateTarget(@Nonnull final Map<String, Integer> weights, @Nonnull List<InformedStack> lastTargets) {
         if (targetLibrary == null) return new TargetGenerationResult(EnumTargetFailure.LIST_NOT_READY);
 
         // saving the mod weights before we removed stacks according to previousTargets
@@ -50,7 +50,7 @@ public class TargetHelper {
 
         // filter the library so it only has possible targets
         // as in, none of the excludedTargets
-        List<ItemStack> targets = targetLibrary.stream()
+        List<InformedStack> targets = targetLibrary.stream()
                 .filter(stack -> lastTargets.stream().noneMatch(stack1 -> StackHelper.isEquivalent(stack, stack1)))
                 .collect(Collectors.toList());
 
@@ -91,11 +91,11 @@ public class TargetHelper {
         // configFilteredItems is already filtered to only have valid stacks so it's just a process of picking a
         // random index and returning the contents on that index
         final String finalTargetMod = targetMod;
-        List<ItemStack> decapsulatedTargets = targets.stream()
+        List<InformedStack> decapsulatedTargets = targets.stream()
                 .filter(item -> finalTargetMod.equals(StackHelper.getMod(item)))
                 .collect(Collectors.toList());
         int index = Kismet.random.nextInt(decapsulatedTargets.size());
-        ItemStack newTarget = decapsulatedTargets.get(index);
+        InformedStack newTarget = decapsulatedTargets.get(index);
 
         // finally, we have a target.
         // but ah, before finishing, we have to add the newly generated target to the lastTarget stacks!
@@ -119,9 +119,9 @@ public class TargetHelper {
         return null;
     }
 
-    private static Map<String, Integer> getModItemCount(Iterable<ItemStack> filteredCompleteList) {
+    private static Map<String, Integer> getModItemCount(List<InformedStack> filteredCompleteList) {
         HashMap<String, Integer> map = new HashMap<>();
-        for (ItemStack item : filteredCompleteList) {
+        for (InformedStack item : filteredCompleteList) {
             String mod = StackHelper.getMod(item);
             if (!map.containsKey(mod)) {
                 map.put(mod, 1);
@@ -131,24 +131,24 @@ public class TargetHelper {
         return map;
     }
 
-    public static List<ItemStack> getTargetLibrary() {
+    public static List<InformedStack> getTargetLibrary() {
         return targetLibrary;
     }
 
-    public static void setTargetLibrary(List<ItemStack> targetLibrary) {
+    public static void setTargetLibrary(List<InformedStack> targetLibrary) {
         TargetHelper.targetLibrary = targetLibrary;
     }
 
     private static class EdgeCaseSolver {
         private final Map<String, Integer> weights;
-        private final List<ItemStack> excludedTargets;
+        private final List<InformedStack> excludedTargets;
         private final Map<String, Integer> statelessCount;
-        private final List<ItemStack> targets;
+        private final List<InformedStack> targets;
         private final Map<String, Integer> count;
         private final Map<String, Integer> metrics;
         private boolean solved;
 
-        EdgeCaseSolver(Map<String, Integer> weights, List<ItemStack> excludedTargets, Map<String, Integer> statelessCount, List<ItemStack> targets, Map<String, Integer> count, Map<String, Integer> metrics) {
+        EdgeCaseSolver(Map<String, Integer> weights, List<InformedStack> excludedTargets, Map<String, Integer> statelessCount, List<InformedStack> targets, Map<String, Integer> count, Map<String, Integer> metrics) {
             this.weights = weights;
             this.excludedTargets = excludedTargets;
             this.statelessCount = statelessCount;
@@ -161,7 +161,7 @@ public class TargetHelper {
             return solved;
         }
 
-        List<ItemStack> getTargets() {
+        List<InformedStack> getTargets() {
             return targets;
         }
 

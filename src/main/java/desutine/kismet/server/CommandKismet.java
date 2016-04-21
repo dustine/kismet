@@ -56,7 +56,12 @@ public class CommandKismet extends CommandBase {
                 sender.addChatMessage(new TextComponentString("[Kismet] Error, target library factory not found"));
             }
         } else if ("dump".equals(args[0])) {
-            for (StackWrapper wrapper : WorldSavedDataTargets.get(sender.getEntityWorld()).getStacks()) {
+            final WorldSavedDataTargets targets = WorldSavedDataTargets.get(sender.getEntityWorld());
+            final int total = targets.getStacks().size();
+            final long obtainable = targets.getStacks().stream().filter(InformedStack::isObtainable).count();
+
+            sender.addChatMessage(new TextComponentString(String.format("[Kismet] %d items, %d obtainable", total, obtainable)));
+            for (InformedStack wrapper : targets.getStacks()) {
                 ModLogger.info(wrapper.toCompleteString());
             }
         } else {

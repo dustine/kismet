@@ -4,6 +4,7 @@ import desutine.kismet.Kismet;
 import desutine.kismet.common.ConfigKismet;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemStack;
 
 public class ServerProxy extends CommonProxy {
     @Override
@@ -34,5 +35,10 @@ public class ServerProxy extends CommonProxy {
     @Override
     public void cleanTargetLibrary(EntityPlayerMP player) {
         // NOOP
+    }
+
+    @Override
+    public boolean inferSafeHasSubtypes(ItemStack stack) {
+        return true;
     }
 }

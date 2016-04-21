@@ -1,8 +1,8 @@
 package desutine.kismet.server;
 
 import com.google.common.collect.ImmutableList;
-import desutine.kismet.Kismet;
 import desutine.kismet.Reference;
+import desutine.kismet.target.TargetLibraryFactory;
 import desutine.kismet.util.StackHelper;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -19,7 +19,7 @@ public class WorldSavedDataTargets extends WorldSavedData {
     private static final String NAME = Reference.MOD_ID + "_TargetsData";
 
     private boolean valid = false;
-    private Map<String, StackWrapper> stacks = new HashMap<>();
+    private Map<String, InformedStack> stacks = new HashMap<>();
 
     public WorldSavedDataTargets() {
         super(NAME);
@@ -50,13 +50,11 @@ public class WorldSavedDataTargets extends WorldSavedData {
         NBTTagList proceduralNbt = nbt.getTagList("stacks", 10);
         for (int i = 0; i < proceduralNbt.tagCount(); i++) {
             NBTTagCompound tagCompound = proceduralNbt.getCompoundTagAt(i);
-//            final ItemStack stack = ItemStack.loadItemStackFromNBT(tagCompound.getCompoundTag("stack"));
-//            boolean obtainable = tagCompound.getBoolean("obtainable");
-            final StackWrapper wrapper = new StackWrapper(tagCompound);
+            final InformedStack wrapper = new InformedStack(tagCompound);
             stacks.put(wrapper.toString(), wrapper);
         }
 
-        Kismet.libraryFactory.recreateLibrary();
+        TargetLibraryFactory.recreateLibrary(this.stacks.values());
     }
 
     @Override
@@ -64,7 +62,7 @@ public class WorldSavedDataTargets extends WorldSavedData {
         nbt.setBoolean("valid", valid);
 
         NBTTagList stacksNbt = new NBTTagList();
-        for (StackWrapper wrapper : stacks.values()) {
+        for (InformedStack wrapper : stacks.values()) {
             NBTTagCompound tagCompound = wrapper.serializeNBT();
             if (tagCompound != null) {
                 stacksNbt.appendTag(tagCompound);
@@ -73,11 +71,11 @@ public class WorldSavedDataTargets extends WorldSavedData {
         nbt.setTag("stacks", stacksNbt);
     }
 
-    public ImmutableList<StackWrapper> getStacks() {
+    public ImmutableList<InformedStack> getStacks() {
         return ImmutableList.copyOf(stacks.values());
     }
 
-    public void setStacks(Map<String, StackWrapper> stacks) {
+    public void setStacks(Map<String, InformedStack> stacks) {
         this.stacks = stacks;
         if (stacks.isEmpty())
             valid = false;
@@ -98,10 +96,10 @@ public class WorldSavedDataTargets extends WorldSavedData {
      * @param newStacks
      * @return number of skipped (joined with already existing) stacks
      */
-    public int enrichStacks(List<StackWrapper> newStacks) {
+    public int enrichStacks(List<InformedStack> newStacks) {
         final int[] skipped = {0};
         newStacks.forEach(wrapper -> {
-            String key = StackHelper.toUniqueKey(wrapper.getStack());
+            String key = StackHelper.toUniqueKey(wrapper);
             if (stacks.containsKey(key)) {
                 stacks.get(key).joinWith(wrapper);
                 ++skipped[0];

@@ -6,11 +6,11 @@ import desutine.kismet.common.ConfigKismet;
 import desutine.kismet.common.block.BlockDisplay;
 import desutine.kismet.common.block.BlockTimedDisplay;
 import desutine.kismet.common.registry.ModBlocks;
+import desutine.kismet.server.InformedStack;
 import desutine.kismet.util.StackHelper;
 import desutine.kismet.util.TargetGenerationResult;
 import desutine.kismet.util.TargetHelper;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.NetworkManager;
@@ -38,8 +38,8 @@ public class TileDisplay extends TileEntity implements ITickable {
     };
     private int score;
     private long deadline;
-    private ItemStack target;
-    private List<ItemStack> lastTargets;
+    private InformedStack target;
+    private List<InformedStack> lastTargets;
     private HashMap<String, Integer> modWeights;
     private boolean stateChanged;
     private long newTargetTimeout;
@@ -102,15 +102,15 @@ public class TileDisplay extends TileEntity implements ITickable {
         return score;
     }
 
-    @Override
-    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
-        return oldState.getBlock() != newState.getBlock();
-    }
-
     public void setScore(int score) {
         if (this.score != score) {
             this.score = score;
         }
+    }
+
+    @Override
+    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
+        return oldState.getBlock() != newState.getBlock();
     }
 
     @Override
@@ -170,7 +170,7 @@ public class TileDisplay extends TileEntity implements ITickable {
             return false;
         }
 
-        final ItemStack oldTarget = this.target;
+        final InformedStack oldTarget = this.target;
 
         TargetGenerationResult targetResult = TargetHelper.generateTarget(modWeights, lastTargets);
         if (targetResult.hasFlag()) {
@@ -189,11 +189,11 @@ public class TileDisplay extends TileEntity implements ITickable {
         return false;
     }
 
-    public List<ItemStack> getLastTargets() {
+    public List<InformedStack> getLastTargets() {
         return lastTargets;
     }
 
-    public void setLastTargets(List<ItemStack> lastTargets) {
+    public void setLastTargets(List<InformedStack> lastTargets) {
         this.lastTargets = lastTargets;
     }
 
@@ -219,25 +219,26 @@ public class TileDisplay extends TileEntity implements ITickable {
     }
 
     public boolean isReady() {
-        return this.target != null && this.target.getItem() != null;
+        return this.target != null && this.target.hasItem();
     }
 
 
+
     @Override
-    public void readFromNBT(NBTTagCompound compound) {
-        super.readFromNBT(compound);
+    public void readFromNBT(NBTTagCompound nbt) {
+        super.readFromNBT(nbt);
 
-        setDeadline(compound.getLong("deadline"));
-        setScore(compound.getInteger("score"));
+        setDeadline(nbt.getLong("deadline"));
+        setScore(nbt.getInteger("score"));
 
-        if (compound.hasKey("target")) {
-            target = ItemStack.loadItemStackFromNBT(compound.getCompoundTag("target"));
+        if (nbt.hasKey("target")) {
+            target = new InformedStack(nbt.getCompoundTag("target"));
         } else {
             target = null;
         }
 
         // 10 for COMPOUND, check NBTBase
-        NBTTagList modWeightsNbt = compound.getTagList("modWeights", 10);
+        NBTTagList modWeightsNbt = nbt.getTagList("modWeights", 10);
         for (int i = 0; i < modWeightsNbt.tagCount(); i++) {
             NBTTagCompound nbtTagCompound = modWeightsNbt.getCompoundTagAt(i);
             String modId = nbtTagCompound.getString("id");
@@ -246,13 +247,15 @@ public class TileDisplay extends TileEntity implements ITickable {
         }
 
         lastTargets.clear();
-        NBTTagList lastTargetsNbt = compound.getTagList("lastTargets", 10);
+        NBTTagList lastTargetsNbt = nbt.getTagList("lastTargets", 10);
         for (int i = 0; i < lastTargetsNbt.tagCount(); i++) {
-            NBTTagCompound nbtTagCompound = lastTargetsNbt.getCompoundTagAt(i);
-            lastTargets.add(ItemStack.loadItemStackFromNBT(nbtTagCompound));
+            NBTTagCompound compound = lastTargetsNbt.getCompoundTagAt(i);
+            lastTargets.add(new InformedStack(compound));
         }
 
-//        worldObj.setBlockState(pos, ModBlocks.CHILL_DISPLAY.getActualState(worldObj.getBlockState(pos), worldObj, pos));
+        if (worldObj != null && worldObj.isRemote) {
+            stateChanged = true;
+        }
     }
 
     @Override
@@ -264,8 +267,7 @@ public class TileDisplay extends TileEntity implements ITickable {
 
         // target can be null :/
         if (getTarget() != null) {
-            NBTTagCompound targetTag = new NBTTagCompound();
-            getTarget().writeToNBT(targetTag);
+            NBTTagCompound targetTag = getTarget().writeToNBT();
             compound.setTag("target", targetTag);
         }
 
@@ -279,10 +281,9 @@ public class TileDisplay extends TileEntity implements ITickable {
         compound.setTag("modWeights", modWeightsNbt);
 
         NBTTagList lastTargetsNbt = new NBTTagList();
-        for (ItemStack lastTarget : lastTargets) {
-            NBTTagCompound nbtTagCompound = new NBTTagCompound();
-            lastTarget.writeToNBT(nbtTagCompound);
-            lastTargetsNbt.appendTag(nbtTagCompound);
+        for (InformedStack lastTarget : lastTargets) {
+            NBTTagCompound targetTag = lastTarget.writeToNBT();
+            lastTargetsNbt.appendTag(targetTag);
         }
         compound.setTag("lastTargets", lastTargetsNbt);
 
@@ -300,11 +301,11 @@ public class TileDisplay extends TileEntity implements ITickable {
         readFromNBT(pkt.getNbtCompound());
     }
 
-    public ItemStack getTarget() {
+    public InformedStack getTarget() {
         return target;
     }
 
-    public void setTarget(ItemStack target) {
+    public void setTarget(InformedStack target) {
         boolean oldReady = isReady();
 
         if (!StackHelper.isEquivalent(this.target, target)) {

@@ -1,8 +1,8 @@
 package desutine.kismet.common.block;
 
-import desutine.kismet.ModLogger;
 import desutine.kismet.common.registry.ModItems;
 import desutine.kismet.common.tile.TileDisplay;
+import desutine.kismet.util.StackHelper;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.properties.PropertyEnum;
@@ -136,19 +136,18 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
     }
 
     @Override
-    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
-        ModLogger.info(((TileDisplay) (worldIn.getTileEntity(pos))).isReady());
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
         // correcting state not being correct -_-
-        state = worldIn.getBlockState(pos);
+        state = getActualState(world.getBlockState(pos), world, pos);
 
-        TileDisplay te = (TileDisplay) worldIn.getTileEntity(pos);
+        TileDisplay te = (TileDisplay) world.getTileEntity(pos);
         // do nothing if tile-entity is borked
         if (te == null) return false;
 
         // Check if the heldItem is the target
-        if (heldItem != null && heldItem.isItemEqual(te.getTarget())) {
+        if (heldItem != null && StackHelper.isEquivalent(te.getTarget(), heldItem)) {
             // fulfilled target~
-            setTargetAsFulfilled(worldIn, pos);
+            setTargetAsFulfilled(world, pos);
             return true;
         }
 
@@ -159,7 +158,7 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
             return true;
         }
 
-        return super.onBlockActivated(worldIn, pos, state, player, hand, heldItem, side, hitX, hitY, hitZ);
+        return super.onBlockActivated(world, pos, state, player, hand, heldItem, side, hitX, hitY, hitZ);
     }
 
     public void setTargetAsFulfilled(World world, BlockPos pos) {

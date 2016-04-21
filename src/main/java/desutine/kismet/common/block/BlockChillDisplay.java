@@ -22,6 +22,8 @@ public class BlockChillDisplay extends BlockDisplay {
         final boolean parentResult = super.onBlockActivated(world, pos, state, player, hand, heldItem, side,
                 hitX, hitY, hitZ);
 
+        if (parentResult) return true;
+
         TileDisplay te = (TileDisplay) world.getTileEntity(pos);
         if (te == null) return false;
         if (te.getTarget() == null) return false;
@@ -47,7 +49,7 @@ public class BlockChillDisplay extends BlockDisplay {
                 } else {
                     // special highlight on the target, to make it pop out
                     targetString = String.format("[Kismet] Current target: §b§o%s§r, score: %s",
-                            te.getTarget().getDisplayName(),
+                            te.getTarget().getStack().getDisplayName(),
                             te.getStylizedScore());
 
                     player.addChatComponentMessage(new TextComponentString(targetString));
@@ -58,7 +60,7 @@ public class BlockChillDisplay extends BlockDisplay {
             }
         }
 
-        return parentResult;
+        return false;
     }
 
     @Override

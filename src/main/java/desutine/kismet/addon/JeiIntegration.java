@@ -16,8 +16,10 @@ public class JeiIntegration {
             try {
                 String oldFilter = itemList.getFilterText();
 
-                String filter = te.getTarget().getDisplayName();
-                String mod = te.getTarget().getItem().getRegistryName().getResourceDomain();
+                ItemStack stack = te.getTarget().getStack();
+
+                String filter = stack.getDisplayName();
+                String mod = stack.getItem().getRegistryName().getResourceDomain();
                 filter = String.format("%s @%s", filter, mod);
                 if (oldFilter.equalsIgnoreCase(filter)) return false;
 

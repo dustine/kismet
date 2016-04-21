@@ -6,13 +6,18 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 
-public class MessageTileEntity implements IMessage {
+/**
+ * Sync Client Tile Display message
+ * <p>
+ * Includes: NBT data from server-side TileDisplay
+ */
+public class SCTDMessage implements IMessage {
     public NBTTagCompound nbtTagCompound;
 
-    public MessageTileEntity() {
+    public SCTDMessage() {
     }
 
-    public MessageTileEntity(final TileEntity tileEntity) {
+    public SCTDMessage(final TileEntity tileEntity) {
         this.nbtTagCompound = new NBTTagCompound();
         tileEntity.writeToNBT(nbtTagCompound);
     }

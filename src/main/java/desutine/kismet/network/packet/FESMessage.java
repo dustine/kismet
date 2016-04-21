@@ -3,25 +3,19 @@ package desutine.kismet.network.packet;
 import io.netty.buffer.ByteBuf;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 
-import java.util.Map;
-
-public class MessageKismetConfig implements IMessage {
-    public Map<String, Object> syncValues;
-
-    public MessageKismetConfig() {
-    }
-
-    public MessageKismetConfig(Map<String, Object> syncValues) {
-        this.syncValues = syncValues;
+/**
+ * Finish Enriching Stacks message
+ * Includes: nothing, as it's just an empty message to signal an event ^^"
+ */
+public class FESMessage implements IMessage {
+    public FESMessage() {
     }
 
     @Override
     public void fromBytes(ByteBuf buf) {
-
     }
 
     @Override
     public void toBytes(ByteBuf buf) {
-
     }
 }

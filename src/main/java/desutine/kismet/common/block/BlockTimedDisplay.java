@@ -48,7 +48,7 @@ public class BlockTimedDisplay extends BlockDisplay {
                 } else {
                     // special highlight on the target, to make it pop out
                     targetString = String.format("[Kismet] Current target: §b§o%s",
-                            te.getTarget().getDisplayName());
+                            te.getTarget().getStack().getDisplayName());
 
                     player.addChatComponentMessage(new TextComponentString(targetString));
 

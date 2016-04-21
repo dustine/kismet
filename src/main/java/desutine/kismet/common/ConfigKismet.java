@@ -47,6 +47,49 @@ public class ConfigKismet {
     private static String forceAddName = "forceAdd";
     private static String chillEnabledName = "chillEnabled";
     private static String timedEnabledName = "timedEnabled";
+    private static String[] hiddenCraftableDefault = new String[] {
+            ""
+    };
+    private static String[] hiddenMineableDefault = new String[] {
+            ""
+    };
+    private static String[] hiddenSilkableDefault = new String[] {
+            "!minecraft:tallgrass:0",
+            "!minecraft:tallgrass:1",
+            ""
+    };
+    private static String[] hiddenLootableDefault = new String[] {
+            "minecraft:egg",
+            "minecraft:elytra",
+            "minecraft:record_11",
+            "minecraft:record_ward",
+            "minecraft:record_far",
+            "minecraft:record_blocks",
+            "minecraft:record_strad",
+            "minecraft:nether_star",
+            "minecraft:nether_stal",
+            "minecraft:record_chirp",
+            "minecraft:record_wait",
+            "minecraft:record_mellohi",
+            "-minecraft:record_mall",
+            ""
+    };
+    private static String[] hiddenBucketableDefault = new String[] {
+            "minecraft:milk_bucket",
+            ""
+    };
+    private static String[] hiddenOthersDefault = new String[] {
+            "minecraft:vine",
+            "minecraft:dragon_breath",
+            ""
+    };
+    private static String[] genFilterDefault = new String[] {
+            "minecraft:tipped_arrow",
+            "minecraft:splash_potion",
+            "minecraft:lingering_potion",
+            "minecraft:wool:*",
+            "minecraft:stained_hardened_clay"
+    };
 
     private static String[] getEnumValues(Class<? extends Enum<?>> e) {
         return Arrays.asList(e.getEnumConstants())
@@ -95,9 +138,10 @@ public class ConfigKismet {
         final Property propChillEnabled = getProperty(categories, CATEGORY_GENERAL, chillEnabledName);
         final Property propTimedEnabled = getProperty(categories, CATEGORY_GENERAL, timedEnabledName);
         final Property propTimedLimit = getProperty(categories, CATEGORY_GENERAL, timedLimitName);
-        final Property propForceAdd = getProperty(categories, CATEGORY_TARGETS, forceAddName);
+
         final Property propGenMode = getProperty(categories, CATEGORY_TARGETS, genModeName);
         final Property propGenFilter = getProperty(categories, CATEGORY_TARGETS, genFilterName);
+        final Property propForceAdd = getProperty(categories, CATEGORY_TARGETS, forceAddName);
 
         // config field order, one per category
         for (String catKey : categories.keySet()) {
@@ -124,6 +168,8 @@ public class ConfigKismet {
                 timedLimit = TIMED_LIMIT_DEFAULT;
             }
 
+            hiddenForceAdd = propHiddenForceAdd.getStringList();
+
             forceAdd = propForceAdd.getStringList();
 
             genMode = GEN_MODE_DEFAULT;
@@ -145,6 +191,7 @@ public class ConfigKismet {
         propChillEnabled.set(chillEnabled);
         propTimedEnabled.set(timedEnabled);
         propTimedLimit.set(timedLimit);
+        propHiddenForceAdd.set(hiddenForceAdd);
         propForceAdd.set(forceAdd);
         propGenMode.set(genMode.toString());
         propGenFilter.set(genFilter);
@@ -181,25 +228,70 @@ public class ConfigKismet {
 
 
         // CATEGORY: TARGET_LIST
-        ArrayList<Property> catList = new ArrayList<>();
-        categories.put(CATEGORY_TARGETS, catList);
+        ArrayList<Property> catTargets = new ArrayList<>();
+        categories.put(CATEGORY_TARGETS, catTargets);
 
         // forceAdd doesn't allow just having the mod so it's obligated to have
-        Pattern whitelistPattern = Pattern.compile("!?\\w+:\\w+(:\\d+)?");
-        Pattern blacklistPattern = Pattern.compile("!?\\w+(:\\w+(:\\d+)?)?");
+        Pattern forceAddPattern = Pattern.compile("!?[^A-Z^ \\t\\r\\n\\v\\f]+:\\w+(:\\d+(:\\{.*\\})?)?");
+        Pattern filterPattern = Pattern.compile("!?[^A-Z^ \\t\\r\\n\\v\\f]+(:\\w+(:\\d+(:\\{.*\\})?)?)?");
 
-        Property propForceAdd = config.get(CATEGORY_TARGETS, forceAddName, new String[] {})
-                .setValidationPattern(whitelistPattern)
-                .setShowInGui(false);
-        catList.add(propForceAdd);
+        Property propHiddenCraftable = config.get(CATEGORY_TARGETS, hiddenCraftableName, hiddenCraftableDefault)
+                .setShowInGui(false)
+                .setRequiresWorldRestart(true);
+        catTargets.add(propHiddenCraftable);
+
+        Property propHiddenMineable = config.get(CATEGORY_TARGETS, hiddenMineableName, hiddenMineableDefault)
+                .setShowInGui(false)
+                .setRequiresWorldRestart(true);
+        catTargets.add(propHiddenMineable);
+
+        Property propHiddenSilkable = config.get(CATEGORY_TARGETS, hiddenSilkableName, hiddenSilkableDefault)
+                .setShowInGui(false)
+                .setRequiresWorldRestart(true);
+        catTargets.add(propHiddenSilkable);
+
+        Property propHiddenLootable = config.get(CATEGORY_TARGETS, hiddenLootableName, hiddenLootableDefault)
+                .setShowInGui(false)
+                .setRequiresWorldRestart(true);
+        catTargets.add(propHiddenLootable);
+
+        Property propHiddenBucketable = config.get(CATEGORY_TARGETS, hiddenBucketableName, hiddenBucketableDefault)
+                .setShowInGui(false)
+                .setRequiresWorldRestart(true);
+        catTargets.add(propHiddenBucketable);
+
+        Property propHiddenOthers = config.get(CATEGORY_TARGETS, hiddenOthersName, hiddenOthersDefault)
+                .setShowInGui(false)
+                .setRequiresWorldRestart(true);
+        catTargets.add(propHiddenOthers);
+
+        Property propHiddenUnfair = config.get(CATEGORY_TARGETS, hiddenUnfairName, hiddenUnfairDefault)
+                .setShowInGui(false)
+                .setRequiresWorldRestart(true);
+        catTargets.add(propHiddenUnfair);
 
         Property propGenMode = config.get(CATEGORY_TARGETS, genModeName, GEN_MODE_DEFAULT.toString())
                 .setValidValues(GEN_MODE_VALUES);
-        catList.add(propGenMode);
+        catTargets.add(propGenMode);
 
-        Property propGenFilter = config.get(CATEGORY_TARGETS, genFilterName, new String[] {})
-                .setValidationPattern(blacklistPattern);
-        catList.add(propGenFilter);
+        Property propGenCraftable = config.get(CATEGORY_TARGETS, genCraftableName, true);
+        Property propGenMineable = config.get(CATEGORY_TARGETS, genMineableName, true);
+        Property propGenSilkable = config.get(CATEGORY_TARGETS, genSilkableName, true);
+        Property propGenLootable = config.get(CATEGORY_TARGETS, genLootableName, true);
+        Property propGenUnfair = config.get(CATEGORY_TARGETS, genUnfairName, false);
+        catTargets.add(propGenCraftable);
+        catTargets.add(propGenMineable);
+        catTargets.add(propGenSilkable);
+        catTargets.add(propGenLootable);
+        catTargets.add(propGenUnfair);
+
+        Property propGenFilter = config.get(CATEGORY_TARGETS, genFilterName, genFilterDefault)
+                .setValidationPattern(filterPattern);
+        catTargets.add(propGenFilter);
+
+        Property propForceAdd = config.get(CATEGORY_TARGETS, forceAddName, new String[] {})
+                .setValidationPattern(forceAddPattern);
+        catTargets.add(propForceAdd);
 
         // final operation: adding language keys
         for (String categoryName : categories.keySet()) {

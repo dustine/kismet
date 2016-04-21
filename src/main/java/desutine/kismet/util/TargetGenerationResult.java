@@ -1,15 +1,15 @@
 package desutine.kismet.util;
 
-import net.minecraft.item.ItemStack;
+import desutine.kismet.server.InformedStack;
 
 public class TargetGenerationResult {
-    private final ItemStack value;
+    private final InformedStack value;
     private final EnumTargetFailure flag;
 
-    public TargetGenerationResult(ItemStack value) {
-        if (value.getItem() == null) {
+    public TargetGenerationResult(InformedStack value) {
+        if (value == null || !value.hasItem()) {
             this.value = null;
-            this.flag = EnumTargetFailure.EMPTY_ITEMSTACK;
+            this.flag = EnumTargetFailure.EMPTY_STACK;
         } else {
             this.value = value;
             flag = null;
@@ -22,10 +22,10 @@ public class TargetGenerationResult {
     }
 
     public boolean hasTarget() {
-        return value != null && value.getItem() != null;
+        return value != null && value.hasItem();
     }
 
-    public ItemStack getValue() {
+    public InformedStack getValue() {
         return value;
     }
 
@@ -38,6 +38,6 @@ public class TargetGenerationResult {
     }
 
     public enum EnumTargetFailure {
-        LIST_NOT_READY, NO_TARGETS_AVAILABLE, NO_TARGET_MODS_AVAILABLE, EMPTY_ITEMSTACK
+        LIST_NOT_READY, NO_TARGETS_AVAILABLE, NO_TARGET_MODS_AVAILABLE, EMPTY_STACK
     }
 }

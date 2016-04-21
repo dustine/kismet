@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 
@@ -56,5 +57,10 @@ public class ClientProxy extends CommonProxy {
         if (player.worldObj.isRemote) return;
 
         Kismet.libraryFactory.generateStacks(player);
+    }
+
+    @Override
+    public boolean inferSafeHasSubtypes(ItemStack stack) {
+        return stack.getHasSubtypes();
     }
 }
