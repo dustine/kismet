@@ -30,7 +30,6 @@ import net.minecraft.world.storage.loot.functions.LootFunctionManager;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.oredict.OreDictionary;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -236,7 +235,7 @@ public class TargetDatabaseBuilder {
 //        UniversalBucket.getFilledBucket()
     }
 
-    private static @NotNull Consumer<String> addToStackMap(Map<String, InformedStack> stacks, InformedStack.ObtainableTypes type) {
+    private static Consumer<String> addToStackMap(Map<String, InformedStack> stacks, InformedStack.ObtainableTypes type) {
         return key -> {
             ItemStack stack = TargetLibraryBuilder.getItemStack(key);
             if (stack != null && stack.getItem() != null) {
