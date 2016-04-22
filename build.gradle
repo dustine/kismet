@@ -20,7 +20,6 @@ repositories {
     }
 }
 
-
 apply plugin: 'net.minecraftforge.gradle.forge'
 
 /*
@@ -32,6 +31,9 @@ plugins {
 version = "1.9-0.2.0.0"
 group= "desutine.kismet" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "Kismet"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 minecraft {
     version = "1.9-12.16.0.1865-1.9"
@@ -69,7 +71,7 @@ dependencies {
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
 
-    deobfCompile "mezz.jei:jei_1.9:3.2.10.185"
+    deobfCompile "mezz.jei:jei_1.9:3.2.14.190"
 //    deobfProvided "mezz.jei:jei_1.9:3.2.9.184"
 }
 
@@ -96,6 +98,11 @@ processResources
     rename '(.+_at.cfg)', 'META-INF/$1'
 }
 
+jar {
+    manifest {
+        attributes 'FMLAT': 'kismet_at.cfg'
+    }
+}
 
 task clearLiveResources(type: Delete) {
     delete "run/resourcepacks/Live"
