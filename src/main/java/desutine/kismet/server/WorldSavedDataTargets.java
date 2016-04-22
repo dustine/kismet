@@ -2,6 +2,7 @@ package desutine.kismet.server;
 
 import com.google.common.collect.ImmutableList;
 import desutine.kismet.Reference;
+import desutine.kismet.target.InformedStack;
 import desutine.kismet.target.TargetLibraryFactory;
 import desutine.kismet.util.StackHelper;
 import net.minecraft.nbt.NBTTagCompound;

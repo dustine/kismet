@@ -1,15 +1,15 @@
-package desutine.kismet.common.tile;
+package desutine.kismet.tile;
 
+import desutine.kismet.ConfigKismet;
 import desutine.kismet.Kismet;
 import desutine.kismet.ModLogger;
-import desutine.kismet.common.ConfigKismet;
-import desutine.kismet.common.block.BlockDisplay;
-import desutine.kismet.common.block.BlockTimedDisplay;
-import desutine.kismet.common.registry.ModBlocks;
-import desutine.kismet.server.InformedStack;
+import desutine.kismet.block.BlockDisplay;
+import desutine.kismet.block.BlockTimedDisplay;
+import desutine.kismet.registry.ModBlocks;
+import desutine.kismet.target.InformedStack;
+import desutine.kismet.target.TargetGenerationResult;
+import desutine.kismet.target.TargetHelper;
 import desutine.kismet.util.StackHelper;
-import desutine.kismet.util.TargetGenerationResult;
-import desutine.kismet.util.TargetHelper;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -109,11 +109,6 @@ public class TileDisplay extends TileEntity implements ITickable {
     }
 
     @Override
-    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
-        return oldState.getBlock() != newState.getBlock();
-    }
-
-    @Override
     public void update() {
         // isDirty is set to true whenever the internal state of the tile is changed
         // name coming from the parent's method markDirty()
@@ -130,6 +125,11 @@ public class TileDisplay extends TileEntity implements ITickable {
             stateChanged = false;
             worldObj.setBlockState(pos, ModBlocks.CHILL_DISPLAY.getActualState(worldObj.getBlockState(pos), worldObj, pos));
         }
+    }
+
+    @Override
+    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
+        return oldState.getBlock() != newState.getBlock();
     }
 
     private boolean checkForNullTarget() {
@@ -221,7 +221,6 @@ public class TileDisplay extends TileEntity implements ITickable {
     public boolean isReady() {
         return this.target != null && this.target.hasItem();
     }
-
 
 
     @Override

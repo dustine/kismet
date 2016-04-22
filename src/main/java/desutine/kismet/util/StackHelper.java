@@ -1,7 +1,7 @@
 package desutine.kismet.util;
 
 import desutine.kismet.Kismet;
-import desutine.kismet.server.InformedStack;
+import desutine.kismet.target.InformedStack;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;

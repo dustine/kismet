@@ -5,10 +5,10 @@ import desutine.kismet.ModLogger;
 import desutine.kismet.Reference;
 import desutine.kismet.addon.AddonJei;
 import desutine.kismet.client.util.ClientTargetHelper;
-import desutine.kismet.common.tile.TileDisplay;
 import desutine.kismet.network.packet.*;
-import desutine.kismet.server.InformedStack;
 import desutine.kismet.server.WorldSavedDataTargets;
+import desutine.kismet.target.InformedStack;
+import desutine.kismet.tile.TileDisplay;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.tileentity.TileEntity;
@@ -97,7 +97,7 @@ public class NetworkHandlerKismet {
             Minecraft.getMinecraft().addScheduledTask(() -> {
                 for (InformedStack stack : message.stacks) {
                     List<InformedStack> targets;
-                    if (isJeiReady()) {
+                    if (Kismet.instance.isJeiLoaded()) {
                         targets = AddonJei.enrich(stack);
                     } else {
                         targets = ClientTargetHelper.vanillaEnrich(stack);
@@ -108,10 +108,6 @@ public class NetworkHandlerKismet {
                 Kismet.network.channel.sendToServer(new FESMessage());
             });
             return null;
-        }
-
-        private boolean isJeiReady() {
-            return AddonJei.recipeRegistry != null && AddonJei.stackHelper != null;
         }
     }
 

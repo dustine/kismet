@@ -1,8 +1,8 @@
-package desutine.kismet.common.registry;
+package desutine.kismet.registry;
 
 import desutine.kismet.Reference;
-import desutine.kismet.common.block.BlockChillDisplay;
-import desutine.kismet.common.block.BlockTimedDisplay;
+import desutine.kismet.block.BlockChillDisplay;
+import desutine.kismet.block.BlockTimedDisplay;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 @GameRegistry.ObjectHolder(Reference.MOD_ID)

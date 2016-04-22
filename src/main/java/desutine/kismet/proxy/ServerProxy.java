@@ -1,7 +1,7 @@
 package desutine.kismet.proxy;
 
+import desutine.kismet.ConfigKismet;
 import desutine.kismet.Kismet;
-import desutine.kismet.common.ConfigKismet;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;

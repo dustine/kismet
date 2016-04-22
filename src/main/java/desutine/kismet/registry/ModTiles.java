@@ -1,7 +1,7 @@
-package desutine.kismet.common.registry;
+package desutine.kismet.registry;
 
 import desutine.kismet.Reference;
-import desutine.kismet.common.tile.TileDisplay;
+import desutine.kismet.tile.TileDisplay;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class ModTiles {

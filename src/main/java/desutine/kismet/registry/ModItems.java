@@ -1,8 +1,8 @@
-package desutine.kismet.common.registry;
+package desutine.kismet.registry;
 
-import desutine.kismet.common.item.ItemBlockKismet;
-import desutine.kismet.common.item.ItemKey;
-import desutine.kismet.common.item.ItemKismet;
+import desutine.kismet.item.ItemBlockKismet;
+import desutine.kismet.item.ItemKey;
+import desutine.kismet.item.ItemKismet;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class ModItems {

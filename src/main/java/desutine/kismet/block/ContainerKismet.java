@@ -1,4 +1,4 @@
-package desutine.kismet.common.block;
+package desutine.kismet.block;
 
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.block.material.Material;

@@ -1,4 +1,4 @@
-package desutine.kismet.common.item;
+package desutine.kismet.item;
 
 import desutine.kismet.Reference;
 

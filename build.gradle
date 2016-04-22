@@ -126,7 +126,7 @@ task liveResources (dependsOn: "syncLiveResources", group:"liveresources") {
 
         File file = new File("run/resourcepacks/Live/pack.mcmeta")
         file.withWriter { out ->
-            out.println String.format("{\"pack\":{\"pack_format\":%d,\"description\":\"Resource pack that copies resources from src/main\"}}",packFormat)
+            out.println String.format('{"pack":{"pack_format":%d,"description":"Resource pack with copy of src/main/resources"}}', packFormat)
         }
     }
 }

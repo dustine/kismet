@@ -1,12 +1,12 @@
 package desutine.kismet.proxy;
 
+import desutine.kismet.ConfigKismet;
 import desutine.kismet.Kismet;
 import desutine.kismet.client.BlockColorDisplay;
 import desutine.kismet.client.render.RenderTileDisplay;
-import desutine.kismet.common.ConfigKismet;
-import desutine.kismet.common.registry.ModBlocks;
-import desutine.kismet.common.registry.ModItems;
-import desutine.kismet.common.tile.TileDisplay;
+import desutine.kismet.registry.ModBlocks;
+import desutine.kismet.registry.ModItems;
+import desutine.kismet.tile.TileDisplay;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.entity.player.EntityPlayer;

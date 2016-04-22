@@ -1,8 +1,8 @@
 package desutine.kismet.addon;
 
 import desutine.kismet.ModLogger;
-import desutine.kismet.common.registry.ModBlocks;
-import desutine.kismet.server.InformedStack;
+import desutine.kismet.registry.ModBlocks;
+import desutine.kismet.target.InformedStack;
 import mezz.jei.api.*;
 import mezz.jei.api.recipe.IRecipeCategory;
 import mezz.jei.api.recipe.IStackHelper;

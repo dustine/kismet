@@ -1,4 +1,4 @@
-package desutine.kismet.common.block;
+package desutine.kismet.block;
 
 import desutine.kismet.Reference;
 import desutine.kismet.client.CreativeTabKismet;

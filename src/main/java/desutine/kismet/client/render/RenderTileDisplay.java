@@ -1,9 +1,9 @@
 package desutine.kismet.client.render;
 
-import desutine.kismet.common.block.BlockDisplay;
-import desutine.kismet.common.block.BlockTimedDisplay;
-import desutine.kismet.common.tile.TileDisplay;
-import desutine.kismet.server.InformedStack;
+import desutine.kismet.block.BlockDisplay;
+import desutine.kismet.block.BlockTimedDisplay;
+import desutine.kismet.target.InformedStack;
+import desutine.kismet.tile.TileDisplay;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;

@@ -1,7 +1,7 @@
-package desutine.kismet.common.block;
+package desutine.kismet.block;
 
 import desutine.kismet.Reference;
-import desutine.kismet.common.tile.TileDisplay;
+import desutine.kismet.tile.TileDisplay;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;

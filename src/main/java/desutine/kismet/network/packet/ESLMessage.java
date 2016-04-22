@@ -1,6 +1,6 @@
 package desutine.kismet.network.packet;
 
-import desutine.kismet.server.InformedStack;
+import desutine.kismet.target.InformedStack;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.fml.common.network.ByteBufUtils;

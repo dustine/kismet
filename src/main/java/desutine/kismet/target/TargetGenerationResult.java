@@ -1,6 +1,4 @@
-package desutine.kismet.util;
-
-import desutine.kismet.server.InformedStack;
+package desutine.kismet.target;
 
 public class TargetGenerationResult {
     private final InformedStack value;

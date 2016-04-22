@@ -1,6 +1,6 @@
-package desutine.kismet.common.registry;
+package desutine.kismet.registry;
 
-import desutine.kismet.common.ConfigKismet;
+import desutine.kismet.ConfigKismet;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;

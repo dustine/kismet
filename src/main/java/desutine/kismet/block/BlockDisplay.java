@@ -1,7 +1,7 @@
-package desutine.kismet.common.block;
+package desutine.kismet.block;
 
-import desutine.kismet.common.registry.ModItems;
-import desutine.kismet.common.tile.TileDisplay;
+import desutine.kismet.registry.ModItems;
+import desutine.kismet.tile.TileDisplay;
 import desutine.kismet.util.StackHelper;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;

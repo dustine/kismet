@@ -1,6 +1,6 @@
 package desutine.kismet.client.util;
 
-import desutine.kismet.server.InformedStack;
+import desutine.kismet.target.InformedStack;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.List;

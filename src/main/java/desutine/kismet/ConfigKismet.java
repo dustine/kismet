@@ -1,9 +1,6 @@
-package desutine.kismet.common;
+package desutine.kismet;
 
 import com.google.common.collect.ImmutableList;
-import desutine.kismet.Kismet;
-import desutine.kismet.ModLogger;
-import desutine.kismet.Reference;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;

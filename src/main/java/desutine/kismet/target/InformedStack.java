@@ -1,8 +1,8 @@
-package desutine.kismet.server;
+package desutine.kismet.target;
 
+import desutine.kismet.ConfigKismet;
 import desutine.kismet.Kismet;
 import desutine.kismet.ModLogger;
-import desutine.kismet.common.ConfigKismet;
 import desutine.kismet.util.StackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;

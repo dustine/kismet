@@ -1,9 +1,9 @@
-package desutine.kismet.util;
+package desutine.kismet.target;
 
 import desutine.kismet.Kismet;
 import desutine.kismet.ModLogger;
-import desutine.kismet.server.InformedStack;
-import desutine.kismet.util.TargetGenerationResult.EnumTargetFailure;
+import desutine.kismet.target.TargetGenerationResult.EnumTargetFailure;
+import desutine.kismet.util.StackHelper;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;

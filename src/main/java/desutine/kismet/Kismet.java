@@ -1,11 +1,11 @@
 package desutine.kismet;
 
-import desutine.kismet.common.registry.ModBlocks;
-import desutine.kismet.common.registry.ModItems;
-import desutine.kismet.common.registry.ModRecipes;
-import desutine.kismet.common.registry.ModTiles;
 import desutine.kismet.network.NetworkHandlerKismet;
 import desutine.kismet.proxy.IProxy;
+import desutine.kismet.registry.ModBlocks;
+import desutine.kismet.registry.ModItems;
+import desutine.kismet.registry.ModRecipes;
+import desutine.kismet.registry.ModTiles;
 import desutine.kismet.server.CommandKismet;
 import desutine.kismet.server.event.EventRegenLibraryOnce;
 import desutine.kismet.target.TargetLibraryFactory;
@@ -51,7 +51,7 @@ public class Kismet {
         proxy.registerTESR();
 
         // register eventhandlers
-        MinecraftForge.EVENT_BUS.register(new desutine.kismet.common.event.EventHandler());
+        MinecraftForge.EVENT_BUS.register(new desutine.kismet.event.EventHandler());
 
         // start network channels
         network = new NetworkHandlerKismet();
@@ -101,4 +101,7 @@ public class Kismet {
         MinecraftForge.EVENT_BUS.unregister(Kismet.instance.eventRegenLibraryOnce);
     }
 
+    public boolean isJeiLoaded() {
+        return jeiLoaded;
+    }
 }

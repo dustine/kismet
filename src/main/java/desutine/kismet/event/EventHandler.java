@@ -1,4 +1,4 @@
-package desutine.kismet.common.event;
+package desutine.kismet.event;
 
 public class EventHandler {
 //    @SubscribeEvent

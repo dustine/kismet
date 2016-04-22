@@ -1,6 +1,6 @@
 package desutine.kismet.addon;
 
-import desutine.kismet.common.tile.TileDisplay;
+import desutine.kismet.tile.TileDisplay;
 import mezz.jei.api.IItemListOverlay;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiInventory;
