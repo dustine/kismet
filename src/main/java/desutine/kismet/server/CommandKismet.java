@@ -3,6 +3,7 @@ package desutine.kismet.server;
 import desutine.kismet.Kismet;
 import desutine.kismet.ModLogger;
 import desutine.kismet.Reference;
+import desutine.kismet.util.TargetHelper;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -27,7 +28,7 @@ public class CommandKismet extends CommandBase {
 
     @Override
     public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos) {
-        return getListOfStringsMatchingLastWord(args, "reset", "dump");
+        return getListOfStringsMatchingLastWord(args, "reset", "dump", "refresh");
     }
 
     @Override
@@ -55,13 +56,23 @@ public class CommandKismet extends CommandBase {
             else {
                 sender.addChatMessage(new TextComponentString("[Kismet] Error, target library factory not found"));
             }
+        } else if ("refresh".equals(args[0])) {
+            // regen command
+            if (Kismet.libraryFactory != null)
+                Kismet.libraryFactory.recreateLibrary();
+            else {
+                sender.addChatMessage(new TextComponentString("[Kismet] Error, target library factory not found"));
+            }
         } else if ("dump".equals(args[0])) {
             final WorldSavedDataTargets targets = WorldSavedDataTargets.get(sender.getEntityWorld());
             final int total = targets.getStacks().size();
             final long obtainable = targets.getStacks().stream().filter(InformedStack::isObtainable).count();
 
             sender.addChatMessage(new TextComponentString(String.format("[Kismet] %d items, %d obtainable", total, obtainable)));
-            for (InformedStack wrapper : targets.getStacks()) {
+//            for (InformedStack wrapper : targets.getStacks()) {
+//                ModLogger.info(wrapper.toCompleteString());
+//            }
+            for (InformedStack wrapper : TargetHelper.getTargetLibrary()) {
                 ModLogger.info(wrapper.toCompleteString());
             }
         } else {

@@ -5,7 +5,6 @@ import desutine.kismet.ModLogger;
 import desutine.kismet.Reference;
 import desutine.kismet.addon.AddonJei;
 import desutine.kismet.client.util.ClientTargetHelper;
-import desutine.kismet.common.ConfigKismet;
 import desutine.kismet.common.tile.TileDisplay;
 import desutine.kismet.network.packet.*;
 import desutine.kismet.server.InformedStack;
@@ -86,7 +85,7 @@ public class NetworkHandlerKismet {
     public static class SendConfigToClient implements IMessageHandler<SCTCMessage, IMessage> {
         @Override
         public IMessage onMessage(SCTCMessage message, MessageContext ctx) {
-            Minecraft.getMinecraft().addScheduledTask(() -> ConfigKismet.clientSync(message.syncValues));
+//            Minecraft.getMinecraft().addScheduledTask(() -> ConfigKismet.clientSync(message.syncValues));
             return null;
         }
     }

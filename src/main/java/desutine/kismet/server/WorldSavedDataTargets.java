@@ -101,7 +101,8 @@ public class WorldSavedDataTargets extends WorldSavedData {
         newStacks.forEach(wrapper -> {
             String key = StackHelper.toUniqueKey(wrapper);
             if (stacks.containsKey(key)) {
-                stacks.get(key).joinWith(wrapper);
+                InformedStack originalStack = stacks.get(key);
+                stacks.put(key, originalStack.joinWith(wrapper));
                 ++skipped[0];
             } else {
                 stacks.put(key, wrapper);

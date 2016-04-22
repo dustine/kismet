@@ -31,7 +31,6 @@ import net.minecraft.world.storage.loot.functions.LootFunction;
 import net.minecraft.world.storage.loot.functions.LootFunctionManager;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.FakePlayerFactory;
-import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.oredict.OreDictionary;
 
@@ -62,6 +61,7 @@ public class TargetLibraryFactory {
     private static void identifyBlockDrops(World world, Map<String, InformedStack> stacks) {
         // let's now try to get worldgen in this VERY hackish way:
         final Set<String> drops = new HashSet<>();
+        final Set<String> silkDrops = new HashSet<>();
         final FakePlayer fakePlayer = FakePlayerFactory.getMinecraft((WorldServer) world);
 
         Block.blockRegistry.forEach(block -> {
@@ -73,19 +73,38 @@ public class TargetLibraryFactory {
             for (IBlockState state : validStates) {
                 // check their drops (including if it is silk harvestable)
                 drops.addAll(getDropsFromState(world, fakePlayer, block, state));
+                // test for silk touchness
+                if (block.canSilkHarvest(world, BlockPos.ORIGIN, state, fakePlayer)) {
+                    silkDrops.addAll(getSilkDrops(block, state));
+                }
             }
         });
 
         // set all of these as obtainable
         drops.forEach(key -> {
             ItemStack stack = getItemStack(key, false);
-            if (stack != null) {
-                InformedStack wrapper = new InformedStack(stack, true);
+            if (stack != null && stack.getItem() != null) {
+                InformedStack wrapper = new InformedStack(stack, InformedStack.ObtainableTypes.MINEABLE);
                 wrapper.setHasSubtypes(true);
                 if (stacks.containsKey(key)) {
                     // NOOP
-//                    stacks.get(key).joinWith(wrapper);
-                    stacks.get(key).setObtainable(true);
+//                    stacks.get(key).join(wrapper);
+                    stacks.get(key).setObtainable(InformedStack.ObtainableTypes.MINEABLE, true);
+                } else {
+                    stacks.put(key, wrapper);
+                }
+            }
+        });
+
+        silkDrops.forEach(key -> {
+            ItemStack stack = getItemStack(key, false);
+            if (stack != null && stack.getItem() != null) {
+                InformedStack wrapper = new InformedStack(stack, InformedStack.ObtainableTypes.SILKABLE);
+                wrapper.setHasSubtypes(true);
+                if (stacks.containsKey(key)) {
+                    // NOOP
+//                    stacks.get(key).join(wrapper);
+                    stacks.get(key).setObtainable(InformedStack.ObtainableTypes.SILKABLE, true);
                 } else {
                     stacks.put(key, wrapper);
                 }
@@ -97,11 +116,6 @@ public class TargetLibraryFactory {
         Set<String> drops = new HashSet<>();
         // if the block is unbreakable in this state, don't even bother
         if (block.getBlockHardness(state, world, BlockPos.ORIGIN) < 0) return drops;
-
-        // test for silk touchness
-        if (block.canSilkHarvest(world, BlockPos.ORIGIN, state, fakePlayer)) {
-            drops.addAll(getSilkDrops(block, state));
-        }
 
         // a state machine that loops around while it adds new items to the drops
         int size = drops.size();
@@ -126,7 +140,6 @@ public class TargetLibraryFactory {
         } while (--chances > 0);
 
         return drops;
-        FluidRegistry.
     }
 
     /**
@@ -172,7 +185,6 @@ public class TargetLibraryFactory {
 //            // loop hasn't terminated, so let's go up one level and try again
 //            currentClass = currentClass.getSuperclass();
 //        }
-
         if (silkDrop != null)
             drops.add(StackHelper.toUniqueKey(silkDrop));
 
@@ -214,14 +226,14 @@ public class TargetLibraryFactory {
         final Map<String, InformedStack> addedStacks = new HashMap<>();
         // add them to the hashed map, trying to avoid replacing already existing stacks
         lootItems.forEach(stack -> {
-            final InformedStack wrapper = new InformedStack(stack, true);
+            final InformedStack wrapper = new InformedStack(stack, InformedStack.ObtainableTypes.LOOTABLE);
             wrapper.setHasSubtypes(true);
             String key = wrapper.toString();
 
             if (stacks.containsKey(key)) {
                 // already on original
-//                stacks.get(key).joinWith(wrapper);
-                stacks.get(key).setObtainable(true);
+//                stacks.get(key).join(wrapper);
+                stacks.get(key).setObtainable(InformedStack.ObtainableTypes.LOOTABLE, true);
             } else {
                 addedStacks.put(key, wrapper);
             }
@@ -229,6 +241,8 @@ public class TargetLibraryFactory {
 
         stacks.putAll(addedStacks);
         return addedStacks.size();
+//        FluidRegistry.getBucketFluids();
+//        UniversalBucket.getFilledBucket()
     }
 
     private static List<ItemStack> iterateLootJsonTree(List<LootTable> allTables) {
@@ -282,6 +296,186 @@ public class TargetLibraryFactory {
     }
 
     /**
+     * Recreates the possible target stack library at TargetHelper according to the current config.
+     * This function reads the existing "stacks" information stored in the @world and rewrites the "forcedStacks" to
+     * assure any configuration changes are reflected on the saved data for future use.
+     *
+     * @param targets
+     */
+    public static void recreateLibrary(Collection<InformedStack> targets) {
+        Map<String, InformedStack> stacks = new HashMap<>();
+
+        // forced stacks, the ones that are added for sure to the filtered stacks
+        addConfigGen(stacks, ConfigKismet.getForceAdd(), InformedStack.ObtainableTypes.FORCED);
+        addConfigGen(stacks, ConfigKismet.getHiddenBucketable(), InformedStack.ObtainableTypes.BUCKETABLE);
+        addConfigGen(stacks, ConfigKismet.getHiddenCraftable(), InformedStack.ObtainableTypes.CRAFTABLE);
+        addConfigGen(stacks, ConfigKismet.getHiddenLootable(), InformedStack.ObtainableTypes.LOOTABLE);
+        addConfigGen(stacks, ConfigKismet.getHiddenMineable(), InformedStack.ObtainableTypes.MINEABLE);
+        addConfigGen(stacks, ConfigKismet.getHiddenSilkable(), InformedStack.ObtainableTypes.SILKABLE);
+        addConfigGen(stacks, ConfigKismet.getHiddenOthers(), InformedStack.ObtainableTypes.OTHERS);
+        addConfigGen(stacks, ConfigKismet.getHiddenUnfair(), InformedStack.ObtainableTypes.UNFAIR);
+
+        // add all the targets now to this lis
+        targets.forEach(stack -> {
+            String key = stack.toString();
+            if (stacks.containsKey(key)) {
+                stacks.put(key, stacks.get(key).joinWith(stack));
+            } else {
+                stacks.put(key, stack);
+            }
+        });
+
+        // generated stacks filter keys
+        final Set<String> filter = new HashSet<>();
+        List<String> blacklists = new ArrayList<>(ConfigKismet.getHiddenBlacklist());
+        blacklists.addAll(ConfigKismet.getGenBlacklist());
+
+        for (String s : blacklists) {
+            // skip entries that start with an !
+            if (s.startsWith("!")) continue;
+            filter.add(standardizeFilter(s));
+        }
+
+        // filtered iterable
+        List<InformedStack> filteredStacks = new ArrayList<>();
+
+        stacks.values().forEach(wrapper -> {
+            if (isTarget(wrapper, filter)) {
+                filteredStacks.add(wrapper);
+            }
+        });
+
+        TargetHelper.setTargetLibrary(filteredStacks);
+    }
+
+    private static void addConfigGen(Map<String, InformedStack> forcedStacks, List<String> entries, InformedStack.ObtainableTypes type) {
+        for (String entry : entries) {
+            // skip entries that start with an !
+            // also skip mods on the whitelist as it's only for specific tempStacks
+            if (entry.startsWith("!") || isMod(entry)) continue;
+            final ItemStack stack = getItemStack(entry, false);
+            if (stack == null) continue;
+
+            // add the entries as subtype-having wrappers
+            final InformedStack wrapper = new InformedStack(stack, type);
+            wrapper.seal();
+
+            String key = wrapper.toString();
+            if (forcedStacks.containsKey(key)) {
+                forcedStacks.put(key, forcedStacks.get(key).joinWith(wrapper));
+            } else
+                forcedStacks.put(key, wrapper);
+        }
+    }
+
+    private static boolean isMod(String s) {
+        return !s.contains(":");
+    }
+
+    private static ItemStack getItemStack(@Nonnull String s, boolean wildcards) {
+        final String[] split = s.split(":");
+
+        if (split.length < 2) {
+            ModLogger.warning("Weird location: " + s);
+            return null;
+        }
+
+        // define item (mod:itemName)
+        ItemStack stack;
+        ResourceLocation loc = new ResourceLocation(split[0], split[1]);
+        if (Item.itemRegistry.getKeys().contains(loc)) {
+            stack = new ItemStack(Item.itemRegistry.getObject(loc));
+        } else {
+            ModLogger.error("Weird location: " + s);
+            return null;
+        }
+
+        // add metadata
+        if (split.length > 2) {
+            // input metadata
+            Integer meta = tryParse(split[2]);
+            if (meta != null) {
+                // there's metadata, add it
+                stack.setItemDamage(meta);
+            } else {
+                ModLogger.error(String.format("Weird metadata %s in %s", split[2], s));
+                if (wildcards && Kismet.proxy.inferSafeHasSubtypes(stack)) {
+                    stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
+                }
+            }
+        } else {
+            if (wildcards && Kismet.proxy.inferSafeHasSubtypes(stack)) {
+                stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
+            }
+        }
+
+        // add nbt data
+        if (split.length > 3) {
+            try {
+                NBTTagCompound nbt = JsonToNBT.getTagFromJson(split[3]);
+                stack.setTagCompound(nbt);
+            } catch (NBTException e) {
+                ModLogger.error(String.format("Weird NBT %s in %s", split[3], s), e);
+            }
+        }
+
+        return stack;
+    }
+
+    private static Integer tryParse(String text) {
+        try {
+            return Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private static String standardizeFilter(@Nonnull String s) {
+        // mod filtering
+        final String[] split = s.split(":");
+        if (split.length == 1) {
+            // mod
+            // todo check if the mod is present
+            // todo check if it's a valid mod name
+            return Loader.isModLoaded(split[0]) ? split[0] : null;
+        }
+
+        // else treat it as item filtering (with possible metadata)
+        ItemStack stack;
+        stack = getItemStack(s, true);
+        if (stack == null) return null;
+
+        return StackHelper.toUniqueKey(stack);
+    }
+
+    private static boolean isTarget(InformedStack wrapper, Set<String> filter) {
+        // no nulls pls
+        if (wrapper == null || wrapper.getStack() == null) return false;
+
+        // forcefully added stacks always go true, even if they're on the blacklist
+        if (wrapper.isObtainable(InformedStack.ObtainableTypes.FORCED)) return true;
+
+        // generation mode dictates if we continue or not
+        switch (ConfigKismet.getGenMode()) {
+            case NONE:
+                return false;
+            case FILTERED:
+                if (!wrapper.isObtainable()) return false;
+                break;
+            case ALL:
+                break;
+            default:
+                break;
+        }
+
+        String name = wrapper.toString();
+
+        // if this stack matches exactly one in the forced list, skip it (will be added later)
+        // and if it's on the filter list, skip it as well (blacklisted)
+        return filter.stream().noneMatch(name::startsWith);
+    }
+
+    /**
      * Generates the target lists within the game.
      *
      * @param player The player entity to use to enrich the state
@@ -324,161 +518,6 @@ public class TargetLibraryFactory {
     public void recreateLibrary() {
         if (worldSavedDataTargets == null) return;
         recreateLibrary(worldSavedDataTargets.getStacks());
-    }
-
-    /**
-     * Recreates the possible target stack library at TargetHelper according to the current config.
-     * This function reads the existing "stacks" information stored in the @world and rewrites the "forcedStacks" to
-     * assure any configuration changes are reflected on the saved data for future use.
-     *
-     * @param targets
-     */
-    public static void recreateLibrary(Collection<InformedStack> targets) {
-        List<InformedStack> forcedStacks = new ArrayList<>();
-
-        // forced stacks, the ones that are added for sure to the filtered stacks
-        for (String entry : ConfigKismet.getForceAdd()) {
-            // skip entries that start with an !
-            // also skip mods on the whitelist as it's only for specific tempStacks
-            if (entry.startsWith("!") || isMod(entry)) continue;
-            final ItemStack stack = getItemStack(entry, false);
-            if (stack == null) continue;
-
-            // add the entries as subtype-having wrappers
-            final InformedStack wrapper = new InformedStack(stack, true);
-            wrapper.setHasSubtypes(true);
-            wrapper.seal();
-
-            forcedStacks.add(wrapper);
-        }
-
-        // forced stacks keys (for easier match-up)
-        final Set<String> forced = forcedStacks.stream()
-                .map(StackHelper::toUniqueKey)
-                .collect(Collectors.toSet());
-
-        // generated stacks filter keys
-        final Set<String> filter = new HashSet<>();
-        for (String s : ConfigKismet.getGenFilter()) {
-            // skip entries that start with an !
-            if (s.startsWith("!")) continue;
-            filter.add(standardizeFilter(s));
-        }
-
-        // filtered iterable
-        List<InformedStack> filteredStacks = new ArrayList<>(forcedStacks);
-
-        targets.forEach(wrapper -> {
-            if (isTarget(forced, filter, wrapper)) {
-                filteredStacks.add(wrapper);
-            }
-        });
-
-        TargetHelper.setTargetLibrary(filteredStacks);
-    }
-
-    private static boolean isMod(String s) {
-        return !s.contains(":");
-    }
-
-    private static ItemStack getItemStack(@Nonnull String s, boolean wildcards) {
-        final String[] split = s.split(":");
-
-        if (split.length < 2) {
-            ModLogger.warning("Weird location: " + s);
-            return null;
-        }
-
-        // define item (mod:itemName)
-        ItemStack stack;
-        ResourceLocation loc = new ResourceLocation(split[0], split[1]);
-        if (Item.itemRegistry.getKeys().contains(loc)) {
-            stack = new ItemStack(Item.itemRegistry.getObject(loc));
-        } else {
-            ModLogger.error("Weird location: " + s);
-            return null;
-        }
-
-        // add metadata
-        if (split.length < 3) {
-            // input metadata
-            Integer meta = tryParse(split[2]);
-            if (meta != null) {
-                // there's metadata, add it
-                stack.setItemDamage(meta);
-            } else {
-                ModLogger.error(String.format("Weird metadata %s in %s", split[2], s));
-                if (wildcards && Kismet.proxy.inferSafeHasSubtypes(stack)) {
-                    stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
-                }
-            }
-        } else {
-            if (wildcards && Kismet.proxy.inferSafeHasSubtypes(stack)) {
-                stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
-            }
-        }
-
-        // add nbt data
-        if (split.length < 4) {
-            try {
-                NBTTagCompound nbt = JsonToNBT.getTagFromJson(split[3]);
-                stack.setTagCompound(nbt);
-            } catch (NBTException e) {
-                ModLogger.error(String.format("Weird NBT %s in %s", split[3], s), e);
-            }
-        }
-
-        return stack;
-    }
-
-    private static Integer tryParse(String text) {
-        try {
-            return Integer.parseInt(text);
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    private static String standardizeFilter(@Nonnull String s) {
-        // mod filtering
-        final String[] split = s.split(":");
-        if (split.length == 1) {
-            // mod
-            // todo check if the mod is present
-            // todo check if it's a valid mod name
-            return Loader.isModLoaded(split[0]) ? split[0] : null;
-        }
-
-        // else treat it as item filtering (with possible metadata)
-        ItemStack stack;
-        stack = getItemStack(s, true);
-        if (stack == null) return null;
-
-        return StackHelper.toUniqueKey(stack);
-    }
-
-    private static boolean isTarget(Set<String> forced, Set<String> filter, InformedStack wrapper) {
-        // no nulls pls
-        if (wrapper == null || wrapper.getStack() == null) return false;
-
-        // generation mode dictates if we continue or not
-        switch (ConfigKismet.getGenMode()) {
-            case DISABLED:
-                return false;
-            case STRICTLY_OBTAINABLE:
-                if (!wrapper.isObtainable()) return false;
-                break;
-            case ENABLED:
-                break;
-            default:
-                break;
-        }
-
-        String name = wrapper.toString();
-
-        // if this stack matches exactly one in the forced list, skip it (will be added later)
-        // and if it's on the filter list, skip it as well (blacklisted)
-        return forced.stream().noneMatch(name::equals) && filter.stream().noneMatch(name::startsWith);
     }
 
 }

@@ -1,5 +1,6 @@
 package desutine.kismet.addon;
 
+import desutine.kismet.ModLogger;
 import desutine.kismet.common.registry.ModBlocks;
 import desutine.kismet.server.InformedStack;
 import mezz.jei.api.*;
@@ -43,7 +44,7 @@ public class AddonJei implements IModPlugin {
                 // and check the nr of recipes within
                 final List<Object> recipesWithOutput = recipeRegistry.getRecipesWithOutput(category, wrapper.getStack());
                 if (recipesWithOutput.size() > 0) {
-                    wrapper.setObtainable(true);
+                    wrapper.setObtainable(InformedStack.ObtainableTypes.CRAFTABLE, true);
                 }
             }
         }
@@ -67,8 +68,8 @@ public class AddonJei implements IModPlugin {
         // add all subtypes to the mapped list
         for (InformedStack newWrapper : subtypes) {
             // add the obtainability of the original wrapper into wrapper:0 (metadata 0)
-            if (wrapper.isObtainable() && newWrapper.getStack().getMetadata() == 0) {
-                newWrapper.setObtainable(true);
+            if (newWrapper.getStack().getMetadata() == 0) {
+                newWrapper.setObtainable(wrapper.getObtainable());
             }
 
             // check if the subtype stack is already in the stacks
@@ -77,10 +78,10 @@ public class AddonJei implements IModPlugin {
             if (subtypeStacks.containsKey(key)) {
                 // original stacks had this item already, join them
                 // this will emit a warning message as it's not supposed to happen but at least nothing is lost
-                subtypeStacks.get(key).joinWith(newWrapper);
-            } else {
-                subtypeStacks.put(key, newWrapper);
+                ModLogger.warning(String.format("Tried to register subtype twice %s %s", subtypeStacks.get(key),
+                        newWrapper));
             }
+            subtypeStacks.put(key, newWrapper);
         }
 
         return subtypeStacks;
