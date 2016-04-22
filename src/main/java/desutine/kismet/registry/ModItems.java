@@ -1,19 +1,24 @@
 package desutine.kismet.registry;
 
-import desutine.kismet.item.ItemBlockKismet;
+import desutine.kismet.Kismet;
+import desutine.kismet.Reference;
 import desutine.kismet.item.ItemKey;
 import desutine.kismet.item.ItemKismet;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class ModItems {
-    public static final ItemKismet itemKey = new ItemKey();
-    public static final ItemBlockKismet itemBlockTimedDisplay = new ItemBlockKismet(ModBlocks.TIMED_DISPLAY);
-    public static final ItemBlockKismet itemBlockChillDisplay = new ItemBlockKismet(ModBlocks.CHILL_DISPLAY);
+    public static final ItemKismet ITEM_KEY = new ItemKey();
 
     public static void init() {
-        GameRegistry.register(itemKey);
+        registerItem(ITEM_KEY, Reference.Names.Items.KEY);
+    }
 
-        GameRegistry.register(itemBlockTimedDisplay);
-        GameRegistry.register(itemBlockChillDisplay);
+    private static void registerItem(ItemKismet item, String name) {
+        if (item.getRegistryName() == null)
+            item.setRegistryName(name);
+
+        GameRegistry.register(item);
+        item.setUnlocalizedName(name);
+        Kismet.proxy.registerInventoryModel(item, name);
     }
 }

@@ -3,7 +3,7 @@ package desutine.kismet.server;
 import com.google.common.collect.ImmutableList;
 import desutine.kismet.Reference;
 import desutine.kismet.target.InformedStack;
-import desutine.kismet.target.TargetLibraryFactory;
+import desutine.kismet.target.TargetLibraryBuilder;
 import desutine.kismet.util.StackHelper;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -16,28 +16,28 @@ import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("WeakerAccess")
-public class WorldSavedDataTargets extends WorldSavedData {
+public class WSDTargetDatabase extends WorldSavedData {
     private static final String NAME = Reference.MOD_ID + "_TargetsData";
 
     private boolean valid = false;
     private Map<String, InformedStack> stacks = new HashMap<>();
 
-    public WorldSavedDataTargets() {
+    public WSDTargetDatabase() {
         super(NAME);
     }
 
     @SuppressWarnings("unused")
-    public WorldSavedDataTargets(String name) {
+    public WSDTargetDatabase(String name) {
         super(name);
     }
 
-    public static WorldSavedDataTargets get(World world) {
+    public static WSDTargetDatabase get(World world) {
         MapStorage storage = world.getMapStorage();
-        WorldSavedDataTargets instance =
-                (WorldSavedDataTargets) storage.loadData(WorldSavedDataTargets.class, NAME);
+        WSDTargetDatabase instance =
+                (WSDTargetDatabase) storage.loadData(WSDTargetDatabase.class, NAME);
 
         if (instance == null) {
-            instance = new WorldSavedDataTargets();
+            instance = new WSDTargetDatabase();
             storage.setData(NAME, instance);
         }
         return instance;
@@ -55,7 +55,7 @@ public class WorldSavedDataTargets extends WorldSavedData {
             stacks.put(wrapper.toString(), wrapper);
         }
 
-        TargetLibraryFactory.recreateLibrary(this.stacks.values());
+        TargetLibraryBuilder.recreateLibrary(this.stacks.values());
     }
 
     @Override

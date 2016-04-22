@@ -3,6 +3,7 @@ package desutine.kismet.addon;
 import desutine.kismet.ModLogger;
 import desutine.kismet.registry.ModBlocks;
 import desutine.kismet.target.InformedStack;
+import desutine.kismet.util.StackHelper;
 import mezz.jei.api.*;
 import mezz.jei.api.recipe.IRecipeCategory;
 import mezz.jei.api.recipe.IStackHelper;
@@ -21,9 +22,8 @@ public class AddonJei implements IModPlugin {
 
     public static List<InformedStack> enrich(InformedStack stack) {
         // fix hasSubtypes
-        stack.setHasSubtypes(stack.getStack().getHasSubtypes());
+        stack.refreshHasSubtypes();
         final Map<String, InformedStack> mappedStacks = unfoldSubtypes(stack);
-
         // remove wildcard stacks, if any remain somehow
         mappedStacks.values().removeIf(wrapper -> wrapper.getStack().getMetadata() == OreDictionary.WILDCARD_VALUE);
         // add the craftable flag
@@ -37,14 +37,15 @@ public class AddonJei implements IModPlugin {
         // if recipe = can be crafted
         for (InformedStack wrapper : stacks) {
             // skip the ones already positive
-            if (wrapper.isObtainable()) continue;
+            if (wrapper.isObtainable(InformedStack.ObtainableTypes.Craftable)) continue;
 
             // check the categories where this item appears as an output
             for (IRecipeCategory category : recipeRegistry.getRecipeCategoriesWithOutput(wrapper.getStack())) {
+                if (wrapper.isObtainable(InformedStack.ObtainableTypes.Craftable)) break;
                 // and check the nr of recipes within
                 final List<Object> recipesWithOutput = recipeRegistry.getRecipesWithOutput(category, wrapper.getStack());
                 if (recipesWithOutput.size() > 0) {
-                    wrapper.setObtainable(InformedStack.ObtainableTypes.CRAFTABLE, true);
+                    wrapper.setObtainable(InformedStack.ObtainableTypes.Craftable, true);
                 }
             }
         }
@@ -56,6 +57,7 @@ public class AddonJei implements IModPlugin {
 
         // skip if we don't have a wildcard stack
         if (wrapper.getStack().getMetadata() != OreDictionary.WILDCARD_VALUE) {
+            assert stackHelper.getSubtypes(stack).size() < 2;
             subtypeStacks.put(wrapper.toString(), wrapper);
             return subtypeStacks;
         }
@@ -65,10 +67,17 @@ public class AddonJei implements IModPlugin {
                 .map(InformedStack::new)
                 .collect(Collectors.toList());
 
+        // check for subtypes. because, y'know, we have a list of subtypes
+        if (subtypes.size() < 2) {
+            subtypes.forEach(InformedStack::refreshHasSubtypes);
+        } else {
+            subtypes.forEach(subtype -> subtype.setHasSubtypes(true));
+        }
+
         // add all subtypes to the mapped list
         for (InformedStack newWrapper : subtypes) {
             // add the obtainability of the original wrapper into wrapper:0 (metadata 0)
-            if (newWrapper.getStack().getMetadata() == 0) {
+            if (StackHelper.isEquivalent(wrapper, newWrapper)) {
                 newWrapper.setObtainable(wrapper.getObtainable());
             }
 

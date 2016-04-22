@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
+import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemSkull;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
@@ -37,6 +38,10 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         if (!fulfilled) {
             renderTargetItem(te, x, y, z, partialTicks);
         }
+
+        // render distance
+        final Entity player = Minecraft.getMinecraft().getRenderManager().livingPlayer;
+        if (player.getDistanceSqToCenter(te.getPos()) > 64 * 64) return;
 
         List<String> lines = new ArrayList<>();
         if (te.getBlockType() instanceof BlockTimedDisplay) {
@@ -112,6 +117,8 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         // start the rendering
         GlStateManager.pushMatrix();
 
+        GlStateManager.glNormal3f(0.0F, 1.0F, 0.0F);
+
         // move stuff to right above the item
         IBlockState state = te.getWorld().getBlockState(te.getPos());
         EnumFacing direction = state.getValue(BlockDisplay.FACING);
@@ -127,14 +134,12 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         GlStateManager.rotate(-playerAngle, 0.0F, 1.0F, 0.0F);
         // take into account 3rd person view
         GlStateManager.rotate((float) (renderManager.options.thirdPersonView == 2 ? -1 : 1) * renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
-        // one more rotate of my own so the text doesn't render backwards
         GlStateManager.rotate(180, 0, 0, 1);
-        // scale it so IT DOESN'T TAKE THE WHOLE SKY, OMG
         GlStateManager.scale(0.025, 0.025, 0.025);
 
         GlStateManager.disableLighting();
 
-        GlStateManager.depthMask(true);
+        GlStateManager.depthMask(false);
         GlStateManager.disableDepth();
 
         // target string
@@ -144,7 +149,6 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 
         GlStateManager.disableTexture2D();
-        // all this is to draw the dark box behind the name
         int stringWidth = fontRenderer.getStringWidth(
                 lines.stream()
                         .max((o1, o2) -> fontRenderer.getStringWidth(o1) - fontRenderer.getStringWidth(o2))
@@ -152,9 +156,6 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
 
         Tessellator tessellator = Tessellator.getInstance();
         VertexBuffer vertexBuffer = tessellator.getBuffer();
-        // this sets the format of the vertexBuffer : position,color
-        // the coordinates are 4 because we're defining a rectangle
-        // no weird coordinates because we already moved everything up on the tranforms
         vertexBuffer.begin(7, DefaultVertexFormats.POSITION_COLOR);
         vertexBuffer.pos(-stringWidth - 1, -(9 * lines.size() - 8), 0).color(0.0f, 0.0f, 0.0f, 0.25f).endVertex();
         vertexBuffer.pos(-stringWidth - 1, 8, 0).color(0.0f, 0.0f, 0.0f, 0.25f).endVertex();

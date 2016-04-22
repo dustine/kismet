@@ -12,9 +12,9 @@ import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-public class TargetHelper {
+public class TargetLibrary {
 
-    private static List<InformedStack> targetLibrary;
+    private static List<InformedStack> library;
 
     /**
      * todo rewrite this all and remove comments from function body
@@ -35,10 +35,10 @@ public class TargetHelper {
      * @return
      */
     public static TargetGenerationResult generateTarget(@Nonnull final Map<String, Integer> weights, @Nonnull List<InformedStack> lastTargets) {
-        if (targetLibrary == null) return new TargetGenerationResult(EnumTargetFailure.LIST_NOT_READY);
+        if (library == null) return new TargetGenerationResult(EnumTargetFailure.LIST_NOT_READY);
 
         // saving the mod weights before we removed stacks according to previousTargets
-        Map<String, Integer> statelessCount = getModItemCount(targetLibrary);
+        Map<String, Integer> statelessCount = getModItemCount(library);
 
         // clears old keys from weights (ones not present in the current filtered list)
         weights.keySet().removeIf(key -> !statelessCount.containsKey(key));
@@ -50,7 +50,7 @@ public class TargetHelper {
 
         // filter the library so it only has possible targets
         // as in, none of the excludedTargets
-        List<InformedStack> targets = targetLibrary.stream()
+        List<InformedStack> targets = library.stream()
                 .filter(stack -> lastTargets.stream().noneMatch(stack1 -> StackHelper.isEquivalent(stack, stack1)))
                 .collect(Collectors.toList());
 
@@ -131,12 +131,12 @@ public class TargetHelper {
         return map;
     }
 
-    public static List<InformedStack> getTargetLibrary() {
-        return targetLibrary;
+    public static List<InformedStack> getLibrary() {
+        return library;
     }
 
-    public static void setTargetLibrary(List<InformedStack> targetLibrary) {
-        TargetHelper.targetLibrary = targetLibrary;
+    public static void setLibrary(List<InformedStack> library) {
+        TargetLibrary.library = library;
     }
 
     private static class EdgeCaseSolver {
@@ -222,7 +222,7 @@ public class TargetHelper {
 
             // reset possible targets to all in the library
             targets.clear();
-            targets.addAll(targetLibrary);
+            targets.addAll(library);
             count.clear();
             count.putAll(statelessCount);
 

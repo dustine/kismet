@@ -8,7 +8,7 @@ import desutine.kismet.block.BlockTimedDisplay;
 import desutine.kismet.registry.ModBlocks;
 import desutine.kismet.target.InformedStack;
 import desutine.kismet.target.TargetGenerationResult;
-import desutine.kismet.target.TargetHelper;
+import desutine.kismet.target.TargetLibrary;
 import desutine.kismet.util.StackHelper;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
@@ -27,6 +27,7 @@ import org.apache.commons.lang3.time.DurationFormatUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 public class TileDisplay extends TileEntity implements ITickable {
     private final TextFormatting[] colors = new TextFormatting[] {
@@ -36,6 +37,7 @@ public class TileDisplay extends TileEntity implements ITickable {
             TextFormatting.DARK_PURPLE,
             TextFormatting.GOLD
     };
+    private int skipped;
     private int score;
     private long deadline;
     private InformedStack target;
@@ -59,13 +61,10 @@ public class TileDisplay extends TileEntity implements ITickable {
         // yellow -> red -> bold red
         String styleCode;
         if (remainingTime <= 15 * 60) {
-            if (remainingTime > 10 * 60) {
+            if (remainingTime > 5 * 60) {
                 styleCode = TextFormatting.YELLOW.toString();
-            } else if (remainingTime > 5 * 60) {
-                styleCode = TextFormatting.RED.toString();
             } else {
-                // bold after colour
-                styleCode = TextFormatting.RED.toString() + TextFormatting.BOLD.toString();
+                styleCode = TextFormatting.RED.toString();
             }
         } else styleCode = "";
 
@@ -127,19 +126,19 @@ public class TileDisplay extends TileEntity implements ITickable {
         }
     }
 
-    @Override
-    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
-        return oldState.getBlock() != newState.getBlock();
-    }
-
     private boolean checkForNullTarget() {
         if (getTarget() != null) return false;
         return getNewTarget();
     }
 
+    @Override
+    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
+        return oldState.getBlock() != newState.getBlock();
+    }
+
     private boolean checkForDeadline() {
         if (getDeadline() < worldObj.getTotalWorldTime()) {
-            setDeadline(worldObj.getTotalWorldTime() + ConfigKismet.getTimedLimit() * 20 * 60);
+            resetDeadline();
 
             if (!isFulfilled()) {
                 lastTargets.clear();
@@ -150,6 +149,16 @@ public class TileDisplay extends TileEntity implements ITickable {
             return getNewTarget();
         }
         return false;
+    }
+
+    private void resetDeadline() {
+        setDeadline(worldObj.getTotalWorldTime() + ConfigKismet.getTimedLimit() * 20 * 60);
+    }
+
+    public boolean rollForKey() {
+        final Random random = Kismet.random;
+        double limiter = 1.0 / (skipped + 1);
+        return random.nextDouble() < limiter;
     }
 
     /**
@@ -172,7 +181,7 @@ public class TileDisplay extends TileEntity implements ITickable {
 
         final InformedStack oldTarget = this.target;
 
-        TargetGenerationResult targetResult = TargetHelper.generateTarget(modWeights, lastTargets);
+        TargetGenerationResult targetResult = TargetLibrary.generateTarget(modWeights, lastTargets);
         if (targetResult.hasFlag()) {
             this.newTargetTimeout = worldObj.getTotalWorldTime() + 5 * 20;
             ModLogger.warning("Failed to get target, " + targetResult.getFlag());
@@ -181,7 +190,7 @@ public class TileDisplay extends TileEntity implements ITickable {
 
         // sync client with server as target picking only happens server-wise (for safety)
         if (oldTarget != target) {
-
+            resetDeadline();
             Kismet.network.syncDisplayTargetToClient(worldObj.provider.getDimension(), this);
             return true;
         }
@@ -227,6 +236,7 @@ public class TileDisplay extends TileEntity implements ITickable {
     public void readFromNBT(NBTTagCompound nbt) {
         super.readFromNBT(nbt);
 
+        setSkipped(nbt.getInteger("skipped"));
         setDeadline(nbt.getLong("deadline"));
         setScore(nbt.getInteger("score"));
 
@@ -261,6 +271,7 @@ public class TileDisplay extends TileEntity implements ITickable {
     public void writeToNBT(NBTTagCompound compound) {
         super.writeToNBT(compound);
 
+        compound.setInteger("skipped", getSkipped());
         compound.setLong("deadline", getDeadline());
         compound.setInteger("score", getScore());
 
@@ -314,5 +325,15 @@ public class TileDisplay extends TileEntity implements ITickable {
         // check if we need to force a block update regarding the ready
         if (oldReady != isReady())
             this.stateChanged = true;
+    }
+
+    public void setSkipped(int skipped) {
+        if (skipped < 0) return;
+        this.skipped = skipped;
+        this.stateChanged = true;
+    }
+
+    public int getSkipped() {
+        return skipped;
     }
 }

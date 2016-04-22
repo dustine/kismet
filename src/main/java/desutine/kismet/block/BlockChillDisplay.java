@@ -1,6 +1,5 @@
 package desutine.kismet.block;
 
-import desutine.kismet.Reference;
 import desutine.kismet.tile.TileDisplay;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
@@ -13,7 +12,7 @@ import net.minecraft.world.World;
 
 public class BlockChillDisplay extends BlockDisplay {
     public BlockChillDisplay() {
-        super(Reference.Names.Blocks.CHILL_DISPLAY);
+        super();
     }
 
     @Override

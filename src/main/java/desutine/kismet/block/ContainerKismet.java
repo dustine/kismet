@@ -8,13 +8,12 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public abstract class ContainerKismet<T extends TileEntity> extends BlockKismet implements ITileEntityProvider {
-    public ContainerKismet(String name, Material material) {
-        super(name, material);
-        this.isBlockContainer = true;
+    public ContainerKismet() {
+        this(Material.rock);
     }
 
-    public ContainerKismet(String name) {
-        super(name);
+    public ContainerKismet(Material material) {
+        super(material);
         this.isBlockContainer = true;
     }
 

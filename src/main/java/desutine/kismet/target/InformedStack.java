@@ -1,7 +1,7 @@
 package desutine.kismet.target;
 
+import com.google.common.collect.Lists;
 import desutine.kismet.ConfigKismet;
-import desutine.kismet.Kismet;
 import desutine.kismet.ModLogger;
 import desutine.kismet.util.StackHelper;
 import net.minecraft.item.ItemStack;
@@ -9,14 +9,13 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.INBTSerializable;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public final class InformedStack implements INBTSerializable<NBTTagCompound> {
     private ItemStack stack;
-    private boolean hasSubtypes;
+    private boolean hasSubtypes = true;
     private boolean sealed;
-    private boolean[] obtainable;
+    private Set<ObtainableTypes> obtainable;
 
     public InformedStack(InformedStack stack) {
         // hackish way of doing a deep copy
@@ -25,20 +24,18 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
 
     public InformedStack(NBTTagCompound nbt) {
         deserializeNBT(nbt);
-        if (stack == null)
-            throw new MissingStack();
 //        this.hasSubtypes = Kismet.proxy.inferSafeHasSubtypes(stack);
     }
 
     @Override
     public void deserializeNBT(NBTTagCompound nbt) {
-        if (nbt.hasKey("stk"))
-            this.stack = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("stk"));
-        byte[] byteObtainable = nbt.getByteArray("obt");
-        // todo make this into bitshifted bytes for maximum efficiency
-        obtainable = new boolean[byteObtainable.length];
-        for (int i = 0; i < byteObtainable.length; i++) {
-            obtainable[i] = byteObtainable[i] > 0;
+        this.stack = nbt.hasKey("stk") ? ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("stk")) : null;
+        obtainable = new HashSet<>();
+        int bitwiseObtainable = nbt.getInteger("obt");
+        for (ObtainableTypes type : ObtainableTypes.values()) {
+            if ((bitwiseObtainable & 1) != 0)
+                obtainable.add(type);
+            bitwiseObtainable >>= 1;
         }
         hasSubtypes = nbt.getBoolean("sub");
         sealed = nbt.getBoolean("sld");
@@ -50,25 +47,39 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
         if (stack != null) {
             compound.setTag("stk", stack.writeToNBT(new NBTTagCompound()));
         }
-        byte[] byteObtainable = new byte[obtainable.length];
-        for (int i = 0; i < obtainable.length; i++) {
-            byteObtainable[i] = (byte) (obtainable[i] ? 1 : 0);
+        int bitwiseObtainable = 0;
+        for (ObtainableTypes type : Lists.reverse(Arrays.asList(ObtainableTypes.values()))) {
+            bitwiseObtainable <<= 1;
+            bitwiseObtainable |= isObtainable(type) ? 1 : 0;
         }
-        compound.setByteArray("obt", byteObtainable);
+        compound.setInteger("obt", bitwiseObtainable);
         compound.setBoolean("sub", hasSubtypes);
         compound.setBoolean("sld", sealed);
         return compound;
     }
 
+    public boolean isObtainable(ObtainableTypes type) {
+        return this.obtainable.contains(type);
+    }
+
     public InformedStack(@Nonnull ItemStack stack, ObtainableTypes type) {
         this(stack);
-        obtainable[type.ordinal()] = true;
+        setObtainable(type, true);
     }
 
     public InformedStack(@Nonnull ItemStack stack) {
         this.stack = stack;
-        this.obtainable = new boolean[ObtainableTypes.values().length];
-        this.hasSubtypes = Kismet.proxy.inferSafeHasSubtypes(stack);
+        this.obtainable = new HashSet<>();
+        this.hasSubtypes = stack.getHasSubtypes();
+    }
+
+    public void setObtainable(ObtainableTypes type, boolean obtainable) {
+        if (sealed) return;
+        if (obtainable) {
+            this.obtainable.add(type);
+        } else {
+            this.obtainable.remove(type);
+        }
     }
 
     @Override
@@ -77,17 +88,16 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
     }
 
     public String toCompleteString() {
-        return String.format("%s = %s", StackHelper.toUniqueKey(this), getCurrentObtainableTypes());
+        return String.format("%s %s", StackHelper.toUniqueKey(this), getCurrentObtainableTypes());
     }
 
     private List<ObtainableTypes> getCurrentObtainableTypes() {
-        ArrayList<ObtainableTypes> obtainableTypes = new ArrayList<>();
-        for (int i = 0; i < ObtainableTypes.values().length; i++) {
-            if (obtainable[i]) {
-                obtainableTypes.add(ObtainableTypes.values()[i]);
-            }
-        }
-        return obtainableTypes;
+        return new ArrayList<>(this.obtainable);
+    }
+
+    public void refreshHasSubtypes() {
+        if (sealed) return;
+        hasSubtypes = stack.getHasSubtypes();
     }
 
     public NBTTagCompound writeToNBT() {
@@ -111,10 +121,7 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
 
         // create a new informedStack via deep copy
         InformedStack informedStack = new InformedStack(lhs);
-
-        for (ObtainableTypes type : rhs.getCurrentObtainableTypes()) {
-            informedStack.obtainable[type.ordinal()] = true;
-        }
+        informedStack.obtainable.addAll(rhs.getCurrentObtainableTypes());
         informedStack.seal();
 
         return informedStack;
@@ -126,38 +133,21 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
 
     public boolean isObtainable() {
         // forced stacks are always obtainable
-        if (isObtainable(ObtainableTypes.FORCED))
+        if (isObtainable(ObtainableTypes.Forced))
             return true;
 
         // if unfair is off, do not set unfair stacks as obtainable
-        if (!ConfigKismet.isGenUnfair() && isObtainable(ObtainableTypes.UNFAIR))
+        if (!ConfigKismet.isGenUnfair() && isObtainable(ObtainableTypes.Unfair))
             return false;
 
         // else, check one of the cases one by one: if one is on, check if we're obtainable that way
-        if (ConfigKismet.isGenBucketable() && isObtainable(ObtainableTypes.BUCKETABLE))
-            return true;
-        if (ConfigKismet.isGenCraftable() && isObtainable(ObtainableTypes.CRAFTABLE))
-            return true;
-        if (ConfigKismet.isGenLootable() && isObtainable(ObtainableTypes.LOOTABLE))
-            return true;
-        if (ConfigKismet.isGenMineable() && isObtainable(ObtainableTypes.MINEABLE))
-            return true;
-        if (ConfigKismet.isGenSilkable() && isObtainable(ObtainableTypes.SILKABLE))
-            return true;
-        if (ConfigKismet.isGenOthers() && isObtainable(ObtainableTypes.OTHERS))
-            return true;
+        for (ObtainableTypes type : ObtainableTypes.values()) {
+            if (type.equals(ObtainableTypes.Forced) || type.equals(ObtainableTypes.Unfair)) continue;
+            if (ConfigKismet.isGenFlag(type) && isObtainable(type)) return true;
+        }
 
         // return false if we deplete all gens
         return false;
-    }
-
-    public boolean isObtainable(ObtainableTypes type) {
-        return this.obtainable[type.ordinal()];
-    }
-
-    public void setObtainable(ObtainableTypes type, boolean obtainable) {
-        if (sealed) return;
-        this.obtainable[type.ordinal()] = obtainable;
     }
 
     public boolean getHasSubtypes() {
@@ -177,11 +167,11 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
         return stack != null && stack.getItem() != null;
     }
 
-    public boolean[] getObtainable() {
+    public Set<ObtainableTypes> getObtainable() {
         return obtainable;
     }
 
-    public void setObtainable(boolean[] obtainable) {
+    public void setObtainable(Set<ObtainableTypes> obtainable) {
         if (isSealed()) return;
         this.obtainable = obtainable;
     }
@@ -191,9 +181,6 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
     }
 
     public enum ObtainableTypes {
-        BUCKETABLE, CRAFTABLE, LOOTABLE, MINEABLE, SILKABLE, OTHERS, UNFAIR, FORCED
-    }
-
-    private class MissingStack extends RuntimeException {
+        Forced, Unfair, Others, Bucketable, Craftable, Lootable, Mineable, Silkable
     }
 }

@@ -1,6 +1,5 @@
 package desutine.kismet.block;
 
-import desutine.kismet.Reference;
 import desutine.kismet.tile.TileDisplay;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
@@ -14,7 +13,7 @@ import net.minecraft.world.World;
 public class BlockTimedDisplay extends BlockDisplay {
 
     public BlockTimedDisplay() {
-        super(Reference.Names.Blocks.TIMED_DISPLAY);
+        super();
     }
 
     @Override
@@ -22,6 +21,8 @@ public class BlockTimedDisplay extends BlockDisplay {
                                     ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
         final boolean parentResult = super.onBlockActivated(world, pos, state, player, hand, heldItem, side,
                 hitX, hitY, hitZ);
+
+        if (parentResult) return true;
 
         TileDisplay te = (TileDisplay) world.getTileEntity(pos);
         if (te == null) return false;

@@ -1,6 +1,7 @@
 package desutine.kismet;
 
 import com.google.common.collect.ImmutableList;
+import desutine.kismet.target.InformedStack.ObtainableTypes;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
@@ -9,6 +10,7 @@ import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.*;
@@ -33,21 +35,11 @@ public final class ConfigKismet {
     private static List<String> forceAdd;
     private static EnumGenMode genMode;
     private static List<String> genBlacklist;
-    private static List<String> hiddenBucketable;
-    private static List<String> hiddenCraftable;
-    private static List<String> hiddenMineable;
-    private static List<String> hiddenSilkable;
-    private static List<String> hiddenLootable;
-    private static List<String> hiddenOthers;
-    private static List<String> hiddenUnfair;
+
     private static List<String> hiddenBlacklist;
-    private static boolean genCraftable;
-    private static boolean genMineable;
-    private static boolean genBucketable;
-    private static boolean genLootable;
-    private static boolean genOthers;
-    private static boolean genSilkable;
-    private static boolean genUnfair;
+
+    private static Map<ObtainableTypes, Boolean> genFlags;
+    private static Map<ObtainableTypes, List<String>> genLists;
 
     public static List<String> getHiddenBlacklist() {
         return hiddenBlacklist;
@@ -106,23 +98,17 @@ public final class ConfigKismet {
         final Property propTimedEnabled = getProperty(categories, CATEGORY_GENERAL, Names.timedEnabled);
         final Property propTimedLimit = getProperty(categories, CATEGORY_GENERAL, Names.timedLimit);
 
-        final Property propHiddenCraftable = getProperty(categories, CATEGORY_TARGETS, Names.hiddenCraftable);
-        final Property propHiddenMineable = getProperty(categories, CATEGORY_TARGETS, Names.hiddenMineable);
-        final Property propHiddenSilkable = getProperty(categories, CATEGORY_TARGETS, Names.hiddenSilkable);
-        final Property propHiddenLootable = getProperty(categories, CATEGORY_TARGETS, Names.hiddenLootable);
-        final Property propHiddenBucketable = getProperty(categories, CATEGORY_TARGETS, Names.hiddenBucketable);
-        final Property propHiddenOthers = getProperty(categories, CATEGORY_TARGETS, Names.hiddenOthers);
-        final Property propHiddenUnfair = getProperty(categories, CATEGORY_TARGETS, Names.hiddenUnfair);
+        final Map<ObtainableTypes, Property> propGenLists = new HashMap<>();
+        final Map<ObtainableTypes, Property> propGenFlags = new HashMap<>();
+        for (ObtainableTypes type : ObtainableTypes.values()) {
+            // skip the forced flag
+            if (type.equals(ObtainableTypes.Forced)) continue;
+            final String typeName = getTypeName(type);
+            propGenLists.put(type, getProperty(categories, CATEGORY_TARGETS, "hidden" + typeName));
+            propGenFlags.put(type, getProperty(categories, CATEGORY_TARGETS, "gen" + typeName));
+        }
 
         final Property propGenMode = getProperty(categories, CATEGORY_TARGETS, Names.genMode);
-
-        final Property propGenCraftable = getProperty(categories, CATEGORY_TARGETS, Names.genCraftable);
-        final Property propGenMineable = getProperty(categories, CATEGORY_TARGETS, Names.genMineable);
-        final Property propGenSilkable = getProperty(categories, CATEGORY_TARGETS, Names.genSilkable);
-        final Property propGenLootable = getProperty(categories, CATEGORY_TARGETS, Names.genLootable);
-        final Property propGenBucketable = getProperty(categories, CATEGORY_TARGETS, Names.genBucketable);
-        final Property propGenOthers = getProperty(categories, CATEGORY_TARGETS, Names.genOthers);
-        final Property propGenUnfair = getProperty(categories, CATEGORY_TARGETS, Names.genUnfair);
 
         final Property propGenBlacklist = getProperty(categories, CATEGORY_TARGETS, Names.genBlacklist);
         final Property propHiddenBlacklist = getProperty(categories, CATEGORY_TARGETS, Names.hiddenBlacklist);
@@ -152,16 +138,13 @@ public final class ConfigKismet {
                 timedLimit = Defaults.timedLimit;
             }
 
-            if (loadConfigFromFile) {
-                hiddenBucketable = Arrays.asList(propHiddenBucketable.getStringList());
-                hiddenCraftable = Arrays.asList(propHiddenCraftable.getStringList());
-                hiddenLootable = Arrays.asList(propHiddenLootable.getStringList());
-                hiddenMineable = Arrays.asList(propHiddenMineable.getStringList());
-                hiddenSilkable = Arrays.asList(propHiddenSilkable.getStringList());
-                hiddenOthers = Arrays.asList(propHiddenOthers.getStringList());
-                hiddenUnfair = Arrays.asList(propHiddenUnfair.getStringList());
-
-                hiddenBlacklist = Arrays.asList(propHiddenBlacklist.getStringList());
+            genLists = new HashMap<>();
+            genFlags = new HashMap<>();
+            for (ObtainableTypes type : ObtainableTypes.values()) {
+                // skip the forced flag
+                if (type.equals(ObtainableTypes.Forced)) continue;
+                genLists.put(type, Arrays.asList(propGenLists.get(type).getStringList()));
+                genFlags.put(type, propGenFlags.get(type).getBoolean());
             }
 
             genMode = Defaults.genMode;
@@ -172,16 +155,8 @@ public final class ConfigKismet {
                 }
             }
 
-            genBucketable = propGenBucketable.getBoolean();
-            genCraftable = propGenCraftable.getBoolean();
-            genLootable = propGenLootable.getBoolean();
-            genMineable = propGenMineable.getBoolean();
-            genSilkable = propGenSilkable.getBoolean();
-            genOthers = propGenOthers.getBoolean();
-            genUnfair = propGenUnfair.getBoolean();
-
             genBlacklist = Arrays.asList(propGenBlacklist.getStringList());
-
+            hiddenBlacklist = Arrays.asList(propHiddenBlacklist.getStringList());
             forceAdd = Arrays.asList(propForceAdd.getStringList());
         }
 
@@ -195,23 +170,14 @@ public final class ConfigKismet {
 
         propTimedLimit.set(timedLimit);
 
-        propHiddenBucketable.set(hiddenBucketable.toArray(new String[] {}));
-        propHiddenCraftable.set(hiddenCraftable.toArray(new String[] {}));
-        propHiddenLootable.set(hiddenLootable.toArray(new String[] {}));
-        propHiddenMineable.set(hiddenMineable.toArray(new String[] {}));
-        propHiddenOthers.set(hiddenOthers.toArray(new String[] {}));
-        propHiddenSilkable.set(hiddenSilkable.toArray(new String[] {}));
-        propHiddenUnfair.set(hiddenUnfair.toArray(new String[] {}));
+        for (ObtainableTypes type : ObtainableTypes.values()) {
+            // skip the forced flag
+            if (type.equals(ObtainableTypes.Forced)) continue;
+            propGenLists.get(type).set(genLists.get(type).toArray(new String[] {}));
+            propGenFlags.get(type).set(genFlags.get(type));
+        }
 
         propGenMode.set(genMode.toString());
-
-        propGenBucketable.set(genBucketable);
-        propGenCraftable.set(genCraftable);
-        propGenLootable.set(genLootable);
-        propGenMineable.set(genMineable);
-        propGenOthers.set(genOthers);
-        propGenSilkable.set(genSilkable);
-        propGenUnfair.set(genUnfair);
 
         propGenBlacklist.set(genBlacklist.toArray(new String[] {}));
         propHiddenBlacklist.set(hiddenBlacklist.toArray(new String[] {}));
@@ -256,52 +222,25 @@ public final class ConfigKismet {
         Pattern forceAddPattern = Pattern.compile("!?[^A-Z^ \\t\\r\\n\\v\\f]+:\\w+(:\\d+(:\\{.*\\})?)?");
         Pattern blacklistPattern = Pattern.compile("!?[^A-Z^ \\t\\r\\n\\v\\f]+(:\\w+(:\\d+(:\\{.*\\})?)?)?");
 
-        Property propHiddenBucketable = config.get(CATEGORY_TARGETS, Names.hiddenBucketable, Defaults.hiddenBucketable)
-                .setShowInGui(false);
-        catTargets.add(propHiddenBucketable);
+        List<Property> catGenLists = new ArrayList<>();
+        List<Property> catGenFlags = new ArrayList<>();
+        for (ObtainableTypes type : ObtainableTypes.values()) {
+            if (type.equals(ObtainableTypes.Forced)) continue;
+            Property propGenList = config.get(CATEGORY_TARGETS, "hidden" + getTypeName(type), Defaults.genLists.get
+                    (type)).setShowInGui(false);
+            catGenLists.add(propGenList);
 
-        Property propHiddenCraftable = config.get(CATEGORY_TARGETS, Names.hiddenCraftable, Defaults.hiddenCraftable)
-                .setShowInGui(false);
-        catTargets.add(propHiddenCraftable);
+            Property propGenFlag = config.get(CATEGORY_TARGETS, "gen" + getTypeName(type), Defaults.genFlags.get(type));
+            catGenFlags.add(propGenFlag);
+        }
 
-        Property propHiddenLootable = config.get(CATEGORY_TARGETS, Names.hiddenLootable, Defaults.hiddenLootable)
-                .setShowInGui(false);
-        catTargets.add(propHiddenLootable);
-
-        Property propHiddenMineable = config.get(CATEGORY_TARGETS, Names.hiddenMineable, Defaults.hiddenMineable)
-                .setShowInGui(false);
-        catTargets.add(propHiddenMineable);
-
-        Property propHiddenSilkable = config.get(CATEGORY_TARGETS, Names.hiddenSilkable, Defaults.hiddenSilkable)
-                .setShowInGui(false);
-        catTargets.add(propHiddenSilkable);
-
-        Property propHiddenOthers = config.get(CATEGORY_TARGETS, Names.hiddenOthers, Defaults.hiddenOthers)
-                .setShowInGui(false);
-        catTargets.add(propHiddenOthers);
-
-        Property propHiddenUnfair = config.get(CATEGORY_TARGETS, Names.hiddenUnfair, Defaults.hiddenUnfair)
-                .setShowInGui(false);
-        catTargets.add(propHiddenUnfair);
+        catTargets.addAll(catGenLists);
 
         Property propGenMode = config.get(CATEGORY_TARGETS, Names.genMode, Defaults.genMode.toString())
                 .setValidValues(genModesValues);
         catTargets.add(propGenMode);
 
-        Property propGenCraftable = config.get(CATEGORY_TARGETS, Names.genCraftable, true);
-        Property propGenMineable = config.get(CATEGORY_TARGETS, Names.genMineable, true);
-        Property propGenSilkable = config.get(CATEGORY_TARGETS, Names.genSilkable, true);
-        Property propGenLootable = config.get(CATEGORY_TARGETS, Names.genLootable, true);
-        Property propGenBucketable = config.get(CATEGORY_TARGETS, Names.genBucketable, true);
-        Property propGenOthers = config.get(CATEGORY_TARGETS, Names.genOthers, true);
-        Property propGenUnfair = config.get(CATEGORY_TARGETS, Names.genUnfair, false);
-        catTargets.add(propGenCraftable);
-        catTargets.add(propGenMineable);
-        catTargets.add(propGenSilkable);
-        catTargets.add(propGenLootable);
-        catTargets.add(propGenBucketable);
-        catTargets.add(propGenOthers);
-        catTargets.add(propGenUnfair);
+        catTargets.addAll(catGenFlags);
 
         Property propGenBlacklist = config.get(CATEGORY_TARGETS, Names.genBlacklist, Defaults.genFilter)
                 .setValidationPattern(blacklistPattern);
@@ -326,6 +265,12 @@ public final class ConfigKismet {
         }
 
         return categories;
+    }
+
+    @NotNull
+    private static String getTypeName(ObtainableTypes type) {
+        return type.toString().substring(0, 1).toUpperCase() +
+                type.toString().substring(1).toLowerCase();
     }
 
     /**
@@ -390,61 +335,23 @@ public final class ConfigKismet {
         return timedEnabled;
     }
 
+    public static List<String> getGenList(ObtainableTypes type) {
+        if (type.equals(ObtainableTypes.Forced)) return forceAdd;
+        return genLists.get(type);
+    }
+
+    public static boolean isGenFlag(ObtainableTypes type) {
+        if (type.equals(ObtainableTypes.Forced)) {
+            ModLogger.warning("Tried to check if Forced are allowed");
+            return true;
+        }
+        return genFlags.get(type);
+    }
+
     public static boolean isGenUnfair() {
-        return genUnfair;
+        return genFlags.get(ObtainableTypes.Unfair);
     }
 
-    public static boolean isGenBucketable() {
-        return genBucketable;
-    }
-
-    public static boolean isGenCraftable() {
-        return genCraftable;
-    }
-
-    public static boolean isGenLootable() {
-        return genLootable;
-    }
-
-    public static boolean isGenMineable() {
-        return genMineable;
-    }
-
-    public static boolean isGenSilkable() {
-        return genSilkable;
-    }
-
-    public static boolean isGenOthers() {
-        return genOthers;
-    }
-
-    public static List<String> getHiddenBucketable() {
-        return hiddenBucketable;
-    }
-
-    public static List<String> getHiddenCraftable() {
-        return hiddenCraftable;
-    }
-
-    public static List<String> getHiddenLootable() {
-        return hiddenLootable;
-    }
-
-    public static List<String> getHiddenMineable() {
-        return hiddenMineable;
-    }
-
-    public static List<String> getHiddenSilkable() {
-        return hiddenSilkable;
-    }
-
-    public static List<String> getHiddenOthers() {
-        return hiddenOthers;
-    }
-
-    public static List<String> getHiddenUnfair() {
-        return hiddenUnfair;
-    }
 
     public enum EnumGenMode {
         NONE("None"),
@@ -467,38 +374,25 @@ public final class ConfigKismet {
         private static final String chillEnabled = "chillEnabled";
         private static final String timedLimit = "timedLimit";
         private static final String timedEnabled = "timedEnabled";
-        private static final String hiddenBucketable = "hiddenBucketable";
-        private static final String hiddenCraftable = "hiddenCraftable";
-        private static final String hiddenLootable = "hiddenLootable";
-        private static final String hiddenMineable = "hiddenMineable";
-        private static final String hiddenSilkable = "hiddenSilkable";
-        private static final String hiddenOthers = "hiddenOthers";
-        private static final String hiddenUnfair = "hiddenUnfair";
         private static final String hiddenBlacklist = "hiddenBlacklist";
         private static final String genMode = "genMode";
-        private static final String genBucketable = "genBucketable";
-        private static final String genCraftable = "genCraftable";
-        private static final String genLootable = "genLootable";
-        private static final String genMineable = "genMineable";
-        private static final String genSilkable = "genSilkable";
-        private static final String genOthers = "genOthers";
-        private static final String genUnfair = "genUnfair";
         private static final String genBlacklist = "genBlacklist";
         private static final String forceAdd = "forceAdd";
     }
 
     private static class Defaults {
-        private static final EnumGenMode genMode = EnumGenMode.FILTERED;
-        private static final boolean chillEnabled = true;
-        private static final boolean timedEnabled = true;
-        private static final int timedLimit = 24000 / 20 / 60; // a minecraft day
-        private static final String[] hiddenBucketable = new String[] {
-                "minecraft:milk_bucket"
-        };
-        private static final String[] hiddenCraftable = new String[] {
+        static final EnumGenMode genMode = EnumGenMode.FILTERED;
+        static final boolean chillEnabled = true;
+        static final boolean timedEnabled = true;
+        static final int timedLimit = 24000 / 20 / 60; // a minecraft day
+        static final String[] hiddenBucketable = new String[] {
+                "minecraft:milk_bucket",
                 ""
         };
-        private static final String[] hiddenLootable = new String[] {
+        static final String[] hiddenCraftable = new String[] {
+                ""
+        };
+        static final String[] hiddenLootable = new String[] {
                 "minecraft:egg",
                 "minecraft:elytra",
                 "minecraft:nether_star",
@@ -514,39 +408,60 @@ public final class ConfigKismet {
                 "minecraft:record_mellohi",
                 ""
         };
-        private static final String[] hiddenMineable = new String[] {
+        static final String[] hiddenMineable = new String[] {
                 ""
         };
-        private static final String[] hiddenSilkable = new String[] {
-                "!minecraft:tallgrass:0",
-                "!minecraft:tallgrass:1",
+        static final String[] hiddenSilkable = new String[] {
                 ""
         };
-        private static final String[] hiddenOthers = new String[] {
+        static final String[] hiddenOthers = new String[] {
                 "minecraft:vine",
                 "minecraft:dragon_breath",
                 ""
         };
-        private static final String[] hiddenUnfair = new String[] {
+        static final String[] hiddenUnfair = new String[] {
                 "minecraft:dragon_egg",
                 ""
         };
-        private static final String[] hiddenBlacklist = new String[] {
+        static final String[] hiddenBlacklist = new String[] {
                 // the deprecated wooden slab, still in the game as a block
                 "minecraft:stone_slab:2",
                 ""
         };
-        private static final String[] genFilter = new String[] {
+        static final String[] genFilter = new String[] {
                 "minecraft:tipped_arrow",
                 "minecraft:splash_potion",
                 "minecraft:lingering_potion",
                 "minecraft:wool",
                 "minecraft:stained_hardened_clay",
-                ""
+                "minecraft:carpet",
+                "minecraft:stained_glass",
+                "minecraft:stained_glass_pane"
         };
-        public static String[] forceAdd = new String[] {
-                "minecraft:wool:0"
+        static String[] forceAdd = new String[] {
+                "minecraft:wool:0",
+                "minecraft:carpet:0"
         };
+        static Map<ObtainableTypes, String[]> genLists = new HashMap<>();
+        static Map<ObtainableTypes, Boolean> genFlags = new HashMap<>();
+
+        static {
+            Defaults.genLists.put(ObtainableTypes.Unfair, Defaults.hiddenUnfair);
+            Defaults.genLists.put(ObtainableTypes.Others, Defaults.hiddenOthers);
+            Defaults.genLists.put(ObtainableTypes.Bucketable, Defaults.hiddenBucketable);
+            Defaults.genLists.put(ObtainableTypes.Craftable, Defaults.hiddenCraftable);
+            Defaults.genLists.put(ObtainableTypes.Lootable, Defaults.hiddenLootable);
+            Defaults.genLists.put(ObtainableTypes.Mineable, Defaults.hiddenMineable);
+            Defaults.genLists.put(ObtainableTypes.Silkable, Defaults.hiddenSilkable);
+
+            Defaults.genFlags.put(ObtainableTypes.Unfair, false);
+            Defaults.genFlags.put(ObtainableTypes.Others, true);
+            Defaults.genFlags.put(ObtainableTypes.Bucketable, true);
+            Defaults.genFlags.put(ObtainableTypes.Craftable, true);
+            Defaults.genFlags.put(ObtainableTypes.Lootable, true);
+            Defaults.genFlags.put(ObtainableTypes.Mineable, true);
+            Defaults.genFlags.put(ObtainableTypes.Silkable, true);
+        }
     }
 
     private static class ClientConfigEventHandler {

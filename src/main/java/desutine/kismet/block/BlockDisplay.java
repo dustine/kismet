@@ -1,5 +1,6 @@
 package desutine.kismet.block;
 
+import desutine.kismet.Kismet;
 import desutine.kismet.registry.ModItems;
 import desutine.kismet.tile.TileDisplay;
 import desutine.kismet.util.StackHelper;
@@ -37,8 +38,8 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
     private static final AxisAlignedBB eastAABB = new AxisAlignedBB(0, 0, 0, slabSize, 1, 1);
     private static final AxisAlignedBB westAABB = new AxisAlignedBB(1 - slabSize, 0, 0, 1, 1, 1);
 
-    public BlockDisplay(String name) {
-        super(name);
+    public BlockDisplay() {
+        super();
 
         setHardness(5);
 
@@ -147,14 +148,27 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
         // Check if the heldItem is the target
         if (heldItem != null && StackHelper.isEquivalent(te.getTarget(), heldItem)) {
             // fulfilled target~
+            te.setSkipped(te.getSkipped() - 1);
             setTargetAsFulfilled(world, pos);
             return true;
         }
 
         // Kismetic key = new target
-        if (heldItem != null && heldItem.isItemEqual(new ItemStack(ModItems.itemKey)) &&
-                !state.getValue(BlockDisplay.FULFILLED)) {
-            te.getNewTarget();
+        if (heldItem != null && heldItem.isItemEqual(new ItemStack(ModItems.ITEM_KEY))) {
+            if (state.getValue(BlockDisplay.FULFILLED)) {
+                // fulfilled = reroll, no chance of failing
+                te.getNewTarget();
+                return true;
+            }
+            if (world.isRemote) {
+                // if the roll for key doesn't fail eue
+                if (te.rollForKey()) {
+                    te.setSkipped(te.getSkipped() + 1);
+                    Kismet.network.newSkippedTarget(te);
+                } else {
+                    player.renderBrokenItemStack(heldItem);
+                }
+            }
             return true;
         }
 

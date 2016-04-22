@@ -8,7 +8,7 @@ import desutine.kismet.registry.ModRecipes;
 import desutine.kismet.registry.ModTiles;
 import desutine.kismet.server.CommandKismet;
 import desutine.kismet.server.event.EventRegenLibraryOnce;
-import desutine.kismet.target.TargetLibraryFactory;
+import desutine.kismet.target.TargetDatabaseBuilder;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Loader;
@@ -24,7 +24,7 @@ public class Kismet {
     public static final Random random = new Random();
     public final static CommandKismet command = new CommandKismet();
     public static NetworkHandlerKismet network;
-    public static TargetLibraryFactory libraryFactory;
+    public static TargetDatabaseBuilder libraryFactory;
     @Mod.Instance(Reference.MOD_ID)
     public static Kismet instance;
     @SidedProxy(clientSide = Reference.CLIENT_PROXY_CLASS, serverSide = Reference.SERVER_PROXY_CLASS)
@@ -46,7 +46,6 @@ public class Kismet {
         // register blocks, items, tile entities
         ModBlocks.init();
         ModItems.init();
-        proxy.addInventoryModels();
         ModTiles.init();
         proxy.registerTESR();
 
@@ -80,7 +79,7 @@ public class Kismet {
 //        event.buildSoftDependProxy()
 //        event.buildSoftDependProxy()
         // finish generating item tree
-//        TargetHelper.generateList(null);
+//        TargetLibrary.generateList(null);
     }
 
     @EventHandler
@@ -88,7 +87,7 @@ public class Kismet {
         // register commands
         event.registerServerCommand(command);
 
-        libraryFactory = new TargetLibraryFactory((WorldServer) event.getServer().getEntityWorld());
+        libraryFactory = new TargetDatabaseBuilder((WorldServer) event.getServer().getEntityWorld());
 
         // register the hook to restart the targetLibrary on single-player
         eventRegenLibraryOnce = new EventRegenLibraryOnce();
