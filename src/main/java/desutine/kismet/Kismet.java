@@ -60,8 +60,8 @@ public class Kismet {
     }
 
     /**
-     * Do your mod setup. Build whatever data structures you care about. Register recipes,
-     * send FMLInterModComms messages to other mods.
+     * Do your mod setup. Build whatever data structures you care about. Register recipes, send FMLInterModComms
+     * messages to other mods.
      */
     @EventHandler
     public void init(FMLInitializationEvent event) {
@@ -80,7 +80,6 @@ public class Kismet {
 //    @EventHandler
 //    public void postInit(FMLPostInitializationEvent event) {
 //    }
-
     @EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
         // register commands

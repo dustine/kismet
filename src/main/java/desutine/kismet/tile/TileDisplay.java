@@ -131,11 +131,6 @@ public class TileDisplay extends TileEntity implements ITickable {
         return getNewTarget();
     }
 
-    @Override
-    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
-        return oldState.getBlock() != newState.getBlock();
-    }
-
     private boolean checkForDeadline() {
         if (getDeadline() < worldObj.getTotalWorldTime()) {
             resetDeadline();
@@ -150,9 +145,13 @@ public class TileDisplay extends TileEntity implements ITickable {
         }
         return false;
     }
-
     private void resetDeadline() {
         setDeadline(worldObj.getTotalWorldTime() + ConfigKismet.getTimedLimit() * 20 * 60);
+    }
+
+    @Override
+    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
+        return oldState.getBlock() != newState.getBlock();
     }
 
     public boolean rollForKey() {

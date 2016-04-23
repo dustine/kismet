@@ -147,8 +147,8 @@ public class TargetDatabaseBuilder {
     }
 
     /**
-     * Gets the silk touch drop for this block, under state.
-     * Note: function doesn't check if the block+state is actually silk touchable.
+     * Gets the silk touch drop for this block, under state. Note: function doesn't check if the block+state is actually
+     * silk touchable.
      *
      * @param block
      * @param state

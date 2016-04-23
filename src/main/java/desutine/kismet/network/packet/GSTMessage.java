@@ -8,8 +8,7 @@ import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 
 /**
- * Generate Skipped Target message
- * Notifies the server to generate a new target because of a successful keyroll
+ * Generate Skipped Target message Notifies the server to generate a new target because of a successful keyroll
  * Includes: the new value for skipped goals
  */
 public class GSTMessage implements IMessage {

@@ -64,7 +64,7 @@ public class StackHelper {
         return toUniqueKey(wrapper.getStack(), wrapper.getHasSubtypes());
     }
 
-    private static String toUniqueKey(ItemStack stack, boolean hasSubtypes){
+    private static String toUniqueKey(ItemStack stack, boolean hasSubtypes) {
         if (stack == null || stack.getItem() == null) return "";
 
         ResourceLocation loc = stack.getItem().getRegistryName();
