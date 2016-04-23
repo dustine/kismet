@@ -17,7 +17,6 @@ public class ESLMessage implements IMessage {
     public List<InformedStack> stacks;
 
     public ESLMessage() {
-        super();
     }
 
     public ESLMessage(List<InformedStack> stacks) {

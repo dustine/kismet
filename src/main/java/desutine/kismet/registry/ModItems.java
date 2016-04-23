@@ -19,6 +19,6 @@ public class ModItems {
 
         GameRegistry.register(item);
         item.setUnlocalizedName(name);
-        Kismet.proxy.registerInventoryModel(item, name);
+        Kismet.proxy.registerInventoryModel(item);
     }
 }

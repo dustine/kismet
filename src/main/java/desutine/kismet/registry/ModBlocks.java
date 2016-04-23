@@ -26,6 +26,6 @@ public class ModBlocks {
         GameRegistry.register(block);
         block.setUnlocalizedName(name);
         GameRegistry.register(new ItemBlockKismet(block));
-        Kismet.proxy.registerInventoryModel(block, name);
+        Kismet.proxy.registerInventoryModel(block);
     }
 }

@@ -95,22 +95,18 @@ public class WSDTargetDatabase extends WorldSavedData {
 
     /**
      * @param newStacks
-     * @return number of skipped (joined with already existing) stacks
      */
-    public int enrichStacks(List<InformedStack> newStacks) {
-        final int[] skipped = {0};
+    public void enrichStacks(List<InformedStack> newStacks) {
         newStacks.forEach(wrapper -> {
             String key = StackHelper.toUniqueKey(wrapper);
             if (stacks.containsKey(key)) {
                 InformedStack originalStack = stacks.get(key);
                 stacks.put(key, originalStack.joinWith(wrapper));
-                ++skipped[0];
             } else {
                 stacks.put(key, wrapper);
             }
         });
 
         markDirty();
-        return skipped[0];
     }
 }

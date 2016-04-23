@@ -15,7 +15,10 @@ import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.*;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 
 import java.util.Random;
 
@@ -74,13 +77,9 @@ public class Kismet {
     /**
      * Handle interaction with other mods, complete your setup based on this.
      */
-    @EventHandler
-    public void postInit(FMLPostInitializationEvent event) {
-//        event.buildSoftDependProxy()
-//        event.buildSoftDependProxy()
-        // finish generating item tree
-//        TargetLibrary.generateList(null);
-    }
+//    @EventHandler
+//    public void postInit(FMLPostInitializationEvent event) {
+//    }
 
     @EventHandler
     public void serverStarting(FMLServerStartingEvent event) {

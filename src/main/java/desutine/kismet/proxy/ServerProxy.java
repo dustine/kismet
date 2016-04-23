@@ -9,11 +9,6 @@ import net.minecraft.item.ItemStack;
 
 public class ServerProxy extends CommonProxy {
     @Override
-    public void initConfig() {
-        super.initConfig();
-    }
-
-    @Override
     public void registerTESR() {
         // NOOP
     }
@@ -42,12 +37,12 @@ public class ServerProxy extends CommonProxy {
     }
 
     @Override
-    public void registerInventoryModel(BlockKismet block, String name) {
+    public void registerInventoryModel(BlockKismet block) {
         // NOOP
     }
 
     @Override
-    public void registerInventoryModel(ItemKismet item, String name) {
+    public void registerInventoryModel(ItemKismet item) {
         // NOOP
     }
 }

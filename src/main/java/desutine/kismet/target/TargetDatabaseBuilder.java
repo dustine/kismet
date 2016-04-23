@@ -89,7 +89,7 @@ public class TargetDatabaseBuilder {
     }
 
     private static void identifyBlockDrops(World world, Map<String, InformedStack> stacks) {
-        // let's now try to get worldgen in this VERY hackish way:
+        // let's now try to get worldGen in this VERY hackish way:
         final Set<String> drops = new HashSet<>();
         final Set<String> silkDrops = new HashSet<>();
         final FakePlayer fakePlayer = FakePlayerFactory.getMinecraft((WorldServer) world);
@@ -101,9 +101,9 @@ public class TargetDatabaseBuilder {
             final ImmutableList<IBlockState> validStates = block.getBlockState().getValidStates();
 
             for (IBlockState state : validStates) {
-                // check their drops (including if it is silk harvestable)
+                // check their drops (including if it is silk harvested)
                 drops.addAll(getDropsFromState(world, fakePlayer, block, state));
-                // test for silk touchness
+                // test for silk touch
                 if (block.canSilkHarvest(world, BlockPos.ORIGIN, state, fakePlayer)) {
                     silkDrops.addAll(getSilkDrops(block, state));
                 }
@@ -158,37 +158,7 @@ public class TargetDatabaseBuilder {
         Set<String> drops = new HashSet<>();
 
         ItemStack silkDrop = block.createStackedBlock(state);
-//        Class<?> currentClass = block.getClass();
-        // try while we don't have Block.class
-//        while (currentClass != null && Block.class.isAssignableFrom(currentClass)) {
-//            Method silkDrops = null;
-//            try {
-//                // as the method is protected, I'll "just" access it with reflection
-//                silkDrops = currentClass.getDeclaredMethod("createStackedBlock", IBlockState.class);
-//            } catch (SecurityException e) {
-//                // no access to the class, abort
-//                ModLogger.error("", e);
-//                break;
-//            } catch (NoSuchMethodException ignored) {
-//            }
-//
-//            if (silkDrops != null) {
-//                try {
-//                    silkDrops.setAccessible(true);
-//                    silkDrop = (ItemStack) silkDrops.invoke(block, state);
-//                    // if we reached here, the function was sucessfully invoked
-//                    // so we can break the loop and see what we got
-//                    break;
-//                } catch (IllegalAccessException | InvocationTargetException e) {
-//                    // no access to the method, or state is not correctly setup, abort
-//                    ModLogger.error("", e);
-//                    break;
-//                }
-//            }
-//
-//            // loop hasn't terminated, so let's go up one level and try again
-//            currentClass = currentClass.getSuperclass();
-//        }
+
         if (silkDrop != null)
             drops.add(StackHelper.toUniqueKey(silkDrop));
 
@@ -198,7 +168,7 @@ public class TargetDatabaseBuilder {
     private static Map<String, InformedStack> getRegisteredItems() {
         final HashMap<String, InformedStack> stacks = new HashMap<>();
 
-        // add stacks from ItemRegistery
+        // add stacks from ItemRegistry
         for (ResourceLocation loc : Item.itemRegistry.getKeys()) {
             Item item = Item.itemRegistry.getObject(loc);
             ItemStack stack = new ItemStack(item);
@@ -216,9 +186,7 @@ public class TargetDatabaseBuilder {
      * @param stacks
      * @return Number of new items added from the loot system
      */
-    private static int identifyLoot(WorldServer world, Map<String, InformedStack> stacks) {
-        final int oldSize = stacks.size();
-
+    private static void identifyLoot(WorldServer world, Map<String, InformedStack> stacks) {
         final LootTableManager lootTableManager = world.getLootTableManager();
         final List<LootTable> allTables = LootTableList.getAll().stream()
                 .map(lootTableManager::getLootTableFromLocation)
@@ -230,7 +198,6 @@ public class TargetDatabaseBuilder {
         // add them to the hashed map, trying to avoid replacing already existing stacks
         loots.forEach(addToStackMap(stacks, InformedStack.ObtainableTypes.Lootable));
 
-        return stacks.size() - oldSize;
 //        FluidRegistry.getBucketFluids();
 //        UniversalBucket.getFilledBucket()
     }

@@ -71,6 +71,6 @@ public class BlockTimedDisplay extends BlockDisplay {
             }
         }
 
-        return parentResult;
+        return false;
     }
 }

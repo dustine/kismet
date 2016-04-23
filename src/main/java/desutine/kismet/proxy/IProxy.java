@@ -20,7 +20,7 @@ public interface IProxy {
 
     boolean inferSafeHasSubtypes(ItemStack stack);
 
-    void registerInventoryModel(BlockKismet block, String name);
+    void registerInventoryModel(BlockKismet block);
 
-    void registerInventoryModel(ItemKismet item, String name);
+    void registerInventoryModel(ItemKismet item);
 }

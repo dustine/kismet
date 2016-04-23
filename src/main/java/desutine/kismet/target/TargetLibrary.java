@@ -19,7 +19,7 @@ public class TargetLibrary {
     /**
      * todo rewrite this all and remove comments from function body
      * Pick a random mod, using as a metric w*#stacks(mod), where w is a non-negative integer related to the previous
-     * occurence of targets of this mod, and #stacks the number of ItemStacks, related to this mod, eligable to be
+     * occurrence of targets of this mod, and #stacks the number of ItemStacks, related to this mod, eligible to be
      * picked as a target.
      * <p>
      * Now weight is calculated as such:
@@ -91,11 +91,11 @@ public class TargetLibrary {
         // configFilteredItems is already filtered to only have valid stacks so it's just a process of picking a
         // random index and returning the contents on that index
         final String finalTargetMod = targetMod;
-        List<InformedStack> decapsulatedTargets = targets.stream()
+        List<InformedStack> unwrappedStacks = targets.stream()
                 .filter(item -> finalTargetMod.equals(StackHelper.getMod(item)))
                 .collect(Collectors.toList());
-        int index = Kismet.random.nextInt(decapsulatedTargets.size());
-        InformedStack newTarget = decapsulatedTargets.get(index);
+        int index = Kismet.random.nextInt(unwrappedStacks.size());
+        InformedStack newTarget = unwrappedStacks.get(index);
 
         // finally, we have a target.
         // but ah, before finishing, we have to add the newly generated target to the lastTarget stacks!

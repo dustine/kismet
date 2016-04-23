@@ -50,7 +50,7 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void cleanTargetLibrary(EntityPlayerMP player) {
         // yeah, server code on ClientProxy
-        // that's because rclient proxy + isRemote = embedded server thread
+        // that's because client proxy + isRemote = embedded server thread
         if (player.worldObj.isRemote) return;
 
         Kismet.libraryFactory.generateStacks(player);
@@ -62,13 +62,13 @@ public class ClientProxy extends CommonProxy {
     }
 
     @Override
-    public void registerInventoryModel(BlockKismet block, String name) {
+    public void registerInventoryModel(BlockKismet block) {
         ModelLoader.setCustomModelResourceLocation(Item.getItemFromBlock(block), 0,
                 new ModelResourceLocation(block.getRegistryName(), "inventory"));
     }
 
     @Override
-    public void registerInventoryModel(ItemKismet item, String name) {
+    public void registerInventoryModel(ItemKismet item) {
         ModelLoader.setCustomModelResourceLocation(item, 0,
                 new ModelResourceLocation(item.getRegistryName(), "inventory"));
     }

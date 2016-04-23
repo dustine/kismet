@@ -24,11 +24,6 @@ public class CommandKismet extends CommandBase {
     }
 
     @Override
-    public boolean checkPermission(MinecraftServer server, ICommandSender sender) {
-        return super.checkPermission(server, sender);
-    }
-
-    @Override
     public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos) {
         ModLogger.info(Arrays.toString(args));
         if (args.length == 1) {

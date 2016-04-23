@@ -12,8 +12,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.oredict.OreDictionary;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -54,7 +52,6 @@ public class TargetLibraryBuilder {
      * @param originalStacks
      * @return A map from joining originalStacks with the config lists
      */
-    @NotNull
     public static Map<String, InformedStack> getConfigStacks(Collection<InformedStack> originalStacks) {
         Map<String, InformedStack> stacks = new HashMap<>();
 
@@ -171,7 +168,6 @@ public class TargetLibraryBuilder {
         }
     }
 
-    @Nullable
     private static String standardizeFilter(@Nonnull String s) {
         // mod filtering
         final String[] split = s.split(":");

@@ -10,7 +10,6 @@ import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.*;
@@ -267,7 +266,6 @@ public final class ConfigKismet {
         return categories;
     }
 
-    @NotNull
     private static String getTypeName(ObtainableTypes type) {
         return type.toString().substring(0, 1).toUpperCase() +
                 type.toString().substring(1).toLowerCase();
