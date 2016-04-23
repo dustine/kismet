@@ -1,6 +1,6 @@
 package desutine.kismet.addon;
 
-import desutine.kismet.common.tile.TileDisplay;
+import desutine.kismet.tile.TileDisplay;
 import mezz.jei.api.IItemListOverlay;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiInventory;
@@ -16,8 +16,10 @@ public class JeiIntegration {
             try {
                 String oldFilter = itemList.getFilterText();
 
-                String filter = te.getTarget().getDisplayName();
-                String mod = te.getTarget().getItem().getRegistryName().getResourceDomain();
+                ItemStack stack = te.getTarget().getStack();
+
+                String filter = stack.getDisplayName();
+                String mod = stack.getItem().getRegistryName().getResourceDomain();
                 filter = String.format("%s @%s", filter, mod);
                 if (oldFilter.equalsIgnoreCase(filter)) return false;
 

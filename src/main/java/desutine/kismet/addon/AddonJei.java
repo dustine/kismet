@@ -1,13 +1,12 @@
 package desutine.kismet.addon;
 
 import desutine.kismet.ModLogger;
-import desutine.kismet.common.registry.ModBlocks;
-import desutine.kismet.server.StackWrapper;
+import desutine.kismet.registry.ModBlocks;
+import desutine.kismet.target.InformedStack;
+import desutine.kismet.util.StackHelper;
 import mezz.jei.api.*;
 import mezz.jei.api.recipe.IRecipeCategory;
 import mezz.jei.api.recipe.IStackHelper;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockEmptyDrops;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 
@@ -21,87 +20,80 @@ public class AddonJei implements IModPlugin {
     public static IRecipeRegistry recipeRegistry;
     public static IStackHelper stackHelper;
 
-    public static List<StackWrapper> enrich(List<StackWrapper> stacks) {
-        final Map<String, StackWrapper> mappedStacks = new HashMap<>();
-        stacks.forEach(wrapper -> mappedStacks.put(wrapper.toString(), wrapper));
-
-        unfoldSubtypes(mappedStacks);
-
-        // remove wildcard stacks
+    public static List<InformedStack> enrich(InformedStack stack) {
+        // fix hasSubtypes
+        stack.refreshHasSubtypes();
+        final Map<String, InformedStack> mappedStacks = unfoldSubtypes(stack);
+        // remove wildcard stacks, if any remain somehow
         mappedStacks.values().removeIf(wrapper -> wrapper.getStack().getMetadata() == OreDictionary.WILDCARD_VALUE);
-
+        // add the craftable flag
         setCraftableFlag(mappedStacks.values());
-        addSilkTouchable(mappedStacks);
 
         return new ArrayList<>(mappedStacks.values());
     }
 
-    private static void addSilkTouchable(Map<String, StackWrapper> mappedStacks) {
-        Set<ItemStack> toAdd = new HashSet<>();
-
-        for (StackWrapper wrapper : mappedStacks.values()) {
-
-            final Block block = Block.getBlockFromItem(wrapper.getStack().getItem());
-
-            // add block as itself if it can be silk-harvestable ...?
-            if (block != null && !(block instanceof BlockEmptyDrops)) {
-                // if the block is breakable and can be silk touched
-//                block.getBlockState().getValidStates().stream()
-//                        .filter(state -> block.getBlockHardness(state, null, null) > 0 &&
-//                                block.canSilkHarvest(null, null, state, null))
-//                        .forEach(state -> {
-//                            new BlockSilkDropGetter(block).get
-//                            block.createStackedBlock(state);
-//                            wrapper.setObtainable(true);
-//                        });
-            }
-        }
-    }
-
-    private static void setCraftableFlag(Collection<StackWrapper> stacks) {
+    private static void setCraftableFlag(Collection<InformedStack> stacks) {
         // crafting algorithm
-        // algorithm 0: if recipe = can be crafted
-        for (StackWrapper wrapper : stacks) {
+        // if recipe = can be crafted
+        for (InformedStack wrapper : stacks) {
             // skip the ones already positive
-            if (wrapper.isObtainable()) continue;
+            if (wrapper.isObtainable(InformedStack.ObtainableTypes.Craftable)) continue;
 
             // check the categories where this item appears as an output
             for (IRecipeCategory category : recipeRegistry.getRecipeCategoriesWithOutput(wrapper.getStack())) {
+                if (wrapper.isObtainable(InformedStack.ObtainableTypes.Craftable)) break;
                 // and check the nr of recipes within
                 final List<Object> recipesWithOutput = recipeRegistry.getRecipesWithOutput(category, wrapper.getStack());
                 if (recipesWithOutput.size() > 0) {
-                    wrapper.setObtainable(true);
+                    wrapper.setObtainable(InformedStack.ObtainableTypes.Craftable, true);
                 }
             }
         }
     }
 
-    private static void unfoldSubtypes(Map<String, StackWrapper> stacks) {
-        final Map<String, StackWrapper> subtypeStacks = new HashMap<>();
-        // add all subtypes
-        for (StackWrapper wrapper : stacks.values()) {
-            List<StackWrapper> subtypes = stackHelper.getSubtypes(wrapper.getStack()).stream()
-                    .map(StackWrapper::new)
-                    .collect(Collectors.toList());
-            // check if the subtype stack is already in the stacks
-            // using a set of all unique keys for the items
-            for (StackWrapper subtype : subtypes) {
-                String key = subtype.toString();
-                if (stacks.containsKey(key)) {
-                    // original stacks had this item already, join them
-                    stacks.get(key).joinWith(subtype);
-                } else {
-                    if (subtypeStacks.containsKey(key)) {
-                        // it's already on the added subtypes... somehow
-                        ModLogger.warning("Subtype was added more than once: " + key);
-                    } else {
-                        subtypeStacks.put(key, subtype);
-                    }
-                }
-            }
+    private static Map<String, InformedStack> unfoldSubtypes(InformedStack wrapper) {
+        final Map<String, InformedStack> subtypeStacks = new HashMap<>();
+        final ItemStack stack = wrapper.getStack();
+
+        // skip if we don't have a wildcard stack
+        if (wrapper.getStack().getMetadata() != OreDictionary.WILDCARD_VALUE) {
+            assert stackHelper.getSubtypes(stack).size() < 2;
+            subtypeStacks.put(wrapper.toString(), wrapper);
+            return subtypeStacks;
         }
 
-        stacks.putAll(subtypeStacks);
+        // unfold the wildcard stack into the subtypes
+        List<InformedStack> subtypes = stackHelper.getSubtypes(stack).stream()
+                .map(InformedStack::new)
+                .collect(Collectors.toList());
+
+        // check for subtypes. because, y'know, we have a list of subtypes
+        if (subtypes.size() < 2) {
+            subtypes.forEach(InformedStack::refreshHasSubtypes);
+        } else {
+            subtypes.forEach(subtype -> subtype.setHasSubtypes(true));
+        }
+
+        // add all subtypes to the mapped list
+        for (InformedStack newWrapper : subtypes) {
+            // add the obtainability of the original wrapper into wrapper:0 (metadata 0)
+            if (StackHelper.isEquivalent(wrapper, newWrapper)) {
+                newWrapper.setObtainable(wrapper.getObtainable());
+            }
+
+            // check if the subtype stack is already in the stacks
+            // using a set of all unique keys for the items
+            String key = newWrapper.toString();
+            if (subtypeStacks.containsKey(key)) {
+                // original stacks had this item already, join them
+                // this will emit a warning message as it's not supposed to happen but at least nothing is lost
+                ModLogger.warning(String.format("Tried to register subtype twice %s %s", subtypeStacks.get(key),
+                        newWrapper));
+            }
+            subtypeStacks.put(key, newWrapper);
+        }
+
+        return subtypeStacks;
     }
 
     @Override

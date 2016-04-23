@@ -5,15 +5,10 @@ import desutine.kismet.ModLogger;
 import desutine.kismet.Reference;
 import desutine.kismet.addon.AddonJei;
 import desutine.kismet.client.util.ClientTargetHelper;
-import desutine.kismet.common.ConfigKismet;
-import desutine.kismet.common.tile.TileDisplay;
-import desutine.kismet.network.packet.MessageKismetConfig;
-import desutine.kismet.network.packet.MessageReceiveEnrichedTargets;
-import desutine.kismet.network.packet.MessageSendRawTargets;
-import desutine.kismet.network.packet.MessageTileEntity;
-import desutine.kismet.server.StackWrapper;
-import desutine.kismet.server.WorldSavedDataTargets;
-import desutine.kismet.util.StackHelper;
+import desutine.kismet.network.packet.*;
+import desutine.kismet.server.WSDTargetDatabase;
+import desutine.kismet.target.InformedStack;
+import desutine.kismet.tile.TileDisplay;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.tileentity.TileEntity;
@@ -27,9 +22,7 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.relauncher.Side;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class NetworkHandlerKismet {
     private static int discriminator;
@@ -39,12 +32,14 @@ public class NetworkHandlerKismet {
         // registering channel
         channel = NetworkRegistry.INSTANCE.newSimpleChannel(Reference.MOD_ID);
         // registering messages
-        channel.registerMessage(SyncClientTileDisplay.class, MessageTileEntity.class, getDiscriminator(),
-                Side.CLIENT);
-        channel.registerMessage(SendConfigToClient.class, MessageKismetConfig.class, getDiscriminator(), Side.CLIENT);
-        channel.registerMessage(EnrichItemStacks.class, MessageSendRawTargets.class, getDiscriminator(), Side.CLIENT);
-        channel.registerMessage(ReceiveEnrichedItemStacks.class, MessageReceiveEnrichedTargets.class,
-                getDiscriminator(), Side.SERVER);
+        channel.registerMessage(SyncClientTileDisplay.class, SCTDMessage.class, getDiscriminator(), Side.CLIENT);
+        channel.registerMessage(GenerateSkippedTarget.class, GSTMessage.class, getDiscriminator(), Side.SERVER);
+
+        channel.registerMessage(SendConfigToClient.class, SCTCMessage.class, getDiscriminator(), Side.CLIENT);
+
+        channel.registerMessage(EnrichStackList.class, ESLMessage.class, getDiscriminator(), Side.CLIENT);
+        channel.registerMessage(ReceiveEnrichedStacks.class, RESMessage.class, getDiscriminator(), Side.SERVER);
+        channel.registerMessage(FinishedEnrichingStacks.class, FESMessage.class, getDiscriminator(), Side.SERVER);
     }
 
     private static int getDiscriminator() {
@@ -52,25 +47,25 @@ public class NetworkHandlerKismet {
     }
 
     public void syncDisplayTargetToClient(int dimension, TileEntity tileEntity) {
-        channel.sendToDimension(new MessageTileEntity(tileEntity), dimension);
+        channel.sendToDimension(new SCTDMessage(tileEntity), dimension);
     }
 
     public void sendConfigToClient(EntityPlayerMP player) {
-        channel.sendTo(new MessageKismetConfig(), player);
+        channel.sendTo(new SCTCMessage(), player);
     }
 
-    public void enrichStacks(List<StackWrapper> targets, EntityPlayerMP player) {
-        channel.sendTo(new MessageSendRawTargets(targets), player);
+    public void enrichStacks(List<InformedStack> targets, EntityPlayerMP player) {
+        channel.sendTo(new ESLMessage(targets), player);
     }
 
-    private void sendEnriched(List<StackWrapper> targets) {
-        channel.sendToServer(new MessageReceiveEnrichedTargets(targets));
+    public void newSkippedTarget(TileDisplay te) {
+        channel.sendToServer(new GSTMessage(te.getPos(), te.getSkipped()));
     }
 
     @SuppressWarnings("WeakerAccess")
-    public static class SyncClientTileDisplay implements IMessageHandler<MessageTileEntity, IMessage> {
+    public static class SyncClientTileDisplay implements IMessageHandler<SCTDMessage, IMessage> {
         @Override
-        public IMessage onMessage(MessageTileEntity message, MessageContext ctx) {
+        public IMessage onMessage(SCTDMessage message, MessageContext ctx) {
             Minecraft.getMinecraft().addScheduledTask(() -> {
                 int x, y, z;
                 x = message.nbtTagCompound.getInteger("x");
@@ -94,64 +89,84 @@ public class NetworkHandlerKismet {
     }
 
     @SuppressWarnings("WeakerAccess")
-    public static class SendConfigToClient implements IMessageHandler<MessageKismetConfig, IMessage> {
+    public static class SendConfigToClient implements IMessageHandler<SCTCMessage, IMessage> {
         @Override
-        public IMessage onMessage(MessageKismetConfig message, MessageContext ctx) {
-            Minecraft.getMinecraft().addScheduledTask(() -> ConfigKismet.clientSync(message.syncValues));
+        public IMessage onMessage(SCTCMessage message, MessageContext ctx) {
+//            Minecraft.getMinecraft().addScheduledTask(() -> ConfigKismet.clientSync(message.syncValues));
             return null;
         }
     }
 
     @SuppressWarnings("WeakerAccess")
-    public static class EnrichItemStacks implements IMessageHandler<MessageSendRawTargets, IMessage> {
+    public static class EnrichStackList implements IMessageHandler<ESLMessage, IMessage> {
         @Override
-        public MessageSendRawTargets onMessage(MessageSendRawTargets message, MessageContext ctx) {
+        public ESLMessage onMessage(ESLMessage message, MessageContext ctx) {
             Minecraft.getMinecraft().addScheduledTask(() -> {
-                List<StackWrapper> targets = message.stacks;
-                if (isJeiReady()) {
-                    targets = AddonJei.enrich(message.stacks);
-                } else {
-                    targets = ClientTargetHelper.vanillaEnrich(message.stacks);
+                for (InformedStack stack : message.stacks) {
+                    List<InformedStack> targets;
+                    if (Kismet.instance.isJeiLoaded()) {
+                        targets = AddonJei.enrich(stack);
+                    } else {
+                        targets = ClientTargetHelper.vanillaEnrich(stack);
+                    }
+                    targets.forEach(InformedStack::seal);
+                    Kismet.network.channel.sendToServer(new RESMessage(targets));
                 }
-                Kismet.network.sendEnriched(targets);
+                Kismet.network.channel.sendToServer(new FESMessage());
             });
             return null;
-        }
-
-        private boolean isJeiReady() {
-            return AddonJei.recipeRegistry != null && AddonJei.stackHelper != null;
         }
     }
 
     @SuppressWarnings("WeakerAccess")
-    public static class ReceiveEnrichedItemStacks implements IMessageHandler<MessageReceiveEnrichedTargets, IMessage> {
+    public static class ReceiveEnrichedStacks implements IMessageHandler<RESMessage, IMessage> {
         @Override
-        public IMessage onMessage(final MessageReceiveEnrichedTargets message, MessageContext ctx) {
-            final WorldServer world = (WorldServer) (ctx.getServerHandler().playerEntity.worldObj);
+        public IMessage onMessage(final RESMessage message, MessageContext ctx) {
+            final EntityPlayerMP player = ctx.getServerHandler().playerEntity;
+            final WorldServer world = (WorldServer) (player.worldObj);
             world.addScheduledTask(() -> {
-                final EntityPlayerMP player = ctx.getServerHandler().playerEntity;
                 if (Kismet.libraryFactory != null) {
-                    final WorldSavedDataTargets wsdStacks = WorldSavedDataTargets.get(world);
-                    int skipped = wsdStacks.enrichStacks(message.stacks);
-                    Kismet.libraryFactory.recreateLibrary();
-
-                    player.addChatMessage(
-                            new TextComponentString(String.format("[Kismet] Added %d targets, mods:%s", message
-                                    .stacks.size() - skipped, getMods(message.stacks))));
+                    final WSDTargetDatabase wsdStacks = WSDTargetDatabase.get(world);
+                    wsdStacks.enrichStacks(message.stacks);
                 }
-
-                Kismet.libraryFactory.sendNextPacket(player);
             });
             return null;
         }
 
-        private Set<String> getMods(List<StackWrapper> stacks) {
-            final Set<String> mods = new HashSet<>();
-            for (StackWrapper wrapper : stacks) {
-                String mod = StackHelper.getMod(wrapper.getStack());
-                mods.add(mod);
-            }
-            return mods;
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public static class FinishedEnrichingStacks implements IMessageHandler<FESMessage, IMessage> {
+        @Override
+        public IMessage onMessage(FESMessage message, MessageContext ctx) {
+            final EntityPlayerMP player = ctx.getServerHandler().playerEntity;
+            final WorldServer world = (WorldServer) (player.worldObj);
+            world.addScheduledTask(() -> {
+                if (Kismet.libraryFactory != null) {
+                    final boolean sent = Kismet.libraryFactory.sendNextPacket(player);
+                    if (!sent) {
+                        Kismet.libraryFactory.recreateLibrary();
+                        player.addChatMessage(
+                                new TextComponentString("[Kismet] Finished resetting library!"));
+                    }
+                }
+            });
+            return null;
+        }
+    }
+
+    @SuppressWarnings("WeakerAccess")
+    public static class GenerateSkippedTarget implements IMessageHandler<GSTMessage, IMessage> {
+        @Override
+        public IMessage onMessage(GSTMessage message, MessageContext ctx) {
+            final EntityPlayerMP player = ctx.getServerHandler().playerEntity;
+            final WorldServer world = (WorldServer) (player.worldObj);
+            world.addScheduledTask(() -> {
+                final TileDisplay tileDisplay = (TileDisplay) world.getTileEntity(message.pos);
+                tileDisplay.setSkipped(message.skipped);
+                tileDisplay.getNewTarget();
+            });
+            return null;
         }
     }
 }

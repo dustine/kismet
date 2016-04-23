@@ -1,6 +1,6 @@
 package desutine.kismet.client;
 
-import desutine.kismet.common.block.BlockChillDisplay;
+import desutine.kismet.block.BlockChillDisplay;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.renderer.color.IBlockColor;

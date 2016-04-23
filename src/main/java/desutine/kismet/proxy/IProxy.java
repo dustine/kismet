@@ -1,10 +1,12 @@
 package desutine.kismet.proxy;
 
+import desutine.kismet.block.BlockKismet;
+import desutine.kismet.item.ItemKismet;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemStack;
 
 public interface IProxy {
-    void addInventoryModels();
 
     void initConfig();
 
@@ -15,4 +17,10 @@ public interface IProxy {
     void sendConfigToClient(EntityPlayer player);
 
     void cleanTargetLibrary(EntityPlayerMP player);
+
+    boolean inferSafeHasSubtypes(ItemStack stack);
+
+    void registerInventoryModel(BlockKismet block);
+
+    void registerInventoryModel(ItemKismet item);
 }

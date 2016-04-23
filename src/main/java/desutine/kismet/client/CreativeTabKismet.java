@@ -1,7 +1,7 @@
 package desutine.kismet.client;
 
 import desutine.kismet.Reference;
-import desutine.kismet.common.registry.ModBlocks;
+import desutine.kismet.registry.ModBlocks;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 

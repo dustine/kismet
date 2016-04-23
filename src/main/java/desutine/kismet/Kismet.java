@@ -1,21 +1,24 @@
 package desutine.kismet;
 
-import desutine.kismet.common.registry.ModBlocks;
-import desutine.kismet.common.registry.ModItems;
-import desutine.kismet.common.registry.ModRecipes;
-import desutine.kismet.common.registry.ModTiles;
 import desutine.kismet.network.NetworkHandlerKismet;
 import desutine.kismet.proxy.IProxy;
+import desutine.kismet.registry.ModBlocks;
+import desutine.kismet.registry.ModItems;
+import desutine.kismet.registry.ModRecipes;
+import desutine.kismet.registry.ModTiles;
 import desutine.kismet.server.CommandKismet;
 import desutine.kismet.server.event.EventRegenLibraryOnce;
-import desutine.kismet.target.TargetLibraryFactory;
+import desutine.kismet.target.TargetDatabaseBuilder;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.*;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
 
 import java.util.Random;
 
@@ -24,7 +27,7 @@ public class Kismet {
     public static final Random random = new Random();
     public final static CommandKismet command = new CommandKismet();
     public static NetworkHandlerKismet network;
-    public static TargetLibraryFactory libraryFactory;
+    public static TargetDatabaseBuilder libraryFactory;
     @Mod.Instance(Reference.MOD_ID)
     public static Kismet instance;
     @SidedProxy(clientSide = Reference.CLIENT_PROXY_CLASS, serverSide = Reference.SERVER_PROXY_CLASS)
@@ -46,12 +49,11 @@ public class Kismet {
         // register blocks, items, tile entities
         ModBlocks.init();
         ModItems.init();
-        proxy.addInventoryModels();
         ModTiles.init();
         proxy.registerTESR();
 
         // register eventhandlers
-        MinecraftForge.EVENT_BUS.register(new desutine.kismet.common.event.EventHandler());
+        MinecraftForge.EVENT_BUS.register(new desutine.kismet.event.EventHandler());
 
         // start network channels
         network = new NetworkHandlerKismet();
@@ -75,20 +77,16 @@ public class Kismet {
     /**
      * Handle interaction with other mods, complete your setup based on this.
      */
-    @EventHandler
-    public void postInit(FMLPostInitializationEvent event) {
-//        event.buildSoftDependProxy()
-//        event.buildSoftDependProxy()
-        // finish generating item tree
-//        TargetHelper.generateList(null);
-    }
+//    @EventHandler
+//    public void postInit(FMLPostInitializationEvent event) {
+//    }
 
     @EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
         // register commands
         event.registerServerCommand(command);
 
-        libraryFactory = new TargetLibraryFactory((WorldServer) event.getServer().getEntityWorld());
+        libraryFactory = new TargetDatabaseBuilder((WorldServer) event.getServer().getEntityWorld());
 
         // register the hook to restart the targetLibrary on single-player
         eventRegenLibraryOnce = new EventRegenLibraryOnce();
@@ -101,4 +99,7 @@ public class Kismet {
         MinecraftForge.EVENT_BUS.unregister(Kismet.instance.eventRegenLibraryOnce);
     }
 
+    public boolean isJeiLoaded() {
+        return jeiLoaded;
+    }
 }
