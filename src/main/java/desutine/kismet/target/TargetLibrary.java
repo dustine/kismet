@@ -17,18 +17,18 @@ public class TargetLibrary {
     private static List<InformedStack> library;
 
     /**
-     * todo rewrite this all and remove comments from function body
-     * Pick a random mod, using as a metric w*#stacks(mod), where w is a non-negative integer related to the previous
-     * occurrence of targets of this mod, and #stacks the number of ItemStacks, related to this mod, eligible to be
-     * picked as a target.
+     * todo rewrite this all and remove comments from function body Pick a random mod, using as a metric w*#stacks(mod),
+     * where w is a non-negative integer related to the previous occurrence of targets of this mod, and #stacks the
+     * number of ItemStacks, related to this mod, eligible to be picked as a target.
      * <p>
-     * Now weight is calculated as such:
-     * - all mods start as weight 1
-     * - when a mod isn't chosen as a target, its weight increases by 1
-     * - if it is chosen, it is reset to 0
+     * Now weight is calculated as such: - all mods start as weight 1 - when a mod isn't chosen as a target, its weight
+     * increases by 1 - if it is chosen, it is reset to 0
      * <p>
-     * This makes it so that mods are never* chosen twice in a row, and the longer a mod goes without being picked the higher its chances are.
-     * But that's weight alone, what about the item quantity bit? That's to account for how some mods just have more stuff than others. If the randomization is done by weight alone, mods with few stacks will cause those stacks to pop up a lot more frequently than others. This sounds good in first sight, but it would lead to inevitable item repetition, even with the weight counterbalance.
+     * This makes it so that mods are never* chosen twice in a row, and the longer a mod goes without being picked the
+     * higher its chances are. But that's weight alone, what about the item quantity bit? That's to account for how some
+     * mods just have more stuff than others. If the randomization is done by weight alone, mods with few stacks will
+     * cause those stacks to pop up a lot more frequently than others. This sounds good in first sight, but it would
+     * lead to inevitable item repetition, even with the weight counterbalance.
      *
      * @param weights
      * @param lastTargets

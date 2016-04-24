@@ -18,9 +18,9 @@ import java.util.*;
 
 public class TargetLibraryBuilder {
     /**
-     * Recreates the possible target stack library at TargetLibrary according to the current config.
-     * This function reads the existing "stacks" information stored in the @world and rewrites the "forcedStacks" to
-     * assure any configuration changes are reflected on the saved data for future use.
+     * Recreates the possible target stack library at TargetLibrary according to the current config. This function reads
+     * the existing "stacks" information stored in the @world and rewrites the "forcedStacks" to assure any
+     * configuration changes are reflected on the saved data for future use.
      *
      * @param targets
      */
@@ -47,7 +47,8 @@ public class TargetLibraryBuilder {
     }
 
     /**
-     * Using originalStacks as a initial blueprint, this function loads all the defined stacks in the configurations, such as the hidden lists and the force-add stacks, and joins them into originalStacks.
+     * Using originalStacks as a initial blueprint, this function loads all the defined stacks in the configurations,
+     * such as the hidden lists and the force-add stacks, and joins them into originalStacks.
      *
      * @param originalStacks
      * @return A map from joining originalStacks with the config lists

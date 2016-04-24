@@ -24,8 +24,8 @@ import java.util.List;
 
 public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
     /**
-     * Code greatly based on {net.minecraft.client.renderer.entity.RenderItemFrame} (not my fault this class
-     * has no documentation)
+     * Code greatly based on {net.minecraft.client.renderer.entity.RenderItemFrame} (not my fault this class has no
+     * documentation)
      */
     @Override
     public void renderTileEntityAt(TileDisplay te, double x, double y, double z, float partialTicks, int destroyStage) {

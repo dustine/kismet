@@ -114,7 +114,7 @@ task clearLiveResources(type: Delete) {
 task syncLiveResources(type: Sync, dependsOn: "clearLiveResources") {
     from "src/main/resources"
     into "run/resourcepacks/Live"
-    exclude "mcmod.info"
+    include "assets/**"
 }
 
 task liveResources (dependsOn: "syncLiveResources", group:"liveresources") {

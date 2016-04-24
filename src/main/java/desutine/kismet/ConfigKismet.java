@@ -19,9 +19,7 @@ import java.util.stream.Collectors;
 import static net.minecraftforge.common.config.Configuration.CATEGORY_GENERAL;
 
 /**
- * Mod Configuration
- * Heavily based on TheGreyGhost's MinecraftByExample
- * Source: https://github.com/TheGreyGhost/MinecraftByExample
+ * Mod Configuration Heavily based on TheGreyGhost's MinecraftByExample Source: https://github.com/TheGreyGhost/MinecraftByExample
  */
 public final class ConfigKismet {
     public static final String CATEGORY_TARGETS = "targets";
@@ -68,18 +66,16 @@ public final class ConfigKismet {
     }
 
     /**
-     * Loads config from disk, overriding current config
-     * Only needed on mod's preInit
+     * Loads config from disk, overriding current config Only needed on mod's preInit
      */
     private static void syncFromFile() {
         syncConfig(true, true);
     }
 
     /**
-     * Synchronise the three copies of the data
-     * 1) loadConfigFromFile && readFieldsFromConfig -> initialise everything from the disk file
-     * 2) !loadConfigFromFile && readFieldsFromConfig --> copy everything from the config file (altered by GUI)
-     * 3) !loadConfigFromFile && !readFieldsFromConfig --> copy everything from the native fields
+     * Synchronise the three copies of the data 1) loadConfigFromFile && readFieldsFromConfig -> initialise everything
+     * from the disk file 2) !loadConfigFromFile && readFieldsFromConfig --> copy everything from the config file
+     * (altered by GUI) 3) !loadConfigFromFile && !readFieldsFromConfig --> copy everything from the native fields
      *
      * @param loadConfigFromFile   if true, load the config field from the config file on disk
      * @param readFieldsFromConfig if true, reload the member variables from the config field
@@ -290,8 +286,7 @@ public final class ConfigKismet {
     }
 
     /**
-     * Save the GUI-stored values, without accessing disk config
-     * Not needed to use
+     * Save the GUI-stored values, without accessing disk config Not needed to use
      */
     private static void syncFromGUI() {
         syncConfig(false, true);
@@ -306,8 +301,8 @@ public final class ConfigKismet {
     }
 
     /**
-     * Saves the config present on the variables in this class
-     * Run this method every time you change one of the variables
+     * Saves the config present on the variables in this class Run this method every time you change one of the
+     * variables
      */
     private static void syncFromFields() {
         syncConfig(false, false);
