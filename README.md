@@ -47,9 +47,11 @@ That's what this mod is all about: a constant challenge to try to get stuff, not
 
 ## FAQ
 **Q**. Are these even frequently asked?
+
 No, but I can foresee parts of the mod that fail to explain themselves. And this is my solution to that fact for now.
 
 **Q**. Crafting recipes please.
+
 Not a question but I aim to serve. And please use JEI? The mod [profits from it](https://github.com/dustine/kismet/wiki/Mod-interactions#JEI).
 
 ![Crafting recipe for the Kismet Display](nope)
@@ -57,6 +59,7 @@ Not a question but I aim to serve. And please use JEI? The mod [profits from it]
 ![Crafting recipe for the Kismetic Key](justwait)
 
 **Q**. Does Kismet have any useful commands?
+
 Yeah! All these can be done with `/kismet <command>`. Here's a select few most likely to be used.
 
 | Command   | Description 
@@ -68,25 +71,31 @@ Yeah! All these can be done with `/kismet <command>`. Here's a select few most l
 | `reset`   | Resets the target database (see [note for servers](https://github.com/dustine/kismet/wiki/Note-for-servers))
 
 **Q**. Uh, these commands just gave me an error message saying they can only be run ingame, wtf?
+
 Heh. This is not the case for ALL commands but it happens that the most useful ones (see above) end up being the ones that, as the error message says, need to be called in-game. No server consoles or automatic tools. Also OP permission required.
 
 **Q**. Any more commands I should know?
+
 Uh, yeah, but I don't see anyone using them to be honest. They're over [here](https://github.com/dustine/kismet/wiki/Commands).
 
 **Q**. A Timed Display is taking too long to get a new goal, can I speed it up somehow?
+
 Yup. Use a Kismetic Key on it, it'll unlock the next goal with no penalties. The key still gets consumed in the process.
 
-**Q**. The Key failure chance seems unfair. Can't we disable it?
+**Q**. The Key failure chance seems unfair. Can we disable it?
+
 Still debating this one (keys are cheap-ish because of this). But know that fulfilling goals after using a key sucessfully makes it more likely it'll work in the future, and that unsuccessful key usages don't count into decreasing future odds. 
 
 And you can always just break and replace the display, all you lose is score bragging rights :wink:
 
 **Q**. Is there a way to move a display and not have it lose its score?
+
 Try breaking the block with Silk Touch.
 
 Yeah, I didn't expect that to work either :pensive: I'm thinking on a solution for now, suggestions would be welcome.
 
 **Q**. The display looks all weird and no item is showing up. Have I done something wrong?
+
 Probably not, but if your display looks like this:
 
 ![Kismetic Display in a broken state](poorthing)
