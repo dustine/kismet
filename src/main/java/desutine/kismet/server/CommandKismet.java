@@ -71,6 +71,12 @@ public class CommandKismet extends CommandBase {
                     ModLogger.info(output.toString());
                     return;
                 case "reset":
+                    if (!(sender instanceof EntityPlayerMP)) {
+                        sender.addChatMessage(new TextComponentString(String.format("[Kismet] Error, command \"%s\" " +
+                                "can only be run " +
+                                "in-game", args[0])));
+                        return;
+                    }
                     if (Kismet.libraryFactory != null) {
                         Kismet.libraryFactory.generateStacks((EntityPlayerMP) sender);
                     } else sender.addChatMessage(

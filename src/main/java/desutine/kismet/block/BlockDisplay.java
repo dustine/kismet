@@ -3,6 +3,7 @@ package desutine.kismet.block;
 import desutine.kismet.Kismet;
 import desutine.kismet.registry.ModItems;
 import desutine.kismet.tile.TileDisplay;
+import desutine.kismet.util.SoundHelper;
 import desutine.kismet.util.StackHelper;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
@@ -44,7 +45,7 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
         setHardness(5);
 
         // declaring properties
-        setDefaultState(blockState.getBaseState()
+        setDefaultState(this.blockState.getBaseState()
                 .withProperty(READY, false)
                 .withProperty(FACING, EnumFacing.NORTH)
                 .withProperty(FULFILLED, false));
@@ -148,39 +149,27 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
         // Check if the heldItem is the target
         if (heldItem != null && StackHelper.isEquivalent(te.getTarget(), heldItem)) {
             // fulfilled target~
-            te.setSkipped(te.getSkipped() - 1);
-            setTargetAsFulfilled(world, pos);
+            setTargetAsFulfilled(world, pos, state, player);
             return true;
         }
 
         // Kismetic key = new target
         if (heldItem != null && heldItem.isItemEqual(new ItemStack(ModItems.ITEM_KEY))) {
-            if (state.getValue(BlockDisplay.FULFILLED)) {
-                // fulfilled = reroll, no chance of failing
-                te.getNewTarget();
-                return true;
-            }
-            if (world.isRemote) {
-                // if the roll for key doesn't fail eue
-                if (te.rollForKey()) {
-                    te.setSkipped(te.getSkipped() + 1);
-                    Kismet.network.newSkippedTarget(te);
-                } else {
-                    player.renderBrokenItemStack(heldItem);
-                }
-            }
+            if (world.isRemote)
+                Kismet.network.attemptKeyUsage(te, heldItem);
             return true;
         }
 
         return super.onBlockActivated(world, pos, state, player, hand, heldItem, side, hitX, hitY, hitZ);
     }
 
-    public void setTargetAsFulfilled(World world, BlockPos pos) {
-        final IBlockState state = world.getBlockState(pos);
+    public void setTargetAsFulfilled(World world, BlockPos pos, IBlockState state, EntityPlayer player) {
         if (state.getValue(FULFILLED)) return;
 
+        SoundHelper.onTargetFulfilled(player);
         world.setBlockState(pos, state.withProperty(BlockDisplay.FULFILLED, true));
         TileDisplay te = (TileDisplay) world.getTileEntity(pos);
+        te.setSkipped(te.getSkipped() - 1);
         te.setScore(te.getScore() + 1);
     }
 

@@ -257,7 +257,7 @@ public class TargetDatabaseBuilder {
                         // change the item to be the smelted version
                         ItemStack stack = TargetLibraryBuilder.getItemStack(name);
                         final ItemStack smeltedStack = FurnaceRecipes.instance().getSmeltingResult(stack);
-                        variants.add(StackHelper.toUniqueKey(smeltedStack));
+                        variants.add(smeltedStack.getItem().getRegistryName().toString());
                         break;
                     case "minecraft:looting_enchant":
                         JsonElement count = function.get("count");

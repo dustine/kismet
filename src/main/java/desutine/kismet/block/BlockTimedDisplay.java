@@ -27,6 +27,7 @@ public class BlockTimedDisplay extends BlockDisplay {
         TileDisplay te = (TileDisplay) world.getTileEntity(pos);
         if (te == null) return false;
         if (te.getTarget() == null) return false;
+        if (!te.getTarget().hasItem()) return false;
 
         // logical client
         if (world.isRemote) {

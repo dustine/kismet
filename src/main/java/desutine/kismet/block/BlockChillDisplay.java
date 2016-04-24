@@ -26,6 +26,7 @@ public class BlockChillDisplay extends BlockDisplay {
         TileDisplay te = (TileDisplay) world.getTileEntity(pos);
         if (te == null) return false;
         if (te.getTarget() == null) return false;
+        if (!te.getTarget().hasItem()) return false;
 
         // logical client
         if (world.isRemote) {
@@ -63,8 +64,8 @@ public class BlockChillDisplay extends BlockDisplay {
     }
 
     @Override
-    public void setTargetAsFulfilled(World world, BlockPos pos) {
-        super.setTargetAsFulfilled(world, pos);
+    public void setTargetAsFulfilled(World world, BlockPos pos, IBlockState state, EntityPlayer player) {
+        super.setTargetAsFulfilled(world, pos, state, player);
 
         TileDisplay te = (TileDisplay) world.getTileEntity(pos);
         te.getNewTarget();

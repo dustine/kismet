@@ -4,13 +4,16 @@ import desutine.kismet.Kismet;
 import desutine.kismet.ModLogger;
 import desutine.kismet.Reference;
 import desutine.kismet.addon.AddonJei;
+import desutine.kismet.block.BlockDisplay;
 import desutine.kismet.client.util.ClientTargetHelper;
 import desutine.kismet.network.packet.*;
 import desutine.kismet.server.WSDTargetDatabase;
 import desutine.kismet.target.InformedStack;
 import desutine.kismet.tile.TileDisplay;
+import desutine.kismet.util.SoundHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
@@ -30,16 +33,17 @@ public class NetworkHandlerKismet {
 
     public NetworkHandlerKismet() {
         // registering channel
-        channel = NetworkRegistry.INSTANCE.newSimpleChannel(Reference.MOD_ID);
+        this.channel = NetworkRegistry.INSTANCE.newSimpleChannel(Reference.MOD_ID);
         // registering messages
-        channel.registerMessage(SyncClientTileDisplay.class, SCTDMessage.class, getDiscriminator(), Side.CLIENT);
-        channel.registerMessage(GenerateSkippedTarget.class, GSTMessage.class, getDiscriminator(), Side.SERVER);
+        this.channel.registerMessage(SyncClientTileDisplay.class, SCTDMessage.class, getDiscriminator(), Side.CLIENT);
+        this.channel.registerMessage(AttemptKeyRoll.class, AKRMessage.class, getDiscriminator(), Side.SERVER);
+        this.channel.registerMessage(KeyRollResponse.class, KRRMessage.class, getDiscriminator(), Side.CLIENT);
 
-        channel.registerMessage(SendConfigToClient.class, SCTCMessage.class, getDiscriminator(), Side.CLIENT);
+        this.channel.registerMessage(SendConfigToClient.class, SCTCMessage.class, getDiscriminator(), Side.CLIENT);
 
-        channel.registerMessage(EnrichStackList.class, ESLMessage.class, getDiscriminator(), Side.CLIENT);
-        channel.registerMessage(ReceiveEnrichedStacks.class, RESMessage.class, getDiscriminator(), Side.SERVER);
-        channel.registerMessage(FinishedEnrichingStacks.class, FESMessage.class, getDiscriminator(), Side.SERVER);
+        this.channel.registerMessage(EnrichStackList.class, ESLMessage.class, getDiscriminator(), Side.CLIENT);
+        this.channel.registerMessage(ReceiveEnrichedStacks.class, RESMessage.class, getDiscriminator(), Side.SERVER);
+        this.channel.registerMessage(FinishedEnrichingStacks.class, FESMessage.class, getDiscriminator(), Side.SERVER);
     }
 
     private static int getDiscriminator() {
@@ -47,19 +51,19 @@ public class NetworkHandlerKismet {
     }
 
     public void syncDisplayTargetToClient(int dimension, TileEntity tileEntity) {
-        channel.sendToDimension(new SCTDMessage(tileEntity), dimension);
+        this.channel.sendToDimension(new SCTDMessage(tileEntity), dimension);
     }
 
     public void sendConfigToClient(EntityPlayerMP player) {
-        channel.sendTo(new SCTCMessage(), player);
+        this.channel.sendTo(new SCTCMessage(), player);
     }
 
     public void enrichStacks(List<InformedStack> targets, EntityPlayerMP player) {
-        channel.sendTo(new ESLMessage(targets), player);
+        this.channel.sendTo(new ESLMessage(targets), player);
     }
 
-    public void newSkippedTarget(TileDisplay te) {
-        channel.sendToServer(new GSTMessage(te.getPos(), te.getSkipped()));
+    public void attemptKeyUsage(TileDisplay te, ItemStack key) {
+        this.channel.sendToServer(new AKRMessage(te.getPos(), key));
     }
 
     @SuppressWarnings("WeakerAccess")
@@ -156,18 +160,41 @@ public class NetworkHandlerKismet {
     }
 
     @SuppressWarnings("WeakerAccess")
-    public static class GenerateSkippedTarget implements IMessageHandler<GSTMessage, IMessage> {
+    public static class AttemptKeyRoll implements IMessageHandler<AKRMessage, IMessage> {
         @Override
-        public IMessage onMessage(GSTMessage message, MessageContext ctx) {
+        public IMessage onMessage(AKRMessage message, MessageContext ctx) {
             final EntityPlayerMP player = ctx.getServerHandler().playerEntity;
             final WorldServer world = (WorldServer) (player.worldObj);
             world.addScheduledTask(() -> {
-                final TileDisplay tileDisplay = (TileDisplay) world.getTileEntity(message.pos);
-                tileDisplay.setSkipped(message.skipped);
-                tileDisplay.getNewTarget();
+                final TileDisplay tile = (TileDisplay) world.getTileEntity(message.pos);
+                if (tile == null) return;
+
+                final boolean fulfilled = world.getBlockState(message.pos)
+                        .getValue(BlockDisplay.FULFILLED);
+                // if fulfilled, count as a success
+                final boolean success = fulfilled || tile.rollForKey();
+
+                if (success) {
+                    // fulfilled rerolls don't count as a skip
+                    if (!fulfilled)
+                        tile.setSkipped(tile.getSkipped() + 1);
+                    tile.getNewTarget();
+                }
+
+                Kismet.network.channel.sendTo(new KRRMessage(success), player);
+                SoundHelper.onKeyUsage(player, success);
             });
             return null;
         }
     }
+
+    public static class KeyRollResponse implements IMessageHandler<KRRMessage, IMessage> {
+        @Override
+        public IMessage onMessage(KRRMessage message, MessageContext ctx) {
+            Minecraft.getMinecraft().addScheduledTask(() -> SoundHelper.onKeyUsage(Minecraft.getMinecraft().thePlayer, message.success));
+            return null;
+        }
+    }
+
 }
 
