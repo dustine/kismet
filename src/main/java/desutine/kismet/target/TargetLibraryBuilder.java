@@ -122,8 +122,8 @@ public class TargetLibraryBuilder {
         // define item (mod:itemName)
         ItemStack stack;
         ResourceLocation loc = new ResourceLocation(split[0], split[1]);
-        if (Item.itemRegistry.getKeys().contains(loc)) {
-            stack = new ItemStack(Item.itemRegistry.getObject(loc));
+        if (Item.REGISTRY.getKeys().contains(loc)) {
+            stack = new ItemStack(Item.REGISTRY.getObject(loc));
         } else {
             ModLogger.error("Weird location: " + entry);
             return null;

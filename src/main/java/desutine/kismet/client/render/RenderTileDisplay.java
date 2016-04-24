@@ -40,7 +40,7 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         }
 
         // render distance
-        final Entity player = Minecraft.getMinecraft().getRenderManager().livingPlayer;
+        final Entity player = Minecraft.getMinecraft().thePlayer;
         if (player.getDistanceSqToCenter(te.getPos()) > 64 * 64) return;
 
         List<String> lines = new ArrayList<>();

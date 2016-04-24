@@ -3,7 +3,7 @@ package desutine.kismet.proxy;
 import desutine.kismet.ConfigKismet;
 import desutine.kismet.Kismet;
 import desutine.kismet.block.BlockKismet;
-import desutine.kismet.client.BlockColorDisplay;
+import desutine.kismet.client.ColorDisplay;
 import desutine.kismet.client.render.RenderTileDisplay;
 import desutine.kismet.item.ItemKismet;
 import desutine.kismet.registry.ModBlocks;
@@ -35,11 +35,11 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void registerColorHandlers() {
         BlockColors blockColors = Minecraft.getMinecraft().getBlockColors();
-        blockColors.registerBlockColorHandler(new BlockColorDisplay(), ModBlocks.TIMED_DISPLAY);
-        blockColors.registerBlockColorHandler(new BlockColorDisplay(), ModBlocks.CHILL_DISPLAY);
+        blockColors.registerBlockColorHandler(new ColorDisplay(), ModBlocks.TIMED_DISPLAY);
+        blockColors.registerBlockColorHandler(new ColorDisplay(), ModBlocks.CHILL_DISPLAY);
 
         ItemColors itemColors = Minecraft.getMinecraft().getItemColors();
-        itemColors.registerItemColorHandler(new BlockColorDisplay(), ModBlocks.CHILL_DISPLAY);
+        itemColors.registerItemColorHandler(new ColorDisplay(), ModBlocks.CHILL_DISPLAY);
     }
 
     @Override

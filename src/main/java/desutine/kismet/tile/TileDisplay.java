@@ -127,8 +127,7 @@ public class TileDisplay extends TileEntity implements ITickable {
     }
 
     private boolean checkForNullTarget() {
-        if (getTarget() != null) return false;
-        return getNewTarget();
+        return (getTarget() == null || !getTarget().hasItem()) && getNewTarget();
     }
 
     private boolean checkForDeadline() {
@@ -149,15 +148,15 @@ public class TileDisplay extends TileEntity implements ITickable {
         setDeadline(worldObj.getTotalWorldTime() + ConfigKismet.getTimedLimit() * 20 * 60);
     }
 
-    @Override
-    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
-        return oldState.getBlock() != newState.getBlock();
-    }
-
     public boolean rollForKey() {
         final Random random = Kismet.random;
         double limiter = 1.0 / (skipped + 1);
         return random.nextDouble() < limiter;
+    }
+
+    @Override
+    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
+        return oldState.getBlock() != newState.getBlock();
     }
 
     /**

@@ -7,10 +7,10 @@ import desutine.kismet.item.ItemKismet;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class ModItems {
-    public static final ItemKismet ITEM_KEY = new ItemKey();
+    public static final ItemKismet KEY = new ItemKey();
 
     public static void init() {
-        registerItem(ITEM_KEY, Reference.Names.Items.KEY);
+        registerItem(KEY, Reference.Names.Items.KEY);
     }
 
     private static void registerItem(ItemKismet item, String name) {

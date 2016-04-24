@@ -154,7 +154,7 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
         }
 
         // Kismetic key = new target
-        if (heldItem != null && heldItem.isItemEqual(new ItemStack(ModItems.ITEM_KEY))) {
+        if (heldItem != null && heldItem.isItemEqual(new ItemStack(ModItems.KEY))) {
             if (world.isRemote)
                 Kismet.network.attemptKeyUsage(te, heldItem);
             return true;

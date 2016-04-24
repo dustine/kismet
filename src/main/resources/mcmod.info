@@ -1,14 +1,14 @@
 [
   {
     "modid": "kismet",
-    "name": "Kismet",
-    "description": "Kismet n. Fate; fortune.\nA refreshing crafting challenge to spice any modded experience. The RNG gods demand on you to craft one specific item before every consecutive sunrise. How long can you hold up?\nWarning: Batteries not included.",
+    "name": "§eKismet",
+    "description": "§ln.§r§o Fate; fortune.§r\nAdds a block that shows random items from the game, modded or not. A good fix for boredom or when you don't know what to do.",
     "version": "${version}",
     "mcversion": "${mcversion}",
-    "url": "",
+    "url": "http://dustine.github.io/kismet",
     "updateUrl": "",
     "authorList": ["Desutine"],
-    "credits": "EiraNet (hey Blay!), Pahimar, TheGreyGhost",
+    "credits": "§c§oEiraNet§r, §oPahimar§r, §oMineMarteen§r, §oTheGreyGhost§r and §omezz§r",
     "logoFile": "",
     "screenshots": [],
     "dependencies": []

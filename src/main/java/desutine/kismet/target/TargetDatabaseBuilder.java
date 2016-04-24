@@ -53,7 +53,7 @@ public class TargetDatabaseBuilder {
     private Queue<List<InformedStack>> remainingPackets = new ArrayDeque<>();
 
     public TargetDatabaseBuilder(WorldServer world) {
-        WSDTargetDatabase = desutine.kismet.server.WSDTargetDatabase.get(world);
+        this.WSDTargetDatabase = desutine.kismet.server.WSDTargetDatabase.get(world);
     }
 
     /**
@@ -64,12 +64,12 @@ public class TargetDatabaseBuilder {
     public void generateStacks(EntityPlayerMP player) {
         player.addChatMessage(new TextComponentString("[Kismet] Starting target library reset..."));
 
-        WSDTargetDatabase = desutine.kismet.server.WSDTargetDatabase.get(player.worldObj);
-        WSDTargetDatabase.setStacks(new HashMap<>());
+        this.WSDTargetDatabase = desutine.kismet.server.WSDTargetDatabase.get(player.worldObj);
+        this.WSDTargetDatabase.setStacks(new HashMap<>());
 
         Map<String, InformedStack> stacks = getRegisteredItems();
-        identifyLoot(player.getServerForPlayer(), stacks);
-        identifyBlockDrops(player.worldObj, stacks);
+        identifyLoot(player.getServerWorld(), stacks);
+        identifyBlockDrops(player.getServerWorld(), stacks);
 
         // separate the stacks per mod, for smaller packets
         final HashMap<String, List<InformedStack>> modSortedStacks = new HashMap<>();
@@ -84,7 +84,7 @@ public class TargetDatabaseBuilder {
             }
         }
 
-        remainingPackets.addAll(modSortedStacks.values());
+        this.remainingPackets.addAll(modSortedStacks.values());
         sendNextPacket(player);
     }
 
@@ -94,7 +94,7 @@ public class TargetDatabaseBuilder {
         final Set<String> silkDrops = new HashSet<>();
         final FakePlayer fakePlayer = FakePlayerFactory.getMinecraft((WorldServer) world);
 
-        Block.blockRegistry.forEach(block -> {
+        Block.REGISTRY.forEach(block -> {
             // only deals with the bedrock edge case but alas
             if (block instanceof BlockEmptyDrops) return;
 
@@ -169,8 +169,8 @@ public class TargetDatabaseBuilder {
         final HashMap<String, InformedStack> stacks = new HashMap<>();
 
         // add stacks from ItemRegistry
-        for (ResourceLocation loc : Item.itemRegistry.getKeys()) {
-            Item item = Item.itemRegistry.getObject(loc);
+        for (ResourceLocation loc : Item.REGISTRY.getKeys()) {
+            Item item = Item.REGISTRY.getObject(loc);
             ItemStack stack = new ItemStack(item);
             if (stack.getItem() == null) continue;
 
@@ -327,16 +327,16 @@ public class TargetDatabaseBuilder {
     }
 
     public boolean sendNextPacket(EntityPlayerMP player) {
-        if (remainingPackets == null || remainingPackets.isEmpty()) return false;
-        final List<InformedStack> toSend = remainingPackets.poll();
+        if (this.remainingPackets == null || this.remainingPackets.isEmpty()) return false;
+        final List<InformedStack> toSend = this.remainingPackets.poll();
         if (toSend == null) return false;
         Kismet.network.enrichStacks(toSend, player);
         return true;
     }
 
     public void recreateLibrary() {
-        if (WSDTargetDatabase == null) return;
-        TargetLibraryBuilder.recreateLibrary(WSDTargetDatabase.getStacks());
+        if (this.WSDTargetDatabase == null) return;
+        TargetLibraryBuilder.recreateLibrary(this.WSDTargetDatabase.getStacks());
     }
 
 }

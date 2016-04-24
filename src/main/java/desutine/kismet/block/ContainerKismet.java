@@ -9,7 +9,7 @@ import net.minecraft.world.World;
 
 public abstract class ContainerKismet<T extends TileEntity> extends BlockKismet implements ITileEntityProvider {
     public ContainerKismet() {
-        this(Material.rock);
+        this(Material.ROCK);
     }
 
     public ContainerKismet(Material material) {
