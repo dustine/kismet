@@ -101,6 +101,9 @@ public class TargetDatabaseBuilder {
             final ImmutableList<IBlockState> validStates = block.getBlockState().getValidStates();
 
             for (IBlockState state : validStates) {
+                // if the block is unbreakable in this state, don't even bother
+                if (block.getBlockHardness(state, world, BlockPos.ORIGIN) < 0) continue;
+
                 // check their drops (including if it is silk harvested)
                 drops.addAll(getDropsFromState(world, fakePlayer, block, state));
                 // test for silk touch
@@ -118,8 +121,6 @@ public class TargetDatabaseBuilder {
 
     private static Set<String> getDropsFromState(World world, FakePlayer fakePlayer, Block block, IBlockState state) {
         Set<String> drops = new HashSet<>();
-        // if the block is unbreakable in this state, don't even bother
-        if (block.getBlockHardness(state, world, BlockPos.ORIGIN) < 0) return drops;
 
         // a state machine that loops around while it adds new items to the drops
         int size = drops.size();
