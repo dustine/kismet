@@ -6,6 +6,6 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class ModTiles {
     public static void init() {
-        GameRegistry.registerTileEntity(TileDisplay.class, Reference.MOD_ID + ':' + Reference.Names.Tiles.TE_DISPLAY);
+        GameRegistry.registerTileEntity(TileDisplay.class, Reference.MOD_ID + ':' + Reference.Names.Tiles.TILE_DISPLAY);
     }
 }
