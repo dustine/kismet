@@ -6,7 +6,7 @@ import net.minecraft.block.material.Material;
 
 public class BlockKismet extends Block {
     public BlockKismet() {
-        this(Material.rock);
+        this(Material.ROCK);
     }
 
     public BlockKismet(Material material) {
