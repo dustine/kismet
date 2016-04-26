@@ -4,7 +4,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import dustine.kismet.Kismet;
-import dustine.kismet.ModLogger;
+import dustine.kismet.Log;
+import dustine.kismet.network.message.MessageEnrichStacks;
 import dustine.kismet.util.StackHelper;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEmptyDrops;
@@ -133,7 +134,7 @@ public class TargetDatabaseBuilder {
                         .map(StackHelper::toUniqueKey)
                         .collect(Collectors.toList()));
             } catch (Exception e) {
-                ModLogger.error("Error while gathering blocks for " +
+                Log.error("Error while gathering blocks for " +
                         StackHelper.toUniqueKey(new ItemStack(block)) + state, e);
                 continue;
             }
@@ -295,7 +296,7 @@ public class TargetDatabaseBuilder {
                         try {
                             nbt = JsonToNBT.getTagFromJson(tag.getAsString());
                         } catch (NBTException e) {
-                            ModLogger.warning(e);
+                            Log.warning(e);
                         }
                         break;
                     case "minecraft:enchant_randomly":
@@ -304,14 +305,14 @@ public class TargetDatabaseBuilder {
                         // ignored
                         break;
                     default:
-                        ModLogger.warning("Loot tables: unknown function, " + function.get("function").getAsString());
+                        Log.warning("Loot tables: unknown function, " + function.get("function").getAsString());
                         break;
                 }
             }
         }
 
         if (maxCount + maxAddCount <= 0) {
-            ModLogger.warning("Loot tables: empty drop," + name + ":" + (maxCount + maxAddCount));
+            Log.warning("Loot tables: empty drop," + name + ":" + (maxCount + maxAddCount));
             return;
         }
 
@@ -330,7 +331,7 @@ public class TargetDatabaseBuilder {
         if (this.remainingPackets == null || this.remainingPackets.isEmpty()) return false;
         final List<InformedStack> toSend = this.remainingPackets.poll();
         if (toSend == null) return false;
-        Kismet.network.enrichStacks(toSend, player);
+        Kismet.network.sendTo(new MessageEnrichStacks(toSend), player);
         return true;
     }
 

@@ -21,7 +21,7 @@ public class BlockChillDisplay extends BlockDisplay {
         final boolean parentResult = super.onBlockActivated(world, pos, state, player, hand, heldItem, side,
                 hitX, hitY, hitZ);
 
-        if (parentResult) return true;
+        if (!parentResult) return false;
 
         TileDisplay te = (TileDisplay) world.getTileEntity(pos);
         if (te == null) return false;
@@ -31,7 +31,7 @@ public class BlockChillDisplay extends BlockDisplay {
         // logical client
         if (world.isRemote) {
             // only on main hand to avoid spam
-            if (hand == EnumHand.MAIN_HAND) {
+            if (hand == EnumHand.OFF_HAND) {
                 // todo: I18n these strings
                 String targetString;
 

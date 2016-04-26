@@ -1,6 +1,6 @@
 package dustine.kismet;
 
-import dustine.kismet.network.NetworkHandlerKismet;
+import dustine.kismet.network.NetworkHandler;
 import dustine.kismet.proxy.IProxy;
 import dustine.kismet.registry.ModBlocks;
 import dustine.kismet.registry.ModItems;
@@ -26,7 +26,7 @@ import java.util.Random;
 public class Kismet {
     public static final Random random = new Random();
     public final static CommandKismet command = new CommandKismet();
-    public static NetworkHandlerKismet network;
+    public static NetworkHandler network;
     public static TargetDatabaseBuilder libraryFactory;
     @Mod.Instance(Reference.MOD_ID)
     public static Kismet instance;
@@ -41,7 +41,7 @@ public class Kismet {
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         // register logger
-        ModLogger.logger = event.getModLog();
+        Log.logger = event.getModLog();
 
         // load configs
         proxy.initConfig();
@@ -56,7 +56,7 @@ public class Kismet {
         MinecraftForge.EVENT_BUS.register(new desutine.kismet.event.EventHandler());
 
         // start network channels
-        network = new NetworkHandlerKismet();
+        network = new NetworkHandler();
     }
 
     /**

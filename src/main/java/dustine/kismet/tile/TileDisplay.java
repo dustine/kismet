@@ -2,9 +2,10 @@ package dustine.kismet.tile;
 
 import dustine.kismet.ConfigKismet;
 import dustine.kismet.Kismet;
-import dustine.kismet.ModLogger;
+import dustine.kismet.Log;
 import dustine.kismet.block.BlockDisplay;
 import dustine.kismet.block.BlockTimedDisplay;
+import dustine.kismet.network.message.MessageDisplayTarget;
 import dustine.kismet.registry.ModBlocks;
 import dustine.kismet.target.InformedStack;
 import dustine.kismet.target.TargetGenerationResult;
@@ -177,14 +178,15 @@ public class TileDisplay extends TileEntity implements ITickable {
         TargetGenerationResult targetResult = TargetLibrary.generateTarget(this.modWeights, this.lastTargets);
         if (targetResult.hasFlag()) {
             this.newTargetTimeout = this.worldObj.getTotalWorldTime() + 5 * 20;
-            ModLogger.warning("Failed to get target, " + targetResult.getFlag());
+            Log.warning("Failed to get target, " + targetResult.getFlag());
         }
         setTarget(targetResult.getValue());
 
         // sync client with server as target picking only happens server-wise (for safety)
         if (oldTarget != this.target) {
             resetDeadline();
-            Kismet.network.syncDisplayTargetToClient(this);
+            int dimension = getWorld().provider.getDimension();
+            Kismet.network.sendToDimension(new MessageDisplayTarget(this), dimension);
             return true;
         }
 
@@ -195,13 +197,13 @@ public class TileDisplay extends TileEntity implements ITickable {
         return this.lastTargets;
     }
 
+    public void setLastTargets(List<InformedStack> lastTargets) {
+        this.lastTargets = lastTargets;
+    }
+
     @Override
     public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
         return oldState.getBlock() != newState.getBlock();
-    }
-
-    public void setLastTargets(List<InformedStack> lastTargets) {
-        this.lastTargets = lastTargets;
     }
 
     public HashMap<String, Integer> getModWeights() {

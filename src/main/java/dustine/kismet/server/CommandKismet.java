@@ -1,7 +1,7 @@
 package dustine.kismet.server;
 
 import dustine.kismet.Kismet;
-import dustine.kismet.ModLogger;
+import dustine.kismet.Log;
 import dustine.kismet.Reference;
 import dustine.kismet.target.InformedStack;
 import dustine.kismet.target.TargetLibrary;
@@ -26,7 +26,7 @@ public class CommandKismet extends CommandBase {
 
     @Override
     public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos) {
-        ModLogger.info(Arrays.toString(args));
+        Log.info(Arrays.toString(args));
         if (args.length == 1) {
             return getListOfStringsMatchingLastWord(args, "reset", "library", "blacklist", "whitelist", "dump");
         } else if ("library".equals(args[0])) {
@@ -69,7 +69,7 @@ public class CommandKismet extends CommandBase {
                                 output.append(String.format("\n%s %s", loc, s.toCompleteString()));
                             });
 
-                    ModLogger.info(output.toString());
+                    Log.info(output.toString());
                     return;
                 case "reset":
                     if (!(sender instanceof EntityPlayerMP)) {

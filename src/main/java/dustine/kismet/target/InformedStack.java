@@ -2,7 +2,7 @@ package dustine.kismet.target;
 
 import com.google.common.collect.Lists;
 import dustine.kismet.ConfigKismet;
-import dustine.kismet.ModLogger;
+import dustine.kismet.Log;
 import dustine.kismet.util.StackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -24,7 +24,7 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
 
     public InformedStack(NBTTagCompound nbt) {
         deserializeNBT(nbt);
-//        this.hasSubtypes = Kismet.proxy.inferSafeHasSubtypes(stack);
+//        this.hasSubtypes = Kismet.proxy.sideSafeHasSubtypes(stack);
     }
 
     @Override
@@ -110,12 +110,12 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
 
     public static InformedStack join(InformedStack lhs, InformedStack rhs) {
         if (!lhs.sealed && !rhs.sealed) {
-            ModLogger.error(String.format("Tried to join unsealed wrappers %s %s", lhs, rhs));
+            Log.error(String.format("Tried to join unsealed wrappers %s %s", lhs, rhs));
             return null;
         }
         // if they're not equal, log it and ignore
         if (!StackHelper.isEquivalent(lhs, rhs)) {
-            ModLogger.error(String.format("Tried to join distinct stacks %s %s", lhs, rhs));
+            Log.error(String.format("Tried to join distinct stacks %s %s", lhs, rhs));
             return null;
         }
 

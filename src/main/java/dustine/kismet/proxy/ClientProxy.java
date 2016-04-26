@@ -15,16 +15,20 @@ import net.minecraft.client.renderer.color.ItemColors;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 
 public class ClientProxy extends CommonProxy {
-
     @Override
     public void initConfig() {
         super.initConfig();
         ConfigKismet.clientPreInit();
+    }
+
+    @Override
+    public void registerInventoryModel(BlockKismet block) {
+        ModelLoader.setCustomModelResourceLocation(Item.getItemFromBlock(block), 0,
+                new ModelResourceLocation(block.getRegistryName(), "inventory"));
     }
 
     @Override
@@ -43,11 +47,6 @@ public class ClientProxy extends CommonProxy {
     }
 
     @Override
-    public void sendConfigToClient(EntityPlayer player) {
-        // NOOP
-    }
-
-    @Override
     public void cleanTargetLibrary(EntityPlayerMP player) {
         // yeah, server code on ClientProxy
         // that's because client proxy + isRemote = embedded server thread
@@ -57,19 +56,13 @@ public class ClientProxy extends CommonProxy {
     }
 
     @Override
-    public boolean inferSafeHasSubtypes(ItemStack stack) {
-        return stack.getHasSubtypes();
-    }
-
-    @Override
-    public void registerInventoryModel(BlockKismet block) {
-        ModelLoader.setCustomModelResourceLocation(Item.getItemFromBlock(block), 0,
-                new ModelResourceLocation(block.getRegistryName(), "inventory"));
-    }
-
-    @Override
     public void registerInventoryModel(ItemKismet item) {
         ModelLoader.setCustomModelResourceLocation(item, 0,
                 new ModelResourceLocation(item.getRegistryName(), "inventory"));
+    }
+
+    @Override
+    public EntityPlayer tryGetEntityPlayerSP() {
+        return Minecraft.getMinecraft().thePlayer;
     }
 }

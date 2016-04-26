@@ -335,7 +335,7 @@ public final class ConfigKismet {
 
     public static boolean isGenFlag(ObtainableTypes type) {
         if (type.equals(ObtainableTypes.Forced)) {
-            ModLogger.warning("Tried to check if Forced are allowed");
+            Log.warning("Tried to check if Forced are allowed");
             return true;
         }
         return genFlags.get(type);
@@ -470,13 +470,13 @@ public final class ConfigKismet {
                 if (category != null) {
                     // force a library refresh if in-world and any changes occured regarding the target category
                     if (category.equals(ConfigKismet.CATEGORY_TARGETS)) {
-                        ModLogger.trace("Updating filtered stacks...");
+                        Log.trace("Updating filtered stacks...");
                         if (Kismet.libraryFactory != null)
                             Kismet.libraryFactory.recreateLibrary();
                     }
-                    ModLogger.debug("Config changed on GUI, category " + category);
+                    Log.debug("Config changed on GUI, category " + category);
                 } else {
-                    ModLogger.debug("Config changed on GUI, no category");
+                    Log.debug("Config changed on GUI, no category");
                 }
             }
         }

@@ -1,6 +1,6 @@
 package dustine.kismet.addon;
 
-import dustine.kismet.ModLogger;
+import dustine.kismet.Log;
 import dustine.kismet.registry.ModBlocks;
 import dustine.kismet.target.InformedStack;
 import dustine.kismet.util.StackHelper;
@@ -87,7 +87,7 @@ public class AddonJei implements IModPlugin {
             if (subtypeStacks.containsKey(key)) {
                 // original stacks had this item already, join them
                 // this will emit a warning message as it's not supposed to happen but at least nothing is lost
-                ModLogger.warning(String.format("Tried to register subtype twice %s %s", subtypeStacks.get(key),
+                Log.warning(String.format("Tried to register subtype twice %s %s", subtypeStacks.get(key),
                         newWrapper));
             }
             subtypeStacks.put(key, newWrapper);

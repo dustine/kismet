@@ -2,7 +2,7 @@ package dustine.kismet.target;
 
 import dustine.kismet.ConfigKismet;
 import dustine.kismet.Kismet;
-import dustine.kismet.ModLogger;
+import dustine.kismet.Log;
 import dustine.kismet.util.StackHelper;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -111,11 +111,11 @@ public class TargetLibraryBuilder {
         return getItemStack(s, false);
     }
 
-    static ItemStack getItemStack(@Nonnull String entry, boolean wildcards) {
+    private static ItemStack getItemStack(@Nonnull String entry, boolean wildcards) {
         final String[] split = entry.split(":");
 
         if (split.length < 2) {
-            ModLogger.warning("Weird location: " + entry);
+            Log.warning("Weird location: " + entry);
             return null;
         }
 
@@ -125,7 +125,7 @@ public class TargetLibraryBuilder {
         if (Item.REGISTRY.getKeys().contains(loc)) {
             stack = new ItemStack(Item.REGISTRY.getObject(loc));
         } else {
-            ModLogger.error("Weird location: " + entry);
+            Log.error("Weird location: " + entry);
             return null;
         }
 
@@ -137,13 +137,13 @@ public class TargetLibraryBuilder {
                 // there's metadata, add it
                 stack.setItemDamage(meta);
             } else {
-                ModLogger.error(String.format("Weird metadata %s in %s", split[2], entry));
-                if (wildcards && Kismet.proxy.inferSafeHasSubtypes(stack)) {
+                Log.error(String.format("Weird metadata %s in %s", split[2], entry));
+                if (wildcards && Kismet.proxy.sideSafeHasSubtypes(stack)) {
                     stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
                 }
             }
         } else {
-            if (wildcards && Kismet.proxy.inferSafeHasSubtypes(stack)) {
+            if (wildcards && Kismet.proxy.sideSafeHasSubtypes(stack)) {
                 stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
             }
         }
@@ -154,7 +154,7 @@ public class TargetLibraryBuilder {
                 NBTTagCompound nbt = JsonToNBT.getTagFromJson(split[3]);
                 stack.setTagCompound(nbt);
             } catch (NBTException e) {
-                ModLogger.error(String.format("Weird NBT %s in %s", split[3], entry), e);
+                Log.error(String.format("Weird NBT %s in %s", split[3], entry), e);
             }
         }
 
@@ -173,8 +173,11 @@ public class TargetLibraryBuilder {
         // mod filtering
         final String[] split = s.split(":");
         if (split.length == 1) {
+            String mod = split[0];
+            // edge case: minecraft isn't recognized as a mod, but it's a resource location so we add it
+            if (s.equals("minecraft")) return mod;
             // mod
-            return Loader.isModLoaded(split[0]) ? split[0] : null;
+            return Loader.isModLoaded(mod) ? mod : null;
         }
 
         // else treat it as item filtering (with possible metadata)

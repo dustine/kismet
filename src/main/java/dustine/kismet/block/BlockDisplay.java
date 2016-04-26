@@ -1,7 +1,5 @@
 package dustine.kismet.block;
 
-import dustine.kismet.Kismet;
-import dustine.kismet.registry.ModItems;
 import dustine.kismet.tile.TileDisplay;
 import dustine.kismet.util.SoundHelper;
 import dustine.kismet.util.StackHelper;
@@ -150,23 +148,21 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
         if (heldItem != null && StackHelper.isEquivalent(te.getTarget(), heldItem)) {
             // fulfilled target~
             setTargetAsFulfilled(world, pos, state, player);
-            return true;
+            // because of bug
+            return !world.isRemote;
         }
+//        // Kismetic key = new target
+//        if (heldItem != null && heldItem.isItemEqual(new ItemStack(ModItems.KEY))) {
+//            return false;
+//        }
 
-        // Kismetic key = new target
-        if (heldItem != null && heldItem.isItemEqual(new ItemStack(ModItems.KEY))) {
-            if (world.isRemote)
-                Kismet.network.attemptKeyUsage(te, heldItem);
-            return true;
-        }
-
-        return super.onBlockActivated(world, pos, state, player, hand, heldItem, side, hitX, hitY, hitZ);
+        return false;
     }
 
     public void setTargetAsFulfilled(World world, BlockPos pos, IBlockState state, EntityPlayer player) {
         if (state.getValue(FULFILLED)) return;
 
-        SoundHelper.onTargetFulfilled(player);
+        SoundHelper.onTargetFulfilled(world, player, pos);
         world.setBlockState(pos, state.withProperty(BlockDisplay.FULFILLED, true));
         TileDisplay te = (TileDisplay) world.getTileEntity(pos);
         te.setSkipped(te.getSkipped() - 1);
