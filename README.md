@@ -1,16 +1,16 @@
 # Kismet
 > **n**. Fate; fortune.
 
-Some aspire to construct great builds. Others, to automate the world. Yet others, to beat the savagest beasts. 
+Some aspire to construct great builds. Others, to automate the world. Yet others still, to beat the savagest beasts.
 
-And then there's *us*, the clueless. Ones craving on some inspiration on what to do next for some reason or another.
+And then there's *us*, the clueless. Ones craving for inspiration onto what to do next, for some reason or another.
 
-Well, the RNG gods have smiled upon you and given rise to the **Kismet**! Try to fulfill it, at your own pace or against the clock, and see how well you do! *Warning: Batteries not included.*
+Well, the RNG gods have smiled upon you and gave rise to the **Kismet**! Try to fulfill it, at your own pace or against the clock, and see how well you do! *Warning: Batteries not included.*
 
-**Important**: Server owners, please [read this](https://github.com/dustine/kismet/wiki/Note-for-servers) if you want to use this mod.
+**Important**: Server owners, please [read this](https://github.com/dustine/kismet/wiki/Note-for-servers) if you want to use this mod on your server.
 
 ## Summary
-Minecraft mod that does the following:
+This is a Minecraft mod that does the following:
 
 ![The two blocks and item from the mod](notdone)
 
@@ -46,11 +46,11 @@ So what if the game chose some objectives for you? Make this, craft that, use th
 That's what this mod is all about: a constant challenge to try to get stuff, not being picky with what mod it is from (but it can, if you want to).
 
 ## FAQ
-**Q**. Are these even frequently asked?
+_**Q**. Are these even frequently asked?_
 
 No, but I can foresee parts of the mod that fail to explain themselves. And this is my solution to that fact for now.
 
-**Q**. Crafting recipes please.
+_**Q**. Crafting recipes please._
 
 Not a question but I aim to serve. And please use JEI? The mod [profits from it](https://github.com/dustine/kismet/wiki/Mod-interactions#JEI).
 
@@ -58,7 +58,7 @@ Not a question but I aim to serve. And please use JEI? The mod [profits from it]
 ![Crafting recipe for the Timed Kismet Display](notyet)
 ![Crafting recipe for the Kismetic Key](justwait)
 
-**Q**. Does Kismet have any useful commands?
+_**Q**. Does Kismet have any useful commands?_
 
 Yeah! All these can be done with `/kismet <command>`. Here's a select few most likely to be used.
 
@@ -70,38 +70,38 @@ Yeah! All these can be done with `/kismet <command>`. Here's a select few most l
 | `unforce` | Removes the currently help item from the forced target list         
 | `reset`   | Resets the target database (see [note for servers](https://github.com/dustine/kismet/wiki/Note-for-servers))
 
-**Q**. Uh, these commands just gave me an error message saying they can only be run ingame, wtf?
+_**Q**. Uh, these commands just gave me an error message saying they can only be run ingame, wtf?_
 
 Heh. This is not the case for ALL commands but it happens that the most useful ones (see above) end up being the ones that, as the error message says, need to be called in-game. No server consoles or automatic tools. Also OP permission required.
 
-**Q**. Any more commands I should know?
+_**Q**. Any more commands I should know?_
 
 Uh, yeah, but I don't see anyone using them to be honest. They're over [here](https://github.com/dustine/kismet/wiki/Commands).
 
-**Q**. A Timed Display is taking too long to get a new goal, can I speed it up somehow?
+_**Q**. A Timed Display is taking too long to get a new goal, can I speed it up somehow?_
 
 Yup. Use a Kismetic Key on it, it'll unlock the next goal with no penalties. The key still gets consumed in the process.
 
-**Q**. The Key failure chance seems unfair. Can we disable it?
+_**Q**. The Key failure chance seems unfair. Can we disable it?_
 
 Still debating this one (keys are cheap-ish because of this). But know that fulfilling goals after using a key sucessfully makes it more likely it'll work in the future, and that unsuccessful key usages don't count into decreasing future odds. 
 
 And you can always just break and replace the display, all you lose is score bragging rights :wink:
 
-**Q**. Is there a way to move a display and not have it lose its score?
+_**Q**. Is there a way to move a display and not have it lose its score?_
 
 Try breaking the block with Silk Touch.
 
 Yeah, I didn't expect that to work either :pensive: I'm thinking on a solution for now, suggestions would be welcome.
 
-**Q**. The display looks all weird and no item is showing up. Have I done something wrong?
+_**Q**. The display looks all weird and no item is showing up. Have I done something wrong?_
 
 Probably not, but if your display looks like this:
 
 ![Kismetic Display in a broken state](poorthing)
 
-Then it means there's something wrong with the mod. You can get more info by right-clicking the display, but the safest bet is that the target database is corrupted. Simplest fix is to run `/kismet reset`. If you're running a server and this happened, you haven't read [the thing I asked you to above](https://github.com/dustine/kismet/wiki/Note-for-servers) :anger:
+Then it means something went wrong with the mod. You can get more info by right-clicking the display, but the safest bet is that the target database is corrupted. Simplest fix is to run `/kismet reset`. If you're running a server and this happened, you haven't read [the thing I asked you to above](https://github.com/dustine/kismet/wiki/Note-for-servers) :anger:
 
-**Q**. Why the name Kismet?
+_**Q**. Why the name Kismet?_
 
-Because I suck at naming stuff.
+Because I suck at naming stuff. I mean, does "Gimme a Challenge" sound any better?

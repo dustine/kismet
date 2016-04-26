@@ -2,8 +2,8 @@
   "forge_marker": 1,
   "defaults": {
     "textures": {
-      "particle": "blocks/lapis_block",
-      "body": "blocks/lapis_block",
+      "particle": "blocks/redstone_block",
+      "body": "blocks/redstone_block",
       "gem": "kismet:blocks/gem",
       "slab": "blocks/stone_slab_top"
     },

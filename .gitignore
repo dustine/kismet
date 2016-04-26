@@ -1,4 +1,5 @@
 # eclipse
+eclipse
 bin
 *.launch
 .settings
@@ -18,9 +19,6 @@ build
 .gradle
 
 # other
-eclipse
 run
 *.xcf
-/src/Ideas.md
-
 *.pdn
