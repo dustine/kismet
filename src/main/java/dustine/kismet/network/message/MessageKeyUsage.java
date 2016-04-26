@@ -2,7 +2,6 @@ package dustine.kismet.network.message;
 
 import dustine.kismet.util.SoundHelper;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.util.math.BlockPos;
@@ -44,7 +43,6 @@ public class MessageKeyUsage extends MessageBase<MessageKeyUsage> {
 
     @Override
     protected void handleClientSide(MessageKeyUsage message, EntityPlayer player) {
-        SoundHelper.onKeyUsage(Minecraft.getMinecraft().theWorld, Minecraft.getMinecraft().thePlayer,
-                message.pos, message.success);
+        SoundHelper.onKeyUsage(player.getEntityWorld(), player, message.pos, message.success);
     }
 }

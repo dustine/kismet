@@ -29,7 +29,10 @@ public abstract class MessageBase<REQ extends IMessage> implements IMessage, IMe
             final WorldServer world = player.getServerWorld();
             world.addScheduledTask(() -> this.handleServerSide(message, player));
         } else {
-            Minecraft.getMinecraft().addScheduledTask(() -> this.handleClientSide(message, Kismet.proxy.tryGetEntityPlayerSP()));
+            final EntityPlayer player = Kismet.proxy.tryGetEntityPlayerSP();
+            if (player != null) {
+                Minecraft.getMinecraft().addScheduledTask(() -> this.handleClientSide(message, player));
+            }
         }
         return null;
     }

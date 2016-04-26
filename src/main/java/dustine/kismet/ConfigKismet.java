@@ -2,6 +2,7 @@ package dustine.kismet;
 
 import com.google.common.collect.ImmutableList;
 import dustine.kismet.target.InformedStack.ObtainableTypes;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
@@ -485,7 +486,7 @@ public final class ConfigKismet {
     private static class ServerToClientConfigSyncEventHandler {
         @SubscribeEvent
         public void onEvent(PlayerEvent.PlayerLoggedInEvent event) {
-            Kismet.proxy.sendConfigToClient(event.player);
+            Kismet.proxy.sendConfigToClient((EntityPlayerMP) event.player);
         }
     }
 }

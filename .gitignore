@@ -20,5 +20,6 @@ build
 
 # other
 run
+/logs
 *.xcf
 *.pdn

@@ -8,17 +8,17 @@ import net.minecraft.item.ItemStack;
 
 public interface IProxy {
     /**
-     * Initializes ConfigKismet (has some clientside only code)
+     * Initializes ConfigKismet (has some client side only code)
      */
     void initConfig();
 
     /**
-     * Registers Tile Entity Special renderers on clientside only
+     * Registers Tile Entity Special Renderer instances in client side only
      */
     void registerTESR();
 
     /**
-     * Registers IItemColor and IBlockColor instances on clientside only
+     * Registers IItemColor and IBlockColor instances on client side only
      */
     void registerColorHandlers();
 
@@ -30,7 +30,7 @@ public interface IProxy {
     void sendConfigToClient(EntityPlayerMP player);
 
     /**
-     * Cleans the target library on embedded serverside only
+     * Cleans the target library on embedded server side only
      *
      * @param player The player instance with the outdated target library
      */
@@ -52,17 +52,29 @@ public interface IProxy {
      * use-case. It's not a case for desync but it's still an erroneous value.
      *
      * @param stack Tested item stack
-     * @return true in serverside, stack.getHasSubtypes() in clientside
+     * @return true on dedicated server, stack.getHasSubtypes() elsewhere
      */
     boolean sideSafeHasSubtypes(ItemStack stack);
 
     /**
+     * Registers an item inventory model for the block in the client side
      *
-     * @param block
+     * @param block The block to register the item model
      */
     void registerInventoryModel(BlockKismet block);
 
+    /**
+     * Registers an item inventory model for the item in the client side
+     *
+     * @param item The item to register the item model
+     */
     void registerInventoryModel(ItemKismet item);
 
+    /**
+     * Tries to get an EntityPlayerSP from Minecraft.getMinecraft() and place it on player As evident, this only happens
+     * on the client side
+     *
+     * @return true if successful
+     */
     EntityPlayer tryGetEntityPlayerSP();
 }

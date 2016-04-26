@@ -15,10 +15,7 @@ import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
 import net.minecraftforge.fml.common.SidedProxy;
-import net.minecraftforge.fml.common.event.FMLInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
-import net.minecraftforge.fml.common.event.FMLServerStoppingEvent;
+import net.minecraftforge.fml.common.event.*;
 
 import java.util.Random;
 
@@ -35,9 +32,6 @@ public class Kismet {
     private boolean jeiLoaded;
     private EventRegenLibraryOnce eventRegenLibraryOnce;
 
-    /**
-     * Run before anything else. Read your config, create blocks, items, etc, and register them with the GameRegistry
-     */
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
         // register logger
@@ -52,34 +46,28 @@ public class Kismet {
         ModTiles.init();
         proxy.registerTESR();
 
-        // register eventhandlers
-        MinecraftForge.EVENT_BUS.register(new desutine.kismet.event.EventHandler());
+        // register event handlers
+
 
         // start network channels
         network = new NetworkHandler();
     }
 
-    /**
-     * Do your mod setup. Build whatever data structures you care about. Register recipes, send FMLInterModComms
-     * messages to other mods.
-     */
     @EventHandler
     public void init(FMLInitializationEvent event) {
         // register recipes
         ModRecipes.init();
 
-        jeiLoaded = Loader.isModLoaded("JEI");
+        this.jeiLoaded = Loader.isModLoaded("JEI");
 
         // register tints
         proxy.registerColorHandlers();
     }
 
-    /**
-     * Handle interaction with other mods, complete your setup based on this.
-     */
-//    @EventHandler
-//    public void postInit(FMLPostInitializationEvent event) {
-//    }
+    @EventHandler
+    public void postInit(FMLPostInitializationEvent event) {
+    }
+
     @EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
         // register commands
@@ -88,8 +76,8 @@ public class Kismet {
         libraryFactory = new TargetDatabaseBuilder((WorldServer) event.getServer().getEntityWorld());
 
         // register the hook to restart the targetLibrary on single-player
-        eventRegenLibraryOnce = new EventRegenLibraryOnce();
-        MinecraftForge.EVENT_BUS.register(eventRegenLibraryOnce);
+        this.eventRegenLibraryOnce = new EventRegenLibraryOnce();
+        MinecraftForge.EVENT_BUS.register(this.eventRegenLibraryOnce);
     }
 
     @EventHandler
@@ -99,6 +87,6 @@ public class Kismet {
     }
 
     public boolean isJeiLoaded() {
-        return jeiLoaded;
+        return this.jeiLoaded;
     }
 }

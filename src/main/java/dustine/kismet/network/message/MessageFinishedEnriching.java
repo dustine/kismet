@@ -2,6 +2,7 @@ package dustine.kismet.network.message;
 
 import dustine.kismet.Kismet;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.text.TextComponentString;
 
 /**
@@ -16,7 +17,7 @@ public class MessageFinishedEnriching extends MessageBase<MessageFinishedEnrichi
     @Override
     protected void handleServerSide(MessageFinishedEnriching message, EntityPlayer player) {
         if (Kismet.libraryFactory != null) {
-            final boolean sent = Kismet.libraryFactory.sendNextPacket(player);
+            final boolean sent = Kismet.libraryFactory.sendNextPacket((EntityPlayerMP) player);
             if (!sent) {
                 Kismet.libraryFactory.recreateLibrary();
                 player.addChatMessage(
