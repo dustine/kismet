@@ -1,4 +1,4 @@
-package dustine.kismet.server;
+package dustine.kismet.world.savedata;
 
 import com.google.common.collect.ImmutableList;
 import dustine.kismet.Reference;

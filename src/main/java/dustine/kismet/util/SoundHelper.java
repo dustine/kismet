@@ -16,6 +16,7 @@ public class SoundHelper {
     }
 
     private static void correctClick(EntityPlayer player) {
+        // reusing sounds because it works.
         player.playSound(SoundEvents.BLOCK_STONE_BUTTON_CLICK_ON, 0.8F, 0.8F + Kismet.random.nextFloat() * 0.4F);
     }
 

@@ -10,9 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Receive Some Enriched Stacks message Includes: List of Informed Stacks and their correspondent key (obtained from
- * StackHelper) Note: sending the hasSubtypes is necessary because server side ItemStack.getHasSubtypes doesn't account
- * for variants differing singly by NBT
+ * Receive Some Enriched Stacks message
+ * <p>
+ * Includes: List of sealed InformedStacks
  */
 public class RESMessage implements IMessage {
     public List<InformedStack> stacks;

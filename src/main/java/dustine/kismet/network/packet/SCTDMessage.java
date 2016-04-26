@@ -1,8 +1,8 @@
 package dustine.kismet.network.packet;
 
+import dustine.kismet.tile.TileDisplay;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 
@@ -12,23 +12,23 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
  * Includes: NBT data from server-side TileDisplay
  */
 public class SCTDMessage implements IMessage {
-    public NBTTagCompound nbtTagCompound;
+    public NBTTagCompound compound;
 
     public SCTDMessage() {
     }
 
-    public SCTDMessage(final TileEntity tileEntity) {
-        this.nbtTagCompound = new NBTTagCompound();
-        tileEntity.writeToNBT(nbtTagCompound);
+    public SCTDMessage(final TileDisplay display) {
+        this.compound = new NBTTagCompound();
+        display.writeToNBT(compound);
     }
 
     @Override
     public void fromBytes(ByteBuf buf) {
-        nbtTagCompound = ByteBufUtils.readTag(buf);
+        compound = ByteBufUtils.readTag(buf);
     }
 
     @Override
     public void toBytes(ByteBuf buf) {
-        ByteBufUtils.writeTag(buf, nbtTagCompound);
+        ByteBufUtils.writeTag(buf, compound);
     }
 }

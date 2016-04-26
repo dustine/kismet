@@ -6,6 +6,7 @@ import dustine.kismet.Reference;
 import dustine.kismet.target.InformedStack;
 import dustine.kismet.target.TargetLibrary;
 import dustine.kismet.target.TargetLibraryBuilder;
+import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;

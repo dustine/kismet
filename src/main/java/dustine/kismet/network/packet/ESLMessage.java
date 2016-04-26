@@ -10,7 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Enrich Stack List message Includes: a InformedStack list to be enriched clientside
+ * Enrich Stack List message
+ * <p>
+ * Includes: a InformedStack list to be enriched clientside
  */
 public class ESLMessage implements IMessage {
     public List<InformedStack> stacks;

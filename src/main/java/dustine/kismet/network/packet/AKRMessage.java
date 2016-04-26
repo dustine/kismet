@@ -10,7 +10,11 @@ import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 
 /**
- * Attempt Key Usage message Notifies the server to try to use the Includes: the new value for skipped goals
+ * Attempt Key Usage message
+ * <p>
+ * Notifies the server that a key was used in a Display in pos
+ * <p>
+ * Includes: the key itemstack, the pos of the display
  */
 public class AKRMessage implements IMessage {
     public BlockPos pos;

@@ -4,7 +4,9 @@ import io.netty.buffer.ByteBuf;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 
 /**
- * Finish Enriching Stacks message Includes: nothing, as it's just an empty message to signal an event ^^"
+ * Finish Enriching Stacks message
+ * <p>
+ * Includes: nothing, as it's just an empty message to signal an event ^^"
  */
 public class FESMessage implements IMessage {
     public FESMessage() {

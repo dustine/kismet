@@ -7,10 +7,10 @@ import dustine.kismet.addon.AddonJei;
 import dustine.kismet.block.BlockDisplay;
 import dustine.kismet.client.util.ClientTargetHelper;
 import dustine.kismet.network.packet.*;
-import dustine.kismet.server.WSDTargetDatabase;
 import dustine.kismet.target.InformedStack;
 import dustine.kismet.tile.TileDisplay;
 import dustine.kismet.util.SoundHelper;
+import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
@@ -50,8 +50,9 @@ public class NetworkHandlerKismet {
         return discriminator++;
     }
 
-    public void syncDisplayTargetToClient(int dimension, TileEntity tileEntity) {
-        this.channel.sendToDimension(new SCTDMessage(tileEntity), dimension);
+    public void syncDisplayTargetToClient(TileDisplay display) {
+        int dimension = display.getWorld().provider.getDimension();
+        this.channel.sendToDimension(new SCTDMessage(display), dimension);
     }
 
     public void sendConfigToClient(EntityPlayerMP player) {
@@ -72,9 +73,9 @@ public class NetworkHandlerKismet {
         public IMessage onMessage(SCTDMessage message, MessageContext ctx) {
             Minecraft.getMinecraft().addScheduledTask(() -> {
                 int x, y, z;
-                x = message.nbtTagCompound.getInteger("x");
-                y = message.nbtTagCompound.getInteger("y");
-                z = message.nbtTagCompound.getInteger("z");
+                x = message.compound.getInteger("x");
+                y = message.compound.getInteger("y");
+                z = message.compound.getInteger("z");
                 BlockPos pos = new BlockPos(x, y, z);
 
                 TileEntity tileEntity = Minecraft.getMinecraft().theWorld.getTileEntity(pos);
@@ -82,7 +83,7 @@ public class NetworkHandlerKismet {
                 if (tileEntity instanceof TileDisplay) {
                     TileDisplay tileDisplay = (TileDisplay) tileEntity;
                     try {
-                        tileDisplay.readFromNBT(message.nbtTagCompound);
+                        tileDisplay.readFromNBT(message.compound);
                     } catch (Throwable te) {
                         ModLogger.error(te);
                     }

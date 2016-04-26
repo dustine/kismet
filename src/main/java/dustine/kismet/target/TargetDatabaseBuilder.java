@@ -47,12 +47,12 @@ public class TargetDatabaseBuilder {
             .registerTypeHierarchyAdapter(LootCondition.class, new LootConditionManager.Serializer())
             .registerTypeHierarchyAdapter(LootContext.EntityTarget.class, new LootContext.EntityTarget.Serializer())
             .create();
-    private dustine.kismet.server.WSDTargetDatabase WSDTargetDatabase;
+    private dustine.kismet.world.savedata.WSDTargetDatabase WSDTargetDatabase;
 
     private Queue<List<InformedStack>> remainingPackets = new ArrayDeque<>();
 
     public TargetDatabaseBuilder(WorldServer world) {
-        this.WSDTargetDatabase = dustine.kismet.server.WSDTargetDatabase.get(world);
+        this.WSDTargetDatabase = dustine.kismet.world.savedata.WSDTargetDatabase.get(world);
     }
 
     /**
@@ -63,7 +63,7 @@ public class TargetDatabaseBuilder {
     public void generateStacks(EntityPlayerMP player) {
         player.addChatMessage(new TextComponentString("[Kismet] Starting target library reset..."));
 
-        this.WSDTargetDatabase = dustine.kismet.server.WSDTargetDatabase.get(player.worldObj);
+        this.WSDTargetDatabase = dustine.kismet.world.savedata.WSDTargetDatabase.get(player.worldObj);
         this.WSDTargetDatabase.setStacks(new HashMap<>());
 
         Map<String, InformedStack> stacks = getRegisteredItems();
