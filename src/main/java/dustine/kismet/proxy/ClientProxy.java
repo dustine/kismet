@@ -26,12 +26,6 @@ public class ClientProxy extends CommonProxy {
     }
 
     @Override
-    public void registerInventoryModel(BlockKismet block) {
-        ModelLoader.setCustomModelResourceLocation(Item.getItemFromBlock(block), 0,
-                new ModelResourceLocation(block.getRegistryName(), "inventory"));
-    }
-
-    @Override
     public void registerTESR() {
         ClientRegistry.bindTileEntitySpecialRenderer(TileDisplay.class, new RenderTileDisplay());
     }
@@ -52,7 +46,13 @@ public class ClientProxy extends CommonProxy {
         // that's because client proxy + isRemote = embedded server thread
         if (player.worldObj.isRemote) return;
 
-        Kismet.libraryFactory.generateStacks(player);
+        Kismet.databaseBuilder.generateStacks(player);
+    }
+
+    @Override
+    public void registerInventoryModel(BlockKismet block) {
+        ModelLoader.setCustomModelResourceLocation(Item.getItemFromBlock(block), 0,
+                new ModelResourceLocation(block.getRegistryName(), "inventory"));
     }
 
     @Override

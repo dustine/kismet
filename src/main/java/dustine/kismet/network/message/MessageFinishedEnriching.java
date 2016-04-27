@@ -1,9 +1,10 @@
 package dustine.kismet.network.message;
 
 import dustine.kismet.Kismet;
+import dustine.kismet.target.TargetLibraryBuilder;
+import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.text.TextComponentString;
 
 /**
  * Finish Enriching Stacks message
@@ -16,12 +17,11 @@ public class MessageFinishedEnriching extends MessageBase<MessageFinishedEnrichi
 
     @Override
     protected void handleServerSide(MessageFinishedEnriching message, EntityPlayer player) {
-        if (Kismet.libraryFactory != null) {
-            final boolean sent = Kismet.libraryFactory.sendNextPacket((EntityPlayerMP) player);
+        if (Kismet.databaseBuilder != null) {
+            final EntityPlayerMP playerMP = (EntityPlayerMP) player;
+            final boolean sent = Kismet.databaseBuilder.sendNextPacket(playerMP);
             if (!sent) {
-                Kismet.libraryFactory.recreateLibrary();
-                player.addChatMessage(
-                        new TextComponentString("[Kismet] Finished resetting library!"));
+                TargetLibraryBuilder.build(WSDTargetDatabase.get(player.getEntityWorld()));
             }
         }
     }

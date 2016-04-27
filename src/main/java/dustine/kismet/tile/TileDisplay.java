@@ -145,6 +145,7 @@ public class TileDisplay extends TileEntity implements ITickable {
         }
         return false;
     }
+
     private void resetDeadline() {
         setDeadline(this.worldObj.getTotalWorldTime() + ConfigKismet.getTimedLimit() * 20 * 60);
     }
@@ -201,17 +202,17 @@ public class TileDisplay extends TileEntity implements ITickable {
         this.lastTargets = lastTargets;
     }
 
-    @Override
-    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
-        return oldState.getBlock() != newState.getBlock();
-    }
-
     public HashMap<String, Integer> getModWeights() {
         return this.modWeights;
     }
 
     public void setModWeights(HashMap<String, Integer> modWeights) {
         this.modWeights = modWeights;
+    }
+
+    @Override
+    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
+        return oldState.getBlock() != newState.getBlock();
     }
 
     private boolean isFulfilled() {

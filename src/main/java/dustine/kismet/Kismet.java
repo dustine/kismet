@@ -6,9 +6,11 @@ import dustine.kismet.registry.ModBlocks;
 import dustine.kismet.registry.ModItems;
 import dustine.kismet.registry.ModRecipes;
 import dustine.kismet.registry.ModTiles;
-import dustine.kismet.server.CommandKismet;
-import dustine.kismet.server.event.EventRegenLibraryOnce;
+import dustine.kismet.server.command.CommandKismet;
+import dustine.kismet.server.event.EventOnceFixDatabase;
 import dustine.kismet.target.TargetDatabaseBuilder;
+import dustine.kismet.target.TargetLibraryBuilder;
+import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Loader;
@@ -24,13 +26,13 @@ public class Kismet {
     public static final Random random = new Random();
     public final static CommandKismet command = new CommandKismet();
     public static NetworkHandler network;
-    public static TargetDatabaseBuilder libraryFactory;
+    public static TargetDatabaseBuilder databaseBuilder;
     @Mod.Instance(Reference.MOD_ID)
     public static Kismet instance;
     @SidedProxy(clientSide = Reference.CLIENT_PROXY_CLASS, serverSide = Reference.SERVER_PROXY_CLASS)
     public static IProxy proxy;
     private boolean jeiLoaded;
-    private EventRegenLibraryOnce eventRegenLibraryOnce;
+    private EventOnceFixDatabase eventOnceFixDatabase;
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -50,7 +52,7 @@ public class Kismet {
 
 
         // start network channels
-        network = new NetworkHandler();
+        network = new NetworkHandler(Reference.MOD_ID);
     }
 
     @EventHandler
@@ -73,17 +75,20 @@ public class Kismet {
         // register commands
         event.registerServerCommand(command);
 
-        libraryFactory = new TargetDatabaseBuilder((WorldServer) event.getServer().getEntityWorld());
+        final WorldServer world = (WorldServer) event.getServer().getEntityWorld();
+        databaseBuilder = new TargetDatabaseBuilder(world);
+        final WSDTargetDatabase targetDatabase = WSDTargetDatabase.get(world);
+        TargetLibraryBuilder.build(targetDatabase);
 
         // register the hook to restart the targetLibrary on single-player
-        this.eventRegenLibraryOnce = new EventRegenLibraryOnce();
-        MinecraftForge.EVENT_BUS.register(this.eventRegenLibraryOnce);
+        this.eventOnceFixDatabase = new EventOnceFixDatabase();
+        MinecraftForge.EVENT_BUS.register(this.eventOnceFixDatabase);
     }
 
     @EventHandler
     public void serverStopping(FMLServerStoppingEvent event) {
         // unregister the thing if it wasn't unfulfilled yet
-        MinecraftForge.EVENT_BUS.unregister(Kismet.instance.eventRegenLibraryOnce);
+        MinecraftForge.EVENT_BUS.unregister(Kismet.instance.eventOnceFixDatabase);
     }
 
     public boolean isJeiLoaded() {

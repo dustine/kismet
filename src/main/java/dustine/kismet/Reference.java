@@ -7,14 +7,10 @@ public final class Reference {
     public static final String CLIENT_PROXY_CLASS = "dustine.kismet.proxy.ClientProxy";
     public static final String GUI_FACTORY_CLASS = "dustine.kismet.client.gui.ModGuiFactory";
 
-    public static class Colors {
-        public static final int LIME = 0x00ff00;
-        public static final int RED = 0xff0000;
-        public static final int CYAN = 0x00ffff;
-    }
-
     public static final class Names {
         public static final String MOD = "Kismet";
+        public static final String MOD_PRETTY = "§eKismet";
+        public static final String TARGET_DATABASE = MOD_ID + "TargetDatabase";
 
         public static final class Items {
             public static final String KEY = "key";

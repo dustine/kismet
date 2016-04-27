@@ -6,7 +6,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 
-public class EventRegenLibraryOnce {
+public class EventOnceFixDatabase {
 
     @SubscribeEvent
     public void onPlayerLoginCleanLibrary(PlayerEvent.PlayerLoggedInEvent event) {

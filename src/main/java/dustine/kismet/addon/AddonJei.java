@@ -37,15 +37,15 @@ public class AddonJei implements IModPlugin {
         // if recipe = can be crafted
         for (InformedStack wrapper : stacks) {
             // skip the ones already positive
-            if (wrapper.isObtainable(InformedStack.ObtainableTypes.Craftable)) continue;
+            if (wrapper.hasOrigin(InformedStack.EnumOrigin.RECIPE)) continue;
 
             // check the categories where this item appears as an output
             for (IRecipeCategory category : recipeRegistry.getRecipeCategoriesWithOutput(wrapper.getStack())) {
-                if (wrapper.isObtainable(InformedStack.ObtainableTypes.Craftable)) break;
+                if (wrapper.hasOrigin(InformedStack.EnumOrigin.RECIPE)) break;
                 // and check the nr of recipes within
                 final List<Object> recipesWithOutput = recipeRegistry.getRecipesWithOutput(category, wrapper.getStack());
                 if (recipesWithOutput.size() > 0) {
-                    wrapper.setObtainable(InformedStack.ObtainableTypes.Craftable, true);
+                    wrapper.setOrigins(InformedStack.EnumOrigin.RECIPE, true);
                 }
             }
         }
@@ -78,7 +78,7 @@ public class AddonJei implements IModPlugin {
         for (InformedStack newWrapper : subtypes) {
             // add the obtainability of the original wrapper into wrapper:0 (metadata 0)
             if (StackHelper.isEquivalent(wrapper, newWrapper)) {
-                newWrapper.setObtainable(wrapper.getObtainable());
+                newWrapper.setOrigins(wrapper.getOrigins());
             }
 
             // check if the subtype stack is already in the stacks

@@ -22,7 +22,7 @@ public class BlockTimedDisplay extends BlockDisplay {
         final boolean parentResult = super.onBlockActivated(world, pos, state, player, hand, heldItem, side,
                 hitX, hitY, hitZ);
 
-        if (!parentResult) return false;
+        if (parentResult) return true;
 
         TileDisplay te = (TileDisplay) world.getTileEntity(pos);
         if (te == null) return false;

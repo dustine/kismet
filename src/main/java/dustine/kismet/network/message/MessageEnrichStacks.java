@@ -50,7 +50,7 @@ public class MessageEnrichStacks extends MessageBase<MessageEnrichStacks> {
 
     @Override
     protected void handleServerSide(MessageEnrichStacks message, EntityPlayer player) {
-        if (Kismet.libraryFactory != null) {
+        if (Kismet.databaseBuilder != null) {
             final WSDTargetDatabase wsdStacks = WSDTargetDatabase.get(player.worldObj);
             wsdStacks.enrichStacks(message.stacks);
         }

@@ -137,7 +137,7 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
 
     @Override
     public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
-        // correcting state not being correct -_-
+        // correcting state -_-
         state = getActualState(world.getBlockState(pos), world, pos);
 
         TileDisplay te = (TileDisplay) world.getTileEntity(pos);
@@ -149,7 +149,7 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
             // fulfilled target~
             setTargetAsFulfilled(world, pos, state, player);
             // because of bug
-            return !world.isRemote;
+            return true;
         }
 //        // Kismetic key = new target
 //        if (heldItem != null && heldItem.isItemEqual(new ItemStack(ModItems.KEY))) {

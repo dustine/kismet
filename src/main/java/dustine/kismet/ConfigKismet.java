@@ -1,7 +1,8 @@
 package dustine.kismet;
 
 import com.google.common.collect.ImmutableList;
-import dustine.kismet.target.InformedStack.ObtainableTypes;
+import dustine.kismet.target.InformedStack;
+import dustine.kismet.target.InformedStack.EnumOrigin;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
@@ -36,8 +37,8 @@ public final class ConfigKismet {
 
     private static List<String> hiddenBlacklist;
 
-    private static Map<ObtainableTypes, Boolean> genFlags;
-    private static Map<ObtainableTypes, List<String>> genLists;
+    private static Map<InformedStack.EnumOrigin, Boolean> genFlags;
+    private static List<String> hiddenGen;
 
     public static List<String> getHiddenBlacklist() {
         return hiddenBlacklist;
@@ -94,14 +95,14 @@ public final class ConfigKismet {
         final Property propTimedEnabled = getProperty(categories, CATEGORY_GENERAL, Names.timedEnabled);
         final Property propTimedLimit = getProperty(categories, CATEGORY_GENERAL, Names.timedLimit);
 
-        final Map<ObtainableTypes, Property> propGenLists = new HashMap<>();
-        final Map<ObtainableTypes, Property> propGenFlags = new HashMap<>();
-        for (ObtainableTypes type : ObtainableTypes.values()) {
+
+        final Property propHiddenGen = getProperty(categories, CATEGORY_TARGETS, Names.hiddenGen);
+        final Map<InformedStack.EnumOrigin, Property> propGenFlags = new HashMap<>();
+
+        for (EnumOrigin type : EnumOrigin.values()) {
             // skip the forced flag
-            if (type.equals(ObtainableTypes.Forced)) continue;
-            final String typeName = getTypeName(type);
-            propGenLists.put(type, getProperty(categories, CATEGORY_TARGETS, "hidden" + typeName));
-            propGenFlags.put(type, getProperty(categories, CATEGORY_TARGETS, "gen" + typeName));
+            if (type.equals(EnumOrigin.FORCED)) continue;
+            propGenFlags.put(type, getProperty(categories, CATEGORY_TARGETS, "gen" + getTypeName(type)));
         }
 
         final Property propGenMode = getProperty(categories, CATEGORY_TARGETS, Names.genMode);
@@ -134,12 +135,12 @@ public final class ConfigKismet {
                 timedLimit = Defaults.timedLimit;
             }
 
-            genLists = new HashMap<>();
+            hiddenGen = Arrays.asList(propHiddenGen.getStringList());
             genFlags = new HashMap<>();
-            for (ObtainableTypes type : ObtainableTypes.values()) {
+
+            for (EnumOrigin type : EnumOrigin.values()) {
                 // skip the forced flag
-                if (type.equals(ObtainableTypes.Forced)) continue;
-                genLists.put(type, Arrays.asList(propGenLists.get(type).getStringList()));
+                if (type.equals(EnumOrigin.FORCED)) continue;
                 genFlags.put(type, propGenFlags.get(type).getBoolean());
             }
 
@@ -166,10 +167,10 @@ public final class ConfigKismet {
 
         propTimedLimit.set(timedLimit);
 
-        for (ObtainableTypes type : ObtainableTypes.values()) {
+        propHiddenGen.set(hiddenGen.toArray(new String[] {}));
+        for (EnumOrigin type : EnumOrigin.values()) {
             // skip the forced flag
-            if (type.equals(ObtainableTypes.Forced)) continue;
-            propGenLists.get(type).set(genLists.get(type).toArray(new String[] {}));
+            if (type.equals(EnumOrigin.FORCED)) continue;
             propGenFlags.get(type).set(genFlags.get(type));
         }
 
@@ -192,63 +193,9 @@ public final class ConfigKismet {
 
     private static Map<String, List<Property>> getCategories() {
         Map<String, List<Property>> categories = new HashMap<>();
+        addCatGeneralProperties(categories);
+        addCatTargetsProperties(categories);
 
-        // CATEGORY: GENERAL
-        ArrayList<Property> catGeneral = new ArrayList<>();
-        categories.put(CATEGORY_GENERAL, catGeneral);
-
-        Property propHasChill = config.get(CATEGORY_GENERAL, Names.chillEnabled, Defaults.chillEnabled)
-                .setRequiresMcRestart(true);
-        catGeneral.add(propHasChill);
-
-        Property propHasTimed = config.get(CATEGORY_GENERAL, Names.timedEnabled, Defaults.timedEnabled)
-                .setRequiresMcRestart(true);
-        catGeneral.add(propHasTimed);
-
-        Property propTimeLimit = config.get(CATEGORY_GENERAL, Names.timedLimit, Defaults.timedLimit)
-                .setMinValue(timedLimitMin);
-        catGeneral.add(propTimeLimit);
-
-
-        // CATEGORY: TARGET_LIST
-        ArrayList<Property> catTargets = new ArrayList<>();
-        categories.put(CATEGORY_TARGETS, catTargets);
-
-        // forceAdd doesn't allow just having the mod so it's obligated to have
-        Pattern forceAddPattern = Pattern.compile("!?[^A-Z^ \\t\\r\\n\\v\\f]+:\\w+(:\\d+(:\\{.*\\})?)?");
-        Pattern blacklistPattern = Pattern.compile("!?[^A-Z^ \\t\\r\\n\\v\\f]+(:\\w+(:\\d+(:\\{.*\\})?)?)?");
-
-        List<Property> catGenLists = new ArrayList<>();
-        List<Property> catGenFlags = new ArrayList<>();
-        for (ObtainableTypes type : ObtainableTypes.values()) {
-            if (type.equals(ObtainableTypes.Forced)) continue;
-            Property propGenList = config.get(CATEGORY_TARGETS, "hidden" + getTypeName(type), Defaults.genLists.get
-                    (type)).setShowInGui(false);
-            catGenLists.add(propGenList);
-
-            Property propGenFlag = config.get(CATEGORY_TARGETS, "gen" + getTypeName(type), Defaults.genFlags.get(type));
-            catGenFlags.add(propGenFlag);
-        }
-
-        catTargets.addAll(catGenLists);
-
-        Property propGenMode = config.get(CATEGORY_TARGETS, Names.genMode, Defaults.genMode.toString())
-                .setValidValues(genModesValues);
-        catTargets.add(propGenMode);
-
-        catTargets.addAll(catGenFlags);
-
-        Property propGenBlacklist = config.get(CATEGORY_TARGETS, Names.genBlacklist, Defaults.genFilter)
-                .setValidationPattern(blacklistPattern);
-        catTargets.add(propGenBlacklist);
-
-        Property propHiddenBlacklist = config.get(CATEGORY_TARGETS, Names.hiddenBlacklist, Defaults.hiddenBlacklist)
-                .setShowInGui(false);
-        catTargets.add(propHiddenBlacklist);
-
-        Property propForceAdd = config.get(CATEGORY_TARGETS, Names.forceAdd, Defaults.forceAdd)
-                .setValidationPattern(forceAddPattern);
-        catTargets.add(propForceAdd);
 
         // final operation: adding language keys
         for (String categoryName : categories.keySet()) {
@@ -263,9 +210,137 @@ public final class ConfigKismet {
         return categories;
     }
 
-    private static String getTypeName(ObtainableTypes type) {
-        return type.toString().substring(0, 1).toUpperCase() +
-                type.toString().substring(1).toLowerCase();
+    private static void addCatTargetsProperties(Map<String, List<Property>> categories) {
+        // CATEGORY: TARGET_LIST
+        ArrayList<Property> catTargets = new ArrayList<>();
+
+        // forceAdd doesn't allow just having the mod so it's obligated to have
+        Pattern forceAddPattern = Pattern.compile("!?[^A-Z^ \\t\\r\\n\\v\\f]+:\\w+(:\\d+(:\\{.*\\})?)?");
+        Pattern blacklistPattern = Pattern.compile("!?[^A-Z^ \\t\\r\\n\\v\\f]+(:\\w+(:\\d+(:\\{.*\\})?)?)?");
+
+        Property propForceAdd = config.get(CATEGORY_TARGETS, Names.forceAdd, Defaults.forceAdd)
+                .setValidationPattern(forceAddPattern);
+        propForceAdd.setComment("List of items that will be considered as possible targets, ignoring any generation " +
+                "settings");
+        catTargets.add(propForceAdd);
+
+        Property propGenMode = config.get(CATEGORY_TARGETS, Names.genMode, Defaults.genMode.toString())
+                .setValidValues(genModesValues);
+        propGenMode.setComment("Defines if the mod will register possible targets from the game registeries, either " +
+                "none at all, only ones with origin according to genFlags (ex: items in a crafting recipe of any " +
+                "kind are flagged as 'recipe') or any valid minecraft item at all, respectively");
+        catTargets.add(propGenMode);
+
+        Property propHiddenGen = config.get(CATEGORY_TARGETS, Names.hiddenGen, Defaults.hiddenGen)
+                .setShowInGui(false)
+                .setRequiresWorldRestart(true);
+        propHiddenGen.setComment("List of items and origin flags that override any registered targets (and their origin flags). This is also where other mods could add their own items that they wished to be properly categorized. " +
+                "Any item with an unknown or missing origin flag will be tagged as 'Other'");
+        catTargets.add(propHiddenGen);
+
+        addGenFlagProperties(catTargets);
+
+        Property propGenBlacklist = config.get(CATEGORY_TARGETS, Names.genBlacklist, Defaults.genBlacklist)
+                .setValidationPattern(blacklistPattern);
+        propGenBlacklist.setComment("List of items that will be ignored on target selection");
+        catTargets.add(propGenBlacklist);
+
+        Property propHiddenBlacklist = config.get(CATEGORY_TARGETS, Names.hiddenBlacklist, Defaults.hiddenBlacklist)
+                .setShowInGui(false)
+                .setRequiresWorldRestart(true);
+        propHiddenBlacklist.setComment("List of items that will be forcefully added to the blacklist. More for any " +
+                "cleanup of weird edge cases on the mod target algorithms");
+        catTargets.add(propHiddenBlacklist);
+
+        categories.put(CATEGORY_TARGETS, catTargets);
+    }
+
+    private static void addGenFlagProperties(ArrayList<Property> catTargets) {
+        List<Property> catGenFlags = new ArrayList<>();
+        for (EnumOrigin type : EnumOrigin.values()) {
+            if (type.equals(EnumOrigin.FORCED) || type.equals(EnumOrigin.OTHER)) continue;
+            Property propGenFlag = config.get(CATEGORY_TARGETS, "gen" + getTypeName(type), Defaults.genFlags.get(type));
+            propGenFlag.setComment(getComment(type));
+            catGenFlags.add(propGenFlag);
+            catGenFlags.sort((o1, o2) -> o1.getName().compareTo(o2.getName()));
+        }
+
+        // add others as the last one
+        Property propGenFlagOthers = config.get(CATEGORY_TARGETS, "gen" + getTypeName(EnumOrigin.OTHER),
+                Defaults.genFlags.get(EnumOrigin.OTHER));
+        propGenFlagOthers.setComment(getComment(EnumOrigin.OTHER));
+        catGenFlags.add(propGenFlagOthers);
+
+        catTargets.addAll(catGenFlags);
+    }
+
+    private static String getComment(EnumOrigin type) {
+        switch (type) {
+            case FORCED:
+                return "Uh, this isn't supposed to happen, FORCED shouldn't ever be in the config";
+            case OTHER:
+                return "Allows miscellaneous items as targets";
+            case FLUID:
+                return "Allows fluids, in bucket form, as targets";
+            case RECIPE:
+                return "Allows items with associated crafting/smelting/mod recipes as targets";
+            case LOOT_TABLE:
+                return "Allows items present in the loot tables (mod drops, chest loot) as targets";
+            case BLOCK_DROPS:
+                return "Allows items that are dropped from breaking blocks as targets";
+            case SILK_TOUCH:
+                return "Allows blocks that can be mined with silk touch as targets";
+            default:
+                return "Uh, this isn't supposed to happen, this is the default comment";
+        }
+    }
+
+    /**
+     * Returns a origin name, which normally is in THIS_FORMAT, into thisFormat
+     *
+     * @param origin Origin
+     * @return A camelCase origin name
+     */
+    private static String getTypeName(EnumOrigin origin) {
+        boolean wordBoundary = true;
+        final StringBuilder builder = new StringBuilder();
+        for (char s : origin.name().toCharArray()) {
+            if (s == '_') {
+                wordBoundary = true;
+                continue;
+            }
+            if (wordBoundary) {
+                wordBoundary = false;
+                builder.append(s);
+            } else {
+                builder.append(Character.toLowerCase(s));
+            }
+        }
+        return builder.toString();
+    }
+
+    private static void addCatGeneralProperties(Map<String, List<Property>> categories) {
+        // CATEGORY: GENERAL
+        ArrayList<Property> catGeneral = new ArrayList<>();
+
+        Property propHasChill = config.get(CATEGORY_GENERAL, Names.chillEnabled, Defaults.chillEnabled)
+                .setRequiresMcRestart(true);
+        propHasChill.setComment("Set to true to enable the crafting recipe to the Kismet Display (the one without a " +
+                "timer)");
+        catGeneral.add(propHasChill);
+
+        Property propHasTimed = config.get(CATEGORY_GENERAL, Names.timedEnabled, Defaults.timedEnabled)
+                .setRequiresMcRestart(true);
+        propHasTimed.setComment("Set to true to enable the crafting recipe to the Timed Kismet Display (the one with " +
+                "a timer)");
+        catGeneral.add(propHasTimed);
+
+        Property propTimeLimit = config.get(CATEGORY_GENERAL, Names.timedLimit, Defaults.timedLimit)
+                .setMinValue(timedLimitMin);
+        propTimeLimit.setComment("The time limit for each goal in the Timed Kismet Display, in minutes");
+        catGeneral.add(propTimeLimit);
+
+        categories.put(CATEGORY_GENERAL, catGeneral);
     }
 
     /**
@@ -318,7 +393,7 @@ public final class ConfigKismet {
     }
 
     public static List<String> getGenBlacklist() {
-        return genBlacklist;
+        return ImmutableList.copyOf(genBlacklist);
     }
 
     public static boolean isChillEnabled() {
@@ -329,23 +404,21 @@ public final class ConfigKismet {
         return timedEnabled;
     }
 
-    public static List<String> getGenList(ObtainableTypes type) {
-        if (type.equals(ObtainableTypes.Forced)) return forceAdd;
-        return genLists.get(type);
-    }
-
-    public static boolean isGenFlag(ObtainableTypes type) {
-        if (type.equals(ObtainableTypes.Forced)) {
-            Log.warning("Tried to check if Forced are allowed");
+    public static boolean isGenFlag(EnumOrigin type) {
+        if (type.equals(EnumOrigin.FORCED)) {
+            Log.warning("Tried to check if FORCED are allowed");
             return true;
         }
         return genFlags.get(type);
     }
 
-    public static boolean isGenUnfair() {
-        return genFlags.get(ObtainableTypes.Unfair);
+    public static List<String> getHiddenGen() {
+        return hiddenGen;
     }
 
+    public static void setHiddenGen(List<String> hiddenGen) {
+        ConfigKismet.hiddenGen = hiddenGen;
+    }
 
     public enum EnumGenMode {
         NONE("None"),
@@ -360,7 +433,7 @@ public final class ConfigKismet {
 
         @Override
         public String toString() {
-            return value;
+            return this.value;
         }
     }
 
@@ -372,6 +445,7 @@ public final class ConfigKismet {
         private static final String genMode = "genMode";
         private static final String genBlacklist = "genBlacklist";
         private static final String forceAdd = "forceAdd";
+        private static final String hiddenGen = "hiddenGen";
     }
 
     private static class Defaults {
@@ -379,82 +453,52 @@ public final class ConfigKismet {
         static final boolean chillEnabled = true;
         static final boolean timedEnabled = true;
         static final int timedLimit = 24000 / 20 / 60; // a minecraft day
-        static final String[] hiddenBucketable = new String[] {
-                "minecraft:milk_bucket",
-                ""
-        };
-        static final String[] hiddenCraftable = new String[] {
-                ""
-        };
-        static final String[] hiddenLootable = new String[] {
-                "minecraft:egg",
-                "minecraft:elytra",
-                "minecraft:nether_star",
-                "minecraft:record_11",
-                "minecraft:record_blocks",
-                "minecraft:record_mall",
-                "minecraft:record_wait",
-                "minecraft:record_stal",
-                "minecraft:record_ward",
-                "minecraft:record_far",
-                "minecraft:record_strad",
-                "minecraft:record_chirp",
-                "minecraft:record_mellohi",
-                ""
-        };
-        static final String[] hiddenMineable = new String[] {
-                ""
-        };
-        static final String[] hiddenSilkable = new String[] {
-                ""
-        };
-        static final String[] hiddenOthers = new String[] {
-                "minecraft:vine",
-                "minecraft:dragon_breath",
-                ""
-        };
-        static final String[] hiddenUnfair = new String[] {
-                "minecraft:dragon_egg",
-                ""
+        static final String[] hiddenGen = new String[] {
+                "LOOT_TABLE:minecraft:egg",
+                "LOOT_TABLE:minecraft:elytra",
+                "LOOT_TABLE:minecraft:nether_star",
+                "LOOT_TABLE:minecraft:record_11",
+                "LOOT_TABLE:minecraft:record_blocks",
+                "LOOT_TABLE:minecraft:record_chirp",
+                "LOOT_TABLE:minecraft:record_far",
+                "LOOT_TABLE:minecraft:record_mall",
+                "LOOT_TABLE:minecraft:record_mellohi",
+                "LOOT_TABLE:minecraft:record_stal",
+                "LOOT_TABLE:minecraft:record_strad",
+                "LOOT_TABLE:minecraft:record_wait",
+                "LOOT_TABLE:minecraft:record_ward",
+                "SHEAR:minecraft:vine",
+                ":minecraft:dragon_breath"
         };
         static final String[] hiddenBlacklist = new String[] {
                 // the deprecated wooden slab, still in the game as a block
-                "minecraft:stone_slab:2",
-                ""
+                "minecraft:stone_slab:2"
         };
-        static final String[] genFilter = new String[] {
-                "minecraft:tipped_arrow",
-                "minecraft:splash_potion",
-                "minecraft:lingering_potion",
-                "minecraft:wool",
-                "minecraft:stained_hardened_clay",
+        static final String[] genBlacklist = new String[] {
+                "kismet",
                 "minecraft:carpet",
+                "minecraft:dragon_egg",
+                "minecraft:lingering_potion",
+                "minecraft:splash_potion",
                 "minecraft:stained_glass",
-                "minecraft:stained_glass_pane"
+                "minecraft:stained_glass_pane",
+                "minecraft:stained_hardened_clay",
+                "minecraft:tipped_arrow",
+                "minecraft:wool"
         };
         static String[] forceAdd = new String[] {
                 "minecraft:wool:0",
                 "minecraft:carpet:0"
         };
-        static Map<ObtainableTypes, String[]> genLists = new HashMap<>();
-        static Map<ObtainableTypes, Boolean> genFlags = new HashMap<>();
+        static Map<InformedStack.EnumOrigin, Boolean> genFlags = new HashMap<>();
 
         static {
-            Defaults.genLists.put(ObtainableTypes.Unfair, Defaults.hiddenUnfair);
-            Defaults.genLists.put(ObtainableTypes.Others, Defaults.hiddenOthers);
-            Defaults.genLists.put(ObtainableTypes.Bucketable, Defaults.hiddenBucketable);
-            Defaults.genLists.put(ObtainableTypes.Craftable, Defaults.hiddenCraftable);
-            Defaults.genLists.put(ObtainableTypes.Lootable, Defaults.hiddenLootable);
-            Defaults.genLists.put(ObtainableTypes.Mineable, Defaults.hiddenMineable);
-            Defaults.genLists.put(ObtainableTypes.Silkable, Defaults.hiddenSilkable);
-
-            Defaults.genFlags.put(ObtainableTypes.Unfair, false);
-            Defaults.genFlags.put(ObtainableTypes.Others, true);
-            Defaults.genFlags.put(ObtainableTypes.Bucketable, true);
-            Defaults.genFlags.put(ObtainableTypes.Craftable, true);
-            Defaults.genFlags.put(ObtainableTypes.Lootable, true);
-            Defaults.genFlags.put(ObtainableTypes.Mineable, true);
-            Defaults.genFlags.put(ObtainableTypes.Silkable, true);
+            Defaults.genFlags.put(EnumOrigin.OTHER, true);
+            Defaults.genFlags.put(EnumOrigin.FLUID, true);
+            Defaults.genFlags.put(EnumOrigin.RECIPE, true);
+            Defaults.genFlags.put(EnumOrigin.LOOT_TABLE, true);
+            Defaults.genFlags.put(EnumOrigin.BLOCK_DROPS, true);
+            Defaults.genFlags.put(EnumOrigin.SILK_TOUCH, true);
         }
     }
 
@@ -472,8 +516,8 @@ public final class ConfigKismet {
                     // force a library refresh if in-world and any changes occured regarding the target category
                     if (category.equals(ConfigKismet.CATEGORY_TARGETS)) {
                         Log.trace("Updating filtered stacks...");
-                        if (Kismet.libraryFactory != null)
-                            Kismet.libraryFactory.recreateLibrary();
+                        if (Kismet.databaseBuilder != null)
+                            Kismet.databaseBuilder.tryBuildLibraryWithLastGeneratedDatabase();
                     }
                     Log.debug("Config changed on GUI, category " + category);
                 } else {
