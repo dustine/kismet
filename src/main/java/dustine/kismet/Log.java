@@ -3,7 +3,7 @@ package dustine.kismet;
 import net.minecraftforge.fml.common.FMLLog;
 import org.apache.logging.log4j.Level;
 
-public class ModLogger {
+public class Log {
     static org.apache.logging.log4j.Logger logger = FMLLog.getLogger();
 
     /**
@@ -13,7 +13,7 @@ public class ModLogger {
         _log(Level.FATAL, message);
     }
 
-    public static void _log(Level level, Object message) {
+    private static void _log(Level level, Object message) {
         logger.log(level, message.toString());
     }
 

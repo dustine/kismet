@@ -2,8 +2,9 @@ package dustine.kismet.target;
 
 import dustine.kismet.ConfigKismet;
 import dustine.kismet.Kismet;
-import dustine.kismet.ModLogger;
+import dustine.kismet.Log;
 import dustine.kismet.util.StackHelper;
+import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.JsonToNBT;
@@ -24,7 +25,7 @@ public class TargetLibraryBuilder {
      *
      * @param targets
      */
-    public static void recreateLibrary(Collection<InformedStack> targets) {
+    public static void build(Collection<InformedStack> targets) {
         Map<String, InformedStack> stacks = getConfigStacks(targets);
 
         // generated stacks filter keys
@@ -57,8 +58,8 @@ public class TargetLibraryBuilder {
         Map<String, InformedStack> stacks = new HashMap<>();
 
         // forced stacks, the ones that are added for sure to the filtered stacks
-        for (InformedStack.ObtainableTypes type : InformedStack.ObtainableTypes.values()) {
-            addConfigGen(stacks, type);
+        for (InformedStack.EnumOrigin type : InformedStack.EnumOrigin.values()) {
+            addConfigGen(stacks);
         }
 
         // add all the targets now to this list
@@ -73,16 +74,32 @@ public class TargetLibraryBuilder {
         return stacks;
     }
 
-    private static void addConfigGen(Map<String, InformedStack> stacks, InformedStack.ObtainableTypes type) {
-        for (String entry : ConfigKismet.getGenList(type)) {
+    private static void addConfigGen(Map<String, InformedStack> stacks) {
+        for (String entry : ConfigKismet.getHiddenGen()) {
             // skip entries that start with an !
             // also skip mods on the whitelist as it's only for specific tempStacks
             if (entry.startsWith("!") || isMod(entry)) continue;
-            final ItemStack stack = getItemStack(entry);
+
+            // convert origin:item into, well, origin and item
+            InformedStack.EnumOrigin origin = InformedStack.EnumOrigin.OTHER;
+            String item = entry.substring(entry.indexOf(":") + 1);
+            if (!entry.startsWith(":")) {
+                final String typeString = entry.split(":", 1)[0];
+                origin = InformedStack.EnumOrigin.OTHER;
+                for (InformedStack.EnumOrigin o :
+                        InformedStack.EnumOrigin.values()) {
+                    if (o.getName().equalsIgnoreCase(typeString)) {
+                        origin = o;
+                        break;
+                    }
+                }
+            }
+
+            final ItemStack stack = getItemStack(item);
             if (stack == null) continue;
 
             // add the entries as subtype-having wrappers
-            final InformedStack wrapper = new InformedStack(stack, type);
+            final InformedStack wrapper = new InformedStack(stack, origin);
             // force hasSubtypes to true if user specified a metadata value
             if (hasMetadata(entry))
                 wrapper.setHasSubtypes(true);
@@ -107,15 +124,15 @@ public class TargetLibraryBuilder {
         return !s.contains(":");
     }
 
-    static ItemStack getItemStack(@Nonnull String s) {
+    public static ItemStack getItemStack(@Nonnull String s) {
         return getItemStack(s, false);
     }
 
-    static ItemStack getItemStack(@Nonnull String entry, boolean wildcards) {
+    private static ItemStack getItemStack(@Nonnull String entry, boolean wildcards) {
         final String[] split = entry.split(":");
 
         if (split.length < 2) {
-            ModLogger.warning("Weird location: " + entry);
+            Log.warning("Weird location: " + entry);
             return null;
         }
 
@@ -125,7 +142,7 @@ public class TargetLibraryBuilder {
         if (Item.REGISTRY.getKeys().contains(loc)) {
             stack = new ItemStack(Item.REGISTRY.getObject(loc));
         } else {
-            ModLogger.error("Weird location: " + entry);
+            Log.error("Weird location: " + entry);
             return null;
         }
 
@@ -137,13 +154,13 @@ public class TargetLibraryBuilder {
                 // there's metadata, add it
                 stack.setItemDamage(meta);
             } else {
-                ModLogger.error(String.format("Weird metadata %s in %s", split[2], entry));
-                if (wildcards && Kismet.proxy.inferSafeHasSubtypes(stack)) {
+                Log.error(String.format("Weird metadata %s in %s", split[2], entry));
+                if (wildcards && Kismet.proxy.sideSafeHasSubtypes(stack)) {
                     stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
                 }
             }
         } else {
-            if (wildcards && Kismet.proxy.inferSafeHasSubtypes(stack)) {
+            if (wildcards && Kismet.proxy.sideSafeHasSubtypes(stack)) {
                 stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
             }
         }
@@ -154,7 +171,7 @@ public class TargetLibraryBuilder {
                 NBTTagCompound nbt = JsonToNBT.getTagFromJson(split[3]);
                 stack.setTagCompound(nbt);
             } catch (NBTException e) {
-                ModLogger.error(String.format("Weird NBT %s in %s", split[3], entry), e);
+                Log.error(String.format("Weird NBT %s in %s", split[3], entry), e);
             }
         }
 
@@ -173,8 +190,11 @@ public class TargetLibraryBuilder {
         // mod filtering
         final String[] split = s.split(":");
         if (split.length == 1) {
+            String mod = split[0];
+            // edge case: minecraft isn't recognized as a mod, but it's a resource location so we add it
+            if (s.equals("minecraft")) return mod;
             // mod
-            return Loader.isModLoaded(split[0]) ? split[0] : null;
+            return Loader.isModLoaded(mod) ? mod : null;
         }
 
         // else treat it as item filtering (with possible metadata)
@@ -190,7 +210,7 @@ public class TargetLibraryBuilder {
         if (wrapper == null || wrapper.getStack() == null) return false;
 
         // forcefully added stacks always go true, even if they're on the blacklist
-        if (wrapper.isObtainable(InformedStack.ObtainableTypes.Forced)) return true;
+        if (wrapper.hasOrigin(InformedStack.EnumOrigin.FORCED)) return true;
 
         // generation mode dictates if we continue or not
         switch (ConfigKismet.getGenMode()) {
@@ -210,5 +230,9 @@ public class TargetLibraryBuilder {
         // if this stack matches exactly one in the forced list, skip it (will be added later)
         // and if it's on the filter list, skip it as well (blacklisted)
         return filter.stream().noneMatch(name::startsWith);
+    }
+
+    public static void build(WSDTargetDatabase targetDatabase) {
+        build(targetDatabase.getStacks());
     }
 }

@@ -2,9 +2,10 @@ package dustine.kismet.tile;
 
 import dustine.kismet.ConfigKismet;
 import dustine.kismet.Kismet;
-import dustine.kismet.ModLogger;
+import dustine.kismet.Log;
 import dustine.kismet.block.BlockDisplay;
 import dustine.kismet.block.BlockTimedDisplay;
+import dustine.kismet.network.message.MessageDisplayTarget;
 import dustine.kismet.registry.ModBlocks;
 import dustine.kismet.target.InformedStack;
 import dustine.kismet.target.TargetGenerationResult;
@@ -48,14 +49,14 @@ public class TileDisplay extends TileEntity implements ITickable {
 
     public TileDisplay() {
         super();
-        modWeights = new HashMap<>();
-        lastTargets = new ArrayList<>();
+        this.modWeights = new HashMap<>();
+        this.lastTargets = new ArrayList<>();
     }
 
     public String getStylizedDeadline() {
         // format the time remaining as hh:mm:ss
         // less error-prone way to get the seconds already rounded up
-        final long l = getDeadline() - worldObj.getTotalWorldTime();
+        final long l = getDeadline() - this.worldObj.getTotalWorldTime();
         long remainingTime = l / 20 + (l % 20 == 0 ? 0 : 1);
 
         // yellow -> red -> bold red
@@ -76,7 +77,7 @@ public class TileDisplay extends TileEntity implements ITickable {
     }
 
     public long getDeadline() {
-        return deadline;
+        return this.deadline;
     }
 
     public void setDeadline(long deadline) {
@@ -86,19 +87,19 @@ public class TileDisplay extends TileEntity implements ITickable {
     public String getStylizedScore() {
         int deliminator = getScore() / 10;
         String styleCode;
-        if (deliminator >= colors.length) {
+        if (deliminator >= this.colors.length) {
             // use the last colour
-            styleCode = colors[colors.length - 1].toString();
+            styleCode = this.colors[this.colors.length - 1].toString();
         } else {
-            styleCode = colors[deliminator].toString();
+            styleCode = this.colors[deliminator].toString();
         }
 
         String resetStyleCode = TextFormatting.RESET.toString();
-        return styleCode + score + resetStyleCode;
+        return styleCode + this.score + resetStyleCode;
     }
 
     public int getScore() {
-        return score;
+        return this.score;
     }
 
     public void setScore(int score) {
@@ -121,8 +122,8 @@ public class TileDisplay extends TileEntity implements ITickable {
             markDirty();
         }
         if (this.stateChanged) {
-            stateChanged = false;
-            worldObj.setBlockState(pos, ModBlocks.CHILL_DISPLAY.getActualState(worldObj.getBlockState(pos), worldObj, pos));
+            this.stateChanged = false;
+            this.worldObj.setBlockState(this.pos, ModBlocks.CHILL_DISPLAY.getActualState(this.worldObj.getBlockState(this.pos), this.worldObj, this.pos));
         }
     }
 
@@ -131,11 +132,11 @@ public class TileDisplay extends TileEntity implements ITickable {
     }
 
     private boolean checkForDeadline() {
-        if (getDeadline() < worldObj.getTotalWorldTime()) {
+        if (getDeadline() < this.worldObj.getTotalWorldTime()) {
             resetDeadline();
 
             if (!isFulfilled()) {
-                lastTargets.clear();
+                this.lastTargets.clear();
                 setScore(0);
             }
             setFulfilled(false);
@@ -144,13 +145,14 @@ public class TileDisplay extends TileEntity implements ITickable {
         }
         return false;
     }
+
     private void resetDeadline() {
-        setDeadline(worldObj.getTotalWorldTime() + ConfigKismet.getTimedLimit() * 20 * 60);
+        setDeadline(this.worldObj.getTotalWorldTime() + ConfigKismet.getTimedLimit() * 20 * 60);
     }
 
     public boolean rollForKey() {
         final Random random = Kismet.random;
-        double limiter = 1.0 / (skipped + 1);
+        double limiter = 1.0 / (this.skipped + 1);
         return random.nextDouble() < limiter;
     }
 
@@ -161,43 +163,39 @@ public class TileDisplay extends TileEntity implements ITickable {
      */
     public boolean getNewTarget() {
         // a timeout for server issues
-        if (newTargetTimeout > worldObj.getTotalWorldTime()) return false;
+        if (this.newTargetTimeout > this.worldObj.getTotalWorldTime()) return false;
 
         // remove the fulfillment
-        final IBlockState state = worldObj.getBlockState(pos);
-        worldObj.setBlockState(pos, state.withProperty(BlockDisplay.FULFILLED, false));
+        final IBlockState state = this.worldObj.getBlockState(this.pos);
+        this.worldObj.setBlockState(this.pos, state.withProperty(BlockDisplay.FULFILLED, false));
 
         // only server pls from now on
-        if (worldObj.isRemote) {
+        if (this.worldObj.isRemote) {
             return false;
         }
 
         final InformedStack oldTarget = this.target;
 
-        TargetGenerationResult targetResult = TargetLibrary.generateTarget(modWeights, lastTargets);
+        TargetGenerationResult targetResult = TargetLibrary.generateTarget(this.modWeights, this.lastTargets);
         if (targetResult.hasFlag()) {
-            this.newTargetTimeout = worldObj.getTotalWorldTime() + 5 * 20;
-            ModLogger.warning("Failed to get target, " + targetResult.getFlag());
+            this.newTargetTimeout = this.worldObj.getTotalWorldTime() + 5 * 20;
+            Log.warning("Failed to get target, " + targetResult.getFlag());
         }
         setTarget(targetResult.getValue());
 
         // sync client with server as target picking only happens server-wise (for safety)
-        if (oldTarget != target) {
+        if (oldTarget != this.target) {
             resetDeadline();
-            Kismet.network.syncDisplayTargetToClient(worldObj.provider.getDimension(), this);
+            int dimension = getWorld().provider.getDimension();
+            Kismet.network.sendToDimension(new MessageDisplayTarget(this), dimension);
             return true;
         }
 
         return false;
     }
 
-    @Override
-    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
-        return oldState.getBlock() != newState.getBlock();
-    }
-
     public List<InformedStack> getLastTargets() {
-        return lastTargets;
+        return this.lastTargets;
     }
 
     public void setLastTargets(List<InformedStack> lastTargets) {
@@ -205,24 +203,29 @@ public class TileDisplay extends TileEntity implements ITickable {
     }
 
     public HashMap<String, Integer> getModWeights() {
-        return modWeights;
+        return this.modWeights;
     }
 
     public void setModWeights(HashMap<String, Integer> modWeights) {
         this.modWeights = modWeights;
     }
 
+    @Override
+    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
+        return oldState.getBlock() != newState.getBlock();
+    }
+
     private boolean isFulfilled() {
-        return worldObj.getBlockState(pos).getValue(BlockDisplay.FULFILLED);
+        return this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FULFILLED);
     }
 
     private void setFulfilled(boolean fulfilled) {
-        IBlockState state = worldObj.getBlockState(pos);
+        IBlockState state = this.worldObj.getBlockState(this.pos);
         boolean oldFulfilled = state.getValue(BlockDisplay.FULFILLED);
         // optimization trick, less state packets
         if (oldFulfilled == fulfilled) return;
         state = state.withProperty(BlockDisplay.FULFILLED, fulfilled);
-        worldObj.setBlockState(pos, state);
+        this.worldObj.setBlockState(this.pos, state);
     }
 
     public boolean isReady() {
@@ -239,9 +242,9 @@ public class TileDisplay extends TileEntity implements ITickable {
         setScore(nbt.getInteger("score"));
 
         if (nbt.hasKey("target")) {
-            target = new InformedStack(nbt.getCompoundTag("target"));
+            this.target = new InformedStack(nbt.getCompoundTag("target"));
         } else {
-            target = null;
+            this.target = null;
         }
 
         // 10 for COMPOUND, check NBTBase
@@ -253,15 +256,15 @@ public class TileDisplay extends TileEntity implements ITickable {
             this.modWeights.put(modId, modWeight);
         }
 
-        lastTargets.clear();
+        this.lastTargets.clear();
         NBTTagList lastTargetsNbt = nbt.getTagList("lastTargets", 10);
         for (int i = 0; i < lastTargetsNbt.tagCount(); i++) {
             NBTTagCompound compound = lastTargetsNbt.getCompoundTagAt(i);
-            lastTargets.add(new InformedStack(compound));
+            this.lastTargets.add(new InformedStack(compound));
         }
 
-        if (worldObj != null && worldObj.isRemote) {
-            stateChanged = true;
+        if (this.worldObj != null && this.worldObj.isRemote) {
+            this.stateChanged = true;
         }
     }
 
@@ -280,16 +283,16 @@ public class TileDisplay extends TileEntity implements ITickable {
         }
 
         NBTTagList modWeightsNbt = new NBTTagList();
-        for (String key : modWeights.keySet()) {
+        for (String key : this.modWeights.keySet()) {
             NBTTagCompound nbtTagCompound = new NBTTagCompound();
             nbtTagCompound.setString("id", key);
-            nbtTagCompound.setInteger("weight", modWeights.get(key));
+            nbtTagCompound.setInteger("weight", this.modWeights.get(key));
             modWeightsNbt.appendTag(nbtTagCompound);
         }
         compound.setTag("modWeights", modWeightsNbt);
 
         NBTTagList lastTargetsNbt = new NBTTagList();
-        for (InformedStack lastTarget : lastTargets) {
+        for (InformedStack lastTarget : this.lastTargets) {
             NBTTagCompound targetTag = lastTarget.writeToNBT();
             lastTargetsNbt.appendTag(targetTag);
         }
@@ -310,7 +313,7 @@ public class TileDisplay extends TileEntity implements ITickable {
     }
 
     public InformedStack getTarget() {
-        return target;
+        return this.target;
     }
 
     public void setTarget(InformedStack target) {
@@ -332,6 +335,6 @@ public class TileDisplay extends TileEntity implements ITickable {
     }
 
     public int getSkipped() {
-        return skipped;
+        return this.skipped;
     }
 }

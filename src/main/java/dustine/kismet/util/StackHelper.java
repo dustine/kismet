@@ -87,7 +87,7 @@ public class StackHelper {
     }
 
     public static String toUniqueKey(ItemStack stack) {
-        final boolean hasSubtypes = Kismet.proxy.inferSafeHasSubtypes(stack);
+        final boolean hasSubtypes = Kismet.proxy.sideSafeHasSubtypes(stack);
         return toUniqueKey(stack, hasSubtypes);
     }
 

@@ -1,7 +1,7 @@
 package dustine.kismet.target;
 
 import dustine.kismet.Kismet;
-import dustine.kismet.ModLogger;
+import dustine.kismet.Log;
 import dustine.kismet.target.TargetGenerationResult.EnumTargetFailure;
 import dustine.kismet.util.StackHelper;
 
@@ -79,7 +79,7 @@ public class TargetLibrary {
         String targetMod = getWeightedRandomMod(metrics, Kismet.random);
         // target should always be assigned a value, but just in case...
         if (targetMod == null) {
-            ModLogger.error(String.format("Failed to get a targeted mod, from %s and %s", weights, lastTargets));
+            Log.error(String.format("Failed to get a targeted mod, from %s and %s", weights, lastTargets));
             return new TargetGenerationResult(EnumTargetFailure.NO_TARGET_MODS_AVAILABLE);
         }
 
@@ -200,7 +200,7 @@ public class TargetLibrary {
                     .filter(key -> weights.get(key) <= 0 && count.getOrDefault(key, 0) > 0)
                     .forEach(key -> weights.put(key, 1));
 
-            ModLogger.trace("Edge case resolved, all mods with weight 0");
+            Log.trace("Edge case resolved, all mods with weight 0");
 
             solved = true;
             return true;
@@ -232,7 +232,7 @@ public class TargetLibrary {
             weights.replaceAll((s, integer) -> 1);
 
             // and with all it done with, log
-            ModLogger.trace("Edge case resolved, cleared previous targets");
+            Log.trace("Edge case resolved, cleared previous targets");
 
             solved = true;
             return true;

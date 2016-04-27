@@ -1,4 +1,4 @@
-package dustine.kismet.server;
+package dustine.kismet.world.savedata;
 
 import com.google.common.collect.ImmutableList;
 import dustine.kismet.Reference;
@@ -17,7 +17,7 @@ import java.util.Map;
 
 @SuppressWarnings("WeakerAccess")
 public class WSDTargetDatabase extends WorldSavedData {
-    private static final String NAME = Reference.MOD_ID + "_TargetsData";
+    private static final String NAME = Reference.Names.TARGET_DATABASE;
 
     private boolean valid = false;
     private Map<String, InformedStack> stacks = new HashMap<>();
@@ -45,25 +45,25 @@ public class WSDTargetDatabase extends WorldSavedData {
 
     @Override
     public void readFromNBT(NBTTagCompound nbt) {
-        if (nbt.hasKey("valid")) valid = nbt.getBoolean("valid");
+        if (nbt.hasKey("valid")) this.valid = nbt.getBoolean("valid");
 
-        stacks.clear();
+        this.stacks.clear();
         NBTTagList proceduralNbt = nbt.getTagList("stacks", 10);
         for (int i = 0; i < proceduralNbt.tagCount(); i++) {
             NBTTagCompound tagCompound = proceduralNbt.getCompoundTagAt(i);
             final InformedStack wrapper = new InformedStack(tagCompound);
-            stacks.put(wrapper.toString(), wrapper);
+            this.stacks.put(wrapper.toString(), wrapper);
         }
 
-        TargetLibraryBuilder.recreateLibrary(this.stacks.values());
+        TargetLibraryBuilder.build(this.stacks.values());
     }
 
     @Override
     public void writeToNBT(NBTTagCompound nbt) {
-        nbt.setBoolean("valid", valid);
+        nbt.setBoolean("valid", this.valid);
 
         NBTTagList stacksNbt = new NBTTagList();
-        for (InformedStack wrapper : stacks.values()) {
+        for (InformedStack wrapper : this.stacks.values()) {
             NBTTagCompound tagCompound = wrapper.serializeNBT();
             if (tagCompound != null) {
                 stacksNbt.appendTag(tagCompound);
@@ -73,24 +73,24 @@ public class WSDTargetDatabase extends WorldSavedData {
     }
 
     public ImmutableList<InformedStack> getStacks() {
-        return ImmutableList.copyOf(stacks.values());
+        return ImmutableList.copyOf(this.stacks.values());
     }
 
     public void setStacks(Map<String, InformedStack> stacks) {
         this.stacks = stacks;
         if (stacks.isEmpty())
-            valid = false;
+            this.valid = false;
         markDirty();
     }
 
     @Override
     public void markDirty() {
         super.markDirty();
-        valid = true;
+        this.valid = true;
     }
 
     public boolean isValid() {
-        return valid;
+        return this.valid;
     }
 
     /**
@@ -99,11 +99,11 @@ public class WSDTargetDatabase extends WorldSavedData {
     public void enrichStacks(List<InformedStack> newStacks) {
         newStacks.forEach(wrapper -> {
             String key = StackHelper.toUniqueKey(wrapper);
-            if (stacks.containsKey(key)) {
-                InformedStack originalStack = stacks.get(key);
-                stacks.put(key, originalStack.joinWith(wrapper));
+            if (this.stacks.containsKey(key)) {
+                InformedStack originalStack = this.stacks.get(key);
+                this.stacks.put(key, originalStack.joinWith(wrapper));
             } else {
-                stacks.put(key, wrapper);
+                this.stacks.put(key, wrapper);
             }
         });
 

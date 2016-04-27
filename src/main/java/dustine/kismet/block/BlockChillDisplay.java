@@ -31,7 +31,7 @@ public class BlockChillDisplay extends BlockDisplay {
         // logical client
         if (world.isRemote) {
             // only on main hand to avoid spam
-            if (hand == EnumHand.MAIN_HAND) {
+            if (hand == EnumHand.OFF_HAND) {
                 // todo: I18n these strings
                 String targetString;
 

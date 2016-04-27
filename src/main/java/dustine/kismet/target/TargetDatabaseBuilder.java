@@ -4,12 +4,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import dustine.kismet.Kismet;
-import dustine.kismet.ModLogger;
+import dustine.kismet.Log;
+import dustine.kismet.network.message.MessageEnrichStacks;
 import dustine.kismet.util.StackHelper;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEmptyDrops;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.FurnaceRecipes;
@@ -18,7 +20,6 @@ import net.minecraft.nbt.NBTException;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.storage.loot.*;
@@ -26,8 +27,12 @@ import net.minecraft.world.storage.loot.conditions.LootCondition;
 import net.minecraft.world.storage.loot.conditions.LootConditionManager;
 import net.minecraft.world.storage.loot.functions.LootFunction;
 import net.minecraft.world.storage.loot.functions.LootFunctionManager;
+import net.minecraftforge.common.ForgeModContainer;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.FakePlayerFactory;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.UniversalBucket;
 import net.minecraftforge.oredict.OreDictionary;
 
 import java.util.*;
@@ -47,12 +52,12 @@ public class TargetDatabaseBuilder {
             .registerTypeHierarchyAdapter(LootCondition.class, new LootConditionManager.Serializer())
             .registerTypeHierarchyAdapter(LootContext.EntityTarget.class, new LootContext.EntityTarget.Serializer())
             .create();
-    private dustine.kismet.server.WSDTargetDatabase WSDTargetDatabase;
+    private dustine.kismet.world.savedata.WSDTargetDatabase targetDatabase;
 
     private Queue<List<InformedStack>> remainingPackets = new ArrayDeque<>();
 
     public TargetDatabaseBuilder(WorldServer world) {
-        this.WSDTargetDatabase = dustine.kismet.server.WSDTargetDatabase.get(world);
+        this.targetDatabase = dustine.kismet.world.savedata.WSDTargetDatabase.get(world);
     }
 
     /**
@@ -61,14 +66,13 @@ public class TargetDatabaseBuilder {
      * @param player The player entity to use to enrich the state
      */
     public void generateStacks(EntityPlayerMP player) {
-        player.addChatMessage(new TextComponentString("[Kismet] Starting target library reset..."));
-
-        this.WSDTargetDatabase = dustine.kismet.server.WSDTargetDatabase.get(player.worldObj);
-        this.WSDTargetDatabase.setStacks(new HashMap<>());
+        this.targetDatabase = dustine.kismet.world.savedata.WSDTargetDatabase.get(player.worldObj);
+        this.targetDatabase.setStacks(new HashMap<>());
 
         Map<String, InformedStack> stacks = getRegisteredItems();
         identifyLoot(player.getServerWorld(), stacks);
         identifyBlockDrops(player.getServerWorld(), stacks);
+        identifyBuckets(player.getServerWorld(), stacks);
 
         // separate the stacks per mod, for smaller packets
         final HashMap<String, List<InformedStack>> modSortedStacks = new HashMap<>();
@@ -87,8 +91,37 @@ public class TargetDatabaseBuilder {
         sendNextPacket(player);
     }
 
+    private static void identifyBuckets(WorldServer world, Map<String, InformedStack> stacks) {
+        final List<ItemStack> buckets = new ArrayList<>();
+        // add the vanilla buckets
+        buckets.add(new ItemStack(Items.LAVA_BUCKET));
+        buckets.add(new ItemStack(Items.MILK_BUCKET));
+        buckets.add(new ItemStack(Items.WATER_BUCKET));
+
+        if (FluidRegistry.isUniversalBucketEnabled()) {
+            final Set<Fluid> bucketFluids = FluidRegistry.getBucketFluids();
+            for (Fluid fluid : bucketFluids) {
+                final ItemStack bucket = UniversalBucket.getFilledBucket(
+                        ForgeModContainer.getInstance().universalBucket, fluid);
+                buckets.add(bucket);
+            }
+        }
+
+        buckets.stream()
+                .filter(stack -> stack != null && stack.getItem() != null)
+                .forEach(stack -> {
+                    InformedStack wrapper = new InformedStack(stack, InformedStack.EnumOrigin.FLUID);
+                    final String key = StackHelper.toUniqueKey(wrapper);
+//                    wrapper.setHasSubtypes(true);
+                    if (stacks.containsKey(key)) {
+                        stacks.get(key).setOrigins(InformedStack.EnumOrigin.FLUID, true);
+                    } else {
+                        stacks.put(key, wrapper);
+                    }
+                });
+    }
+
     private static void identifyBlockDrops(World world, Map<String, InformedStack> stacks) {
-        // let's now try to get worldGen in this VERY hackish way:
         final Set<String> drops = new HashSet<>();
         final Set<String> silkDrops = new HashSet<>();
         final FakePlayer fakePlayer = FakePlayerFactory.getMinecraft((WorldServer) world);
@@ -113,9 +146,9 @@ public class TargetDatabaseBuilder {
         });
 
         // set all of these as obtainable
-        drops.forEach(addToStackMap(stacks, InformedStack.ObtainableTypes.Mineable));
+        drops.forEach(addToStackMap(stacks, InformedStack.EnumOrigin.BLOCK_DROPS));
 
-        silkDrops.forEach(addToStackMap(stacks, InformedStack.ObtainableTypes.Silkable));
+        silkDrops.forEach(addToStackMap(stacks, InformedStack.EnumOrigin.SILK_TOUCH));
     }
 
     private static Set<String> getDropsFromState(World world, FakePlayer fakePlayer, Block block, IBlockState state) {
@@ -133,7 +166,7 @@ public class TargetDatabaseBuilder {
                         .map(StackHelper::toUniqueKey)
                         .collect(Collectors.toList()));
             } catch (Exception e) {
-                ModLogger.error("Error while gathering blocks for " +
+                Log.error("Error while gathering blocks for " +
                         StackHelper.toUniqueKey(new ItemStack(block)) + state, e);
                 continue;
             }
@@ -196,20 +229,20 @@ public class TargetDatabaseBuilder {
         final Set<String> loots = iterateLootJsonTree(allTables);
 
         // add them to the hashed map, trying to avoid replacing already existing stacks
-        loots.forEach(addToStackMap(stacks, InformedStack.ObtainableTypes.Lootable));
+        loots.forEach(addToStackMap(stacks, InformedStack.EnumOrigin.LOOT_TABLE));
 
 //        FluidRegistry.getBucketFluids();
 //        UniversalBucket.getFilledBucket()
     }
 
-    private static Consumer<String> addToStackMap(Map<String, InformedStack> stacks, InformedStack.ObtainableTypes type) {
+    private static Consumer<String> addToStackMap(Map<String, InformedStack> stacks, InformedStack.EnumOrigin type) {
         return key -> {
             ItemStack stack = TargetLibraryBuilder.getItemStack(key);
             if (stack != null && stack.getItem() != null) {
                 InformedStack wrapper = new InformedStack(stack, type);
                 wrapper.setHasSubtypes(true);
                 if (stacks.containsKey(key)) {
-                    stacks.get(key).setObtainable(type, true);
+                    stacks.get(key).setOrigins(type, true);
                 } else {
                     stacks.put(key, wrapper);
                 }
@@ -295,7 +328,7 @@ public class TargetDatabaseBuilder {
                         try {
                             nbt = JsonToNBT.getTagFromJson(tag.getAsString());
                         } catch (NBTException e) {
-                            ModLogger.warning(e);
+                            Log.warning(e);
                         }
                         break;
                     case "minecraft:enchant_randomly":
@@ -304,20 +337,20 @@ public class TargetDatabaseBuilder {
                         // ignored
                         break;
                     default:
-                        ModLogger.warning("Loot tables: unknown function, " + function.get("function").getAsString());
+                        Log.warning("Loot tables: unknown function, " + function.get("function").getAsString());
                         break;
                 }
             }
         }
 
         if (maxCount + maxAddCount <= 0) {
-            ModLogger.warning("Loot tables: empty drop," + name + ":" + (maxCount + maxAddCount));
+            Log.warning("Loot tables: empty drop," + name + ":" + (maxCount + maxAddCount));
             return;
         }
 
         // add meta=0 if we didn't get any data
         if (metaValues.isEmpty()) metaValues.add(0);
-        // for each data values, add the item string (+nbt if any)
+        // for each data values, add the item TARGET_DATABASE (+nbt if any)
         for (String variant : variants) {
             for (int meta : metaValues) {
                 items.add(String.format("%s:%d%s", variant, meta,
@@ -330,13 +363,15 @@ public class TargetDatabaseBuilder {
         if (this.remainingPackets == null || this.remainingPackets.isEmpty()) return false;
         final List<InformedStack> toSend = this.remainingPackets.poll();
         if (toSend == null) return false;
-        Kismet.network.enrichStacks(toSend, player);
+        Kismet.network.sendTo(new MessageEnrichStacks(toSend), player);
         return true;
     }
 
-    public void recreateLibrary() {
-        if (this.WSDTargetDatabase == null) return;
-        TargetLibraryBuilder.recreateLibrary(this.WSDTargetDatabase.getStacks());
+    /**
+     * Rebuilds the library with the last used generated target database
+     */
+    public void tryBuildLibraryWithLastGeneratedDatabase() {
+        if (this.targetDatabase == null || !this.targetDatabase.isValid()) return;
+        TargetLibraryBuilder.build(this.targetDatabase.getStacks());
     }
-
 }

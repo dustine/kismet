@@ -2,7 +2,7 @@ package dustine.kismet.target;
 
 import com.google.common.collect.Lists;
 import dustine.kismet.ConfigKismet;
-import dustine.kismet.ModLogger;
+import dustine.kismet.Log;
 import dustine.kismet.util.StackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -15,7 +15,7 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
     private ItemStack stack;
     private boolean hasSubtypes = true;
     private boolean sealed;
-    private Set<ObtainableTypes> obtainable;
+    private Set<EnumOrigin> origins;
 
     public InformedStack(InformedStack stack) {
         // hackish way of doing a deep copy
@@ -24,17 +24,17 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
 
     public InformedStack(NBTTagCompound nbt) {
         deserializeNBT(nbt);
-//        this.hasSubtypes = Kismet.proxy.inferSafeHasSubtypes(stack);
+//        this.hasSubtypes = Kismet.proxy.sideSafeHasSubtypes(stack);
     }
 
     @Override
     public void deserializeNBT(NBTTagCompound nbt) {
         this.stack = nbt.hasKey("stk") ? ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("stk")) : null;
-        obtainable = new HashSet<>();
+        origins = new HashSet<>();
         int bitwiseObtainable = nbt.getInteger("obt");
-        for (ObtainableTypes type : ObtainableTypes.values()) {
+        for (EnumOrigin type : EnumOrigin.values()) {
             if ((bitwiseObtainable & 1) != 0)
-                obtainable.add(type);
+                origins.add(type);
             bitwiseObtainable >>= 1;
         }
         hasSubtypes = nbt.getBoolean("sub");
@@ -48,9 +48,9 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
             compound.setTag("stk", stack.writeToNBT(new NBTTagCompound()));
         }
         int bitwiseObtainable = 0;
-        for (ObtainableTypes type : Lists.reverse(Arrays.asList(ObtainableTypes.values()))) {
+        for (EnumOrigin type : Lists.reverse(Arrays.asList(EnumOrigin.values()))) {
             bitwiseObtainable <<= 1;
-            bitwiseObtainable |= isObtainable(type) ? 1 : 0;
+            bitwiseObtainable |= hasOrigin(type) ? 1 : 0;
         }
         compound.setInteger("obt", bitwiseObtainable);
         compound.setBoolean("sub", hasSubtypes);
@@ -58,41 +58,33 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
         return compound;
     }
 
-    public boolean isObtainable(ObtainableTypes type) {
-        return this.obtainable.contains(type);
+    public boolean hasOrigin(EnumOrigin type) {
+        return this.origins.contains(type);
     }
 
-    public InformedStack(@Nonnull ItemStack stack, ObtainableTypes type) {
+    public InformedStack(@Nonnull ItemStack stack, EnumOrigin type) {
         this(stack);
-        setObtainable(type, true);
+        setOrigins(type, true);
     }
 
     public InformedStack(@Nonnull ItemStack stack) {
         this.stack = stack;
-        this.obtainable = new HashSet<>();
+        this.origins = new HashSet<>();
         this.hasSubtypes = stack.getHasSubtypes();
     }
 
-    public void setObtainable(ObtainableTypes type, boolean obtainable) {
+    public void setOrigins(EnumOrigin type, boolean obtainable) {
         if (sealed) return;
         if (obtainable) {
-            this.obtainable.add(type);
+            this.origins.add(type);
         } else {
-            this.obtainable.remove(type);
+            this.origins.remove(type);
         }
     }
 
     @Override
     public String toString() {
         return StackHelper.toUniqueKey(this);
-    }
-
-    public String toCompleteString() {
-        return String.format("%s %s", StackHelper.toUniqueKey(this), getCurrentObtainableTypes());
-    }
-
-    private List<ObtainableTypes> getCurrentObtainableTypes() {
-        return new ArrayList<>(this.obtainable);
     }
 
     public void refreshHasSubtypes() {
@@ -110,21 +102,25 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
 
     public static InformedStack join(InformedStack lhs, InformedStack rhs) {
         if (!lhs.sealed && !rhs.sealed) {
-            ModLogger.error(String.format("Tried to join unsealed wrappers %s %s", lhs, rhs));
+            Log.error(String.format("Tried to join unsealed wrappers %s %s", lhs, rhs));
             return null;
         }
         // if they're not equal, log it and ignore
         if (!StackHelper.isEquivalent(lhs, rhs)) {
-            ModLogger.error(String.format("Tried to join distinct stacks %s %s", lhs, rhs));
+            Log.error(String.format("Tried to join distinct stacks %s %s", lhs, rhs));
             return null;
         }
 
         // create a new informedStack via deep copy
         InformedStack informedStack = new InformedStack(lhs);
-        informedStack.obtainable.addAll(rhs.getCurrentObtainableTypes());
+        informedStack.origins.addAll(rhs.getCurrentObtainableTypes());
         informedStack.seal();
 
         return informedStack;
+    }
+
+    public List<EnumOrigin> getCurrentObtainableTypes() {
+        return new ArrayList<>(this.origins);
     }
 
     public void seal() {
@@ -133,17 +129,13 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
 
     public boolean isObtainable() {
         // forced stacks are always obtainable
-        if (isObtainable(ObtainableTypes.Forced))
+        if (hasOrigin(EnumOrigin.FORCED))
             return true;
 
-        // if unfair is off, do not set unfair stacks as obtainable
-        if (!ConfigKismet.isGenUnfair() && isObtainable(ObtainableTypes.Unfair))
-            return false;
-
-        // else, check one of the cases one by one: if one is on, check if we're obtainable that way
-        for (ObtainableTypes type : ObtainableTypes.values()) {
-            if (type.equals(ObtainableTypes.Forced) || type.equals(ObtainableTypes.Unfair)) continue;
-            if (ConfigKismet.isGenFlag(type) && isObtainable(type)) return true;
+        // else, check one of the cases one by one: if one is on, check if we're origins that way
+        for (EnumOrigin origin : EnumOrigin.values()) {
+            if (origin.equals(EnumOrigin.FORCED)) continue;
+            if (ConfigKismet.isGenFlag(origin) && hasOrigin(origin)) return true;
         }
 
         // return false if we deplete all gens
@@ -167,20 +159,24 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
         return stack != null && stack.getItem() != null;
     }
 
-    public Set<ObtainableTypes> getObtainable() {
-        return obtainable;
+    public Set<EnumOrigin> getOrigins() {
+        return origins;
     }
 
-    public void setObtainable(Set<ObtainableTypes> obtainable) {
+    public void setOrigins(Set<EnumOrigin> obtainable) {
         if (isSealed()) return;
-        this.obtainable = obtainable;
+        this.origins = obtainable;
     }
 
     public boolean isSealed() {
         return sealed;
     }
 
-    public enum ObtainableTypes {
-        Forced, Unfair, Others, Bucketable, Craftable, Lootable, Mineable, Silkable
+    public enum EnumOrigin {
+        FORCED, OTHER, FLUID, RECIPE, LOOT_TABLE, BLOCK_DROPS, SILK_TOUCH;
+
+        public String getName() {
+            return this.name();
+        }
     }
 }

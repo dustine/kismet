@@ -15,12 +15,10 @@ import net.minecraft.client.renderer.color.ItemColors;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 
 public class ClientProxy extends CommonProxy {
-
     @Override
     public void initConfig() {
         super.initConfig();
@@ -43,22 +41,12 @@ public class ClientProxy extends CommonProxy {
     }
 
     @Override
-    public void sendConfigToClient(EntityPlayer player) {
-        // NOOP
-    }
-
-    @Override
     public void cleanTargetLibrary(EntityPlayerMP player) {
         // yeah, server code on ClientProxy
         // that's because client proxy + isRemote = embedded server thread
         if (player.worldObj.isRemote) return;
 
-        Kismet.libraryFactory.generateStacks(player);
-    }
-
-    @Override
-    public boolean inferSafeHasSubtypes(ItemStack stack) {
-        return stack.getHasSubtypes();
+        Kismet.databaseBuilder.generateStacks(player);
     }
 
     @Override
@@ -71,5 +59,10 @@ public class ClientProxy extends CommonProxy {
     public void registerInventoryModel(ItemKismet item) {
         ModelLoader.setCustomModelResourceLocation(item, 0,
                 new ModelResourceLocation(item.getRegistryName(), "inventory"));
+    }
+
+    @Override
+    public EntityPlayer tryGetEntityPlayerSP() {
+        return Minecraft.getMinecraft().thePlayer;
     }
 }
