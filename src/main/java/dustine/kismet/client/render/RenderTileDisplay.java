@@ -177,12 +177,4 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         // finish the GL rendering
         GlStateManager.popMatrix();
     }
-
-    private void renderTextLabel(TileDisplay te, double x, double y, double z, String str) {
-    /*
-    Next up: rendering the string above the block
-    code shamesly taken from source game on Render::renderLivingLabel
-     */
-        renderTextBox(te, x, y, z, Collections.singletonList(str));
-    }
 }
