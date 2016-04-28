@@ -22,7 +22,6 @@ public final class Reference {
         }
 
         public static final class Tiles {
-
             public static final String TILE_DISPLAY = "tile_display";
         }
     }

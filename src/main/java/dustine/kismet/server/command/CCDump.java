@@ -2,9 +2,7 @@ package dustine.kismet.server.command;
 
 import dustine.kismet.ConfigKismet;
 import dustine.kismet.Log;
-import dustine.kismet.target.InformedStack;
-import dustine.kismet.target.TargetLibrary;
-import dustine.kismet.target.TargetLibraryBuilder;
+import dustine.kismet.target.*;
 import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -12,10 +10,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.IStringSerializable;
 import net.minecraft.util.math.BlockPos;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 class CCDump implements ICommandComponent {
@@ -26,7 +21,7 @@ class CCDump implements ICommandComponent {
     }
 
     private enum EnumLists implements IStringSerializable {
-        SAVEDATA, DATABASE, LIBRARY, FORCED, BLACKLIST, HIDDEN;
+        SAVEDATA, DATABASE, LIBRARY, FORCED, BLACKLIST, OVERRIDE;
 
         public String getName() {
             return this.name().toLowerCase();
@@ -81,18 +76,27 @@ class CCDump implements ICommandComponent {
                         .sorted().collect(Collectors.toList());
                 break;
             case BLACKLIST:
-                dump = new ArrayList<>(ConfigKismet.getHiddenBlacklist()).stream()
-                        .map(s -> "hidden:" + s)
-                        .collect(Collectors.toList());
-                dump.addAll(ConfigKismet.getGenBlacklist());
-                dump = dump.stream()
-                        .sorted().collect(Collectors.toList());
+                dump = new ArrayList<>();
+                for (EnumOrigin origin : EnumOrigin.values()) {
+                    final Set<String> overrides = TargetPatcher.getBlacklist(origin);
+                    dump.addAll(overrides.stream()
+                            .map(s -> String.format("%s:%s", origin, s))
+                            .collect(Collectors.toList()));
+                }
+                dump = dump.stream().sorted().collect(Collectors.toList());
                 break;
-            case HIDDEN:
-                dump = new ArrayList<>(ConfigKismet.getHiddenGen()).stream().sorted().collect(Collectors.toList());
+            case OVERRIDE:
+                dump = new ArrayList<>();
+                for (EnumOrigin origin : EnumOrigin.values()) {
+                    final Set<String> overrides = TargetPatcher.getOverrides(origin);
+                    dump.addAll(overrides.stream()
+                            .map(s -> String.format("%s:%s", origin, s))
+                            .collect(Collectors.toList()));
+                }
+                dump = dump.stream().sorted().collect(Collectors.toList());
                 break;
             default:
-                Log.warning("Dump command using default list");
+                Log.warning("Dump COMMAND using default list");
                 dump = new ArrayList<String>() {
                 };
                 break;

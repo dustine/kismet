@@ -30,22 +30,22 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
     @Override
     public void deserializeNBT(NBTTagCompound nbt) {
         this.stack = nbt.hasKey("stk") ? ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("stk")) : null;
-        origins = new HashSet<>();
+        this.origins = new HashSet<>();
         int bitwiseObtainable = nbt.getInteger("obt");
         for (EnumOrigin type : EnumOrigin.values()) {
             if ((bitwiseObtainable & 1) != 0)
-                origins.add(type);
+                this.origins.add(type);
             bitwiseObtainable >>= 1;
         }
-        hasSubtypes = nbt.getBoolean("sub");
-        sealed = nbt.getBoolean("sld");
+        this.hasSubtypes = nbt.getBoolean("sub");
+        this.sealed = nbt.getBoolean("sld");
     }
 
     @Override
     public NBTTagCompound serializeNBT() {
         final NBTTagCompound compound = new NBTTagCompound();
-        if (stack != null) {
-            compound.setTag("stk", stack.writeToNBT(new NBTTagCompound()));
+        if (this.stack != null) {
+            compound.setTag("stk", this.stack.writeToNBT(new NBTTagCompound()));
         }
         int bitwiseObtainable = 0;
         for (EnumOrigin type : Lists.reverse(Arrays.asList(EnumOrigin.values()))) {
@@ -53,8 +53,8 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
             bitwiseObtainable |= hasOrigin(type) ? 1 : 0;
         }
         compound.setInteger("obt", bitwiseObtainable);
-        compound.setBoolean("sub", hasSubtypes);
-        compound.setBoolean("sld", sealed);
+        compound.setBoolean("sub", this.hasSubtypes);
+        compound.setBoolean("sld", this.sealed);
         return compound;
     }
 
@@ -74,7 +74,7 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
     }
 
     public void setOrigins(EnumOrigin type, boolean obtainable) {
-        if (sealed) return;
+        if (this.sealed) return;
         if (obtainable) {
             this.origins.add(type);
         } else {
@@ -88,8 +88,8 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
     }
 
     public void refreshHasSubtypes() {
-        if (sealed) return;
-        hasSubtypes = stack.getHasSubtypes();
+        if (this.sealed) return;
+        this.hasSubtypes = this.stack.getHasSubtypes();
     }
 
     public NBTTagCompound writeToNBT() {
@@ -124,7 +124,7 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
     }
 
     public void seal() {
-        sealed = true;
+        this.sealed = true;
     }
 
     public boolean isObtainable() {
@@ -135,7 +135,8 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
         // else, check one of the cases one by one: if one is on, check if we're origins that way
         for (EnumOrigin origin : EnumOrigin.values()) {
             if (origin.equals(EnumOrigin.FORCED)) continue;
-            if (ConfigKismet.isGenFlag(origin) && hasOrigin(origin)) return true;
+            if (ConfigKismet.isGenFlag(origin) && hasOrigin(origin))
+                return !TargetPatcher.isBlacklisted(this, origin);
         }
 
         // return false if we deplete all gens
@@ -143,24 +144,24 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
     }
 
     public boolean getHasSubtypes() {
-        return hasSubtypes;
+        return this.hasSubtypes;
     }
 
     public void setHasSubtypes(boolean hasSubtypes) {
-        if (sealed) return;
+        if (this.sealed) return;
         this.hasSubtypes = hasSubtypes;
     }
 
     public ItemStack getStack() {
-        return stack;
+        return this.stack;
     }
 
     public boolean hasItem() {
-        return stack != null && stack.getItem() != null;
+        return this.stack != null && this.stack.getItem() != null;
     }
 
     public Set<EnumOrigin> getOrigins() {
-        return origins;
+        return this.origins;
     }
 
     public void setOrigins(Set<EnumOrigin> obtainable) {
@@ -169,14 +170,7 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
     }
 
     public boolean isSealed() {
-        return sealed;
+        return this.sealed;
     }
 
-    public enum EnumOrigin {
-        FORCED, OTHER, FLUID, RECIPE, LOOT_TABLE, BLOCK_DROPS, SILK_TOUCH;
-
-        public String getName() {
-            return this.name();
-        }
-    }
 }

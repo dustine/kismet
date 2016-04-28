@@ -11,11 +11,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
@@ -25,7 +21,7 @@ import net.minecraftforge.common.property.IUnlistedProperty;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class BlockDisplay extends ContainerKismet<TileDisplay> {
+public class BlockDisplay extends BlockContainerKismet<TileDisplay> {
     public static final PropertyBool READY = PropertyBool.create("ready");
     public static final PropertyEnum<EnumFacing> FACING = PropertyEnum.create("facing", EnumFacing.class);
     public static final PropertyBool FULFILLED = PropertyBool.create("fulfilled");
@@ -40,8 +36,6 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
     public BlockDisplay() {
         super();
 
-        setHardness(5);
-
         // declaring properties
         setDefaultState(this.blockState.getBaseState()
                 .withProperty(READY, false)
@@ -51,7 +45,7 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
 
 
     @Override
-    public TileEntity createNewTileEntity(World worldIn, int meta) {
+    public TileDisplay createNewTileEntity(World worldIn, int meta) {
         return new TileDisplay();
     }
 
@@ -151,10 +145,6 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
             // because of bug
             return true;
         }
-//        // Kismetic key = new target
-//        if (heldItem != null && heldItem.isItemEqual(new ItemStack(ModItems.KEY))) {
-//            return false;
-//        }
 
         return false;
     }
@@ -182,5 +172,8 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
         return new ExtendedBlockState(this, listedProperties, unlistedProperties);
     }
 
-
+    @Override
+    public IBlockState withRotation(IBlockState state, Rotation rot) {
+        return state.withProperty(FACING, rot.rotate(state.getValue(FACING)));
+    }
 }

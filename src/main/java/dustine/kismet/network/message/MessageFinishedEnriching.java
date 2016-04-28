@@ -1,6 +1,7 @@
 package dustine.kismet.network.message;
 
 import dustine.kismet.Kismet;
+import dustine.kismet.Log;
 import dustine.kismet.target.TargetLibraryBuilder;
 import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -21,6 +22,7 @@ public class MessageFinishedEnriching extends MessageBase<MessageFinishedEnrichi
             final EntityPlayerMP playerMP = (EntityPlayerMP) player;
             final boolean sent = Kismet.databaseBuilder.sendNextPacket(playerMP);
             if (!sent) {
+                Log.info("Build target database");
                 TargetLibraryBuilder.build(WSDTargetDatabase.get(player.getEntityWorld()));
             }
         }

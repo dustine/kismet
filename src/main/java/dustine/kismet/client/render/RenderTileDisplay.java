@@ -17,6 +17,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemSkull;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
+import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -149,14 +150,11 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 
         GlStateManager.disableTexture2D();
-        int stringWidth = fontRenderer.getStringWidth(
-                lines.stream()
-                        .max((o1, o2) -> fontRenderer.getStringWidth(o1) - fontRenderer.getStringWidth(o2))
-                        .orElseGet(() -> "")) / 2;
+        int stringWidth = lines.stream().map(fontRenderer::getStringWidth).max(Math::max).orElseGet(() -> 0) / 2;
 
         Tessellator tessellator = Tessellator.getInstance();
         VertexBuffer vertexBuffer = tessellator.getBuffer();
-        vertexBuffer.begin(7, DefaultVertexFormats.POSITION_COLOR);
+        vertexBuffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR);
         vertexBuffer.pos(-stringWidth - 1, -(9 * lines.size() - 8), 0).color(0.0f, 0.0f, 0.0f, 0.25f).endVertex();
         vertexBuffer.pos(-stringWidth - 1, 8, 0).color(0.0f, 0.0f, 0.0f, 0.25f).endVertex();
         vertexBuffer.pos(stringWidth + 1, 8, -0).color(0.0f, 0.0f, 0.0f, 0.25f).endVertex();
@@ -166,7 +164,6 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
 
         for (int i = 0; i < lines.size(); i++)
             fontRenderer.drawString(lines.get(i), -fontRenderer.getStringWidth(lines.get(i)) / 2, -(i * 9), 0xFFFFFF);
-//        fontRenderer.FONT_HEIGHT
 
         GlStateManager.enableDepth();
 

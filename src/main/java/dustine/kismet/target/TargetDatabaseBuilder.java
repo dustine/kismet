@@ -6,7 +6,9 @@ import com.google.gson.reflect.TypeToken;
 import dustine.kismet.Kismet;
 import dustine.kismet.Log;
 import dustine.kismet.network.message.MessageEnrichStacks;
+import dustine.kismet.target.TargetPatcher.LootTableSeparator;
 import dustine.kismet.util.StackHelper;
+import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEmptyDrops;
 import net.minecraft.block.state.IBlockState;
@@ -47,17 +49,17 @@ public class TargetDatabaseBuilder {
             .registerTypeAdapter(RandomValueRange.class, new RandomValueRange.Serializer())
             .registerTypeAdapter(LootPool.class, new LootPool.Serializer())
             .registerTypeAdapter(LootTable.class, new LootTable.Serializer())
-            .registerTypeHierarchyAdapter(LootEntry.class, new LootEntrySerializerFix())
+            .registerTypeHierarchyAdapter(LootEntry.class, new LootEntrySerializerFix()) // hack
             .registerTypeHierarchyAdapter(LootFunction.class, new LootFunctionManager.Serializer())
             .registerTypeHierarchyAdapter(LootCondition.class, new LootConditionManager.Serializer())
             .registerTypeHierarchyAdapter(LootContext.EntityTarget.class, new LootContext.EntityTarget.Serializer())
             .create();
-    private dustine.kismet.world.savedata.WSDTargetDatabase targetDatabase;
+    private WSDTargetDatabase targetDatabase;
 
     private Queue<List<InformedStack>> remainingPackets = new ArrayDeque<>();
 
     public TargetDatabaseBuilder(WorldServer world) {
-        this.targetDatabase = dustine.kismet.world.savedata.WSDTargetDatabase.get(world);
+        this.targetDatabase = WSDTargetDatabase.get(world);
     }
 
     /**
@@ -66,7 +68,7 @@ public class TargetDatabaseBuilder {
      * @param player The player entity to use to enrich the state
      */
     public void generateStacks(EntityPlayerMP player) {
-        this.targetDatabase = dustine.kismet.world.savedata.WSDTargetDatabase.get(player.worldObj);
+        this.targetDatabase = WSDTargetDatabase.get(player.worldObj);
         this.targetDatabase.setStacks(new HashMap<>());
 
         Map<String, InformedStack> stacks = getRegisteredItems();
@@ -110,11 +112,11 @@ public class TargetDatabaseBuilder {
         buckets.stream()
                 .filter(stack -> stack != null && stack.getItem() != null)
                 .forEach(stack -> {
-                    InformedStack wrapper = new InformedStack(stack, InformedStack.EnumOrigin.FLUID);
+                    InformedStack wrapper = new InformedStack(stack, EnumOrigin.FLUID);
                     final String key = StackHelper.toUniqueKey(wrapper);
 //                    wrapper.setHasSubtypes(true);
                     if (stacks.containsKey(key)) {
-                        stacks.get(key).setOrigins(InformedStack.EnumOrigin.FLUID, true);
+                        stacks.get(key).setOrigins(EnumOrigin.FLUID, true);
                     } else {
                         stacks.put(key, wrapper);
                     }
@@ -146,9 +148,9 @@ public class TargetDatabaseBuilder {
         });
 
         // set all of these as obtainable
-        drops.forEach(addToStackMap(stacks, InformedStack.EnumOrigin.BLOCK_DROPS));
+        drops.forEach(addToStackMap(stacks, EnumOrigin.BLOCK_DROP));
 
-        silkDrops.forEach(addToStackMap(stacks, InformedStack.EnumOrigin.SILK_TOUCH));
+        silkDrops.forEach(addToStackMap(stacks, EnumOrigin.SILK_TOUCH));
     }
 
     private static Set<String> getDropsFromState(World world, FakePlayer fakePlayer, Block block, IBlockState state) {
@@ -156,7 +158,7 @@ public class TargetDatabaseBuilder {
 
         // a state machine that loops around while it adds new items to the drops
         int size = drops.size();
-        int chances = 20;
+        int chances = 256;
         do {
             // assuming fortune 5 to get the best drops
             // hoping the block doesn't do stuff diff with lesser fortunes...
@@ -172,7 +174,7 @@ public class TargetDatabaseBuilder {
             }
             if (size != drops.size()) {
                 size = drops.size();
-                chances = 20;
+                chances = 256;
             }
         } while (--chances > 0);
 
@@ -209,6 +211,7 @@ public class TargetDatabaseBuilder {
 
             stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
             final InformedStack wrapper = new InformedStack(stack);
+            wrapper.setHasSubtypes(true);
             stacks.put(wrapper.toString(), wrapper);
         }
         return stacks;
@@ -220,22 +223,22 @@ public class TargetDatabaseBuilder {
      * @return Number of new items added from the loot system
      */
     private static void identifyLoot(WorldServer world, Map<String, InformedStack> stacks) {
-        final LootTableManager lootTableManager = world.getLootTableManager();
-        final List<LootTable> allTables = LootTableList.getAll().stream()
-                .map(lootTableManager::getLootTableFromLocation)
-                .collect(Collectors.toList());
+        final LootTableSeparator tables = new LootTableSeparator(LootTableList.getAll()).invoke(world);
 
-        // iterate down the JSON tree and fetch what items we can see
-        final Set<String> loots = iterateLootJsonTree(allTables);
+        // entity loot
+        final Set<String> modLoots = iterateLootJsonTree(tables.getEntityTables());
+        modLoots.forEach(addToStackMap(stacks, EnumOrigin.MOB_DROP));
 
-        // add them to the hashed map, trying to avoid replacing already existing stacks
-        loots.forEach(addToStackMap(stacks, InformedStack.EnumOrigin.LOOT_TABLE));
+        // fishing loot
+        final Set<String> fishingLoots = iterateLootJsonTree(tables.getFishingTables());
+        fishingLoots.forEach(addToStackMap(stacks, EnumOrigin.FISHING));
 
-//        FluidRegistry.getBucketFluids();
-//        UniversalBucket.getFilledBucket()
+        // remaining loot
+        final Set<String> remainingLoots = iterateLootJsonTree(tables.getRemainingTables());
+        remainingLoots.forEach(addToStackMap(stacks, EnumOrigin.LOOT_TABLE));
     }
 
-    private static Consumer<String> addToStackMap(Map<String, InformedStack> stacks, InformedStack.EnumOrigin type) {
+    private static Consumer<String> addToStackMap(Map<String, InformedStack> stacks, EnumOrigin type) {
         return key -> {
             ItemStack stack = TargetLibraryBuilder.getItemStack(key);
             if (stack != null && stack.getItem() != null) {

@@ -2,6 +2,7 @@ package dustine.kismet.addon;
 
 import dustine.kismet.Log;
 import dustine.kismet.registry.ModBlocks;
+import dustine.kismet.target.EnumOrigin;
 import dustine.kismet.target.InformedStack;
 import dustine.kismet.util.StackHelper;
 import mezz.jei.api.*;
@@ -37,15 +38,15 @@ public class AddonJei implements IModPlugin {
         // if recipe = can be crafted
         for (InformedStack wrapper : stacks) {
             // skip the ones already positive
-            if (wrapper.hasOrigin(InformedStack.EnumOrigin.RECIPE)) continue;
+            if (wrapper.hasOrigin(EnumOrigin.RECIPE)) continue;
 
             // check the categories where this item appears as an output
             for (IRecipeCategory category : recipeRegistry.getRecipeCategoriesWithOutput(wrapper.getStack())) {
-                if (wrapper.hasOrigin(InformedStack.EnumOrigin.RECIPE)) break;
+                if (wrapper.hasOrigin(EnumOrigin.RECIPE)) break;
                 // and check the nr of recipes within
                 final List<Object> recipesWithOutput = recipeRegistry.getRecipesWithOutput(category, wrapper.getStack());
                 if (recipesWithOutput.size() > 0) {
-                    wrapper.setOrigins(InformedStack.EnumOrigin.RECIPE, true);
+                    wrapper.setOrigins(EnumOrigin.RECIPE, true);
                 }
             }
         }

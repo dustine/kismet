@@ -21,7 +21,7 @@ public class SoundHelper {
     private static void correctClick(World world, EntityPlayer player, BlockPos pos) {
         // reusing sounds because it works.
         world.playSound(player, pos, SoundEvents.BLOCK_STONE_BUTTON_CLICK_ON, SoundCategory.BLOCKS, 0.8F, 0.8F +
-                Kismet.random.nextFloat() * 0.4F);
+                Kismet.RANDOM.nextFloat() * 0.4F);
     }
 
     public static void onTargetFulfilled(World world, EntityPlayer player, BlockPos pos) {

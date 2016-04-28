@@ -5,8 +5,6 @@ import dustine.kismet.Kismet;
 import dustine.kismet.Log;
 import dustine.kismet.block.BlockDisplay;
 import dustine.kismet.block.BlockTimedDisplay;
-import dustine.kismet.network.message.MessageDisplayTarget;
-import dustine.kismet.registry.ModBlocks;
 import dustine.kismet.target.InformedStack;
 import dustine.kismet.target.TargetGenerationResult;
 import dustine.kismet.target.TargetLibrary;
@@ -23,6 +21,7 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 
 import java.util.ArrayList;
@@ -42,15 +41,15 @@ public class TileDisplay extends TileEntity implements ITickable {
     private int score;
     private long deadline;
     private InformedStack target;
-    private List<InformedStack> lastTargets;
-    private HashMap<String, Integer> modWeights;
+    private List<InformedStack> history;
+    private HashMap<String, Integer> weights;
     private boolean stateChanged;
     private long newTargetTimeout;
 
     public TileDisplay() {
         super();
-        this.modWeights = new HashMap<>();
-        this.lastTargets = new ArrayList<>();
+        this.weights = new HashMap<>();
+        this.history = new ArrayList<>();
     }
 
     public String getStylizedDeadline() {
@@ -76,12 +75,13 @@ public class TileDisplay extends TileEntity implements ITickable {
         return styleCode + remainingTimeString + resetStyleCode;
     }
 
-    public long getDeadline() {
+    private long getDeadline() {
         return this.deadline;
     }
 
-    public void setDeadline(long deadline) {
+    private void setDeadline(long deadline) {
         this.deadline = deadline;
+        // no sync required as this action is done on both sides at once
     }
 
     public String getStylizedScore() {
@@ -108,6 +108,7 @@ public class TileDisplay extends TileEntity implements ITickable {
         }
     }
 
+
     @Override
     public void update() {
         // isDirty is set to true whenever the internal state of the tile is changed
@@ -121,9 +122,13 @@ public class TileDisplay extends TileEntity implements ITickable {
         if (isDirty) {
             markDirty();
         }
+
         if (this.stateChanged) {
             this.stateChanged = false;
-            this.worldObj.setBlockState(this.pos, ModBlocks.CHILL_DISPLAY.getActualState(this.worldObj.getBlockState(this.pos), this.worldObj, this.pos));
+            final IBlockState oldState = this.worldObj.getBlockState(this.pos);
+            final IBlockState actualState = oldState.getBlock().getActualState(oldState, this.worldObj, this.pos);
+            final Chunk chunk = this.worldObj.getChunkFromBlockCoords(this.pos);
+            this.worldObj.markAndNotifyBlock(this.pos, chunk, oldState, actualState, 3);
         }
     }
 
@@ -136,7 +141,7 @@ public class TileDisplay extends TileEntity implements ITickable {
             resetDeadline();
 
             if (!isFulfilled()) {
-                this.lastTargets.clear();
+                this.history.clear();
                 setScore(0);
             }
             setFulfilled(false);
@@ -151,7 +156,7 @@ public class TileDisplay extends TileEntity implements ITickable {
     }
 
     public boolean rollForKey() {
-        final Random random = Kismet.random;
+        final Random random = Kismet.RANDOM;
         double limiter = 1.0 / (this.skipped + 1);
         return random.nextDouble() < limiter;
     }
@@ -176,7 +181,7 @@ public class TileDisplay extends TileEntity implements ITickable {
 
         final InformedStack oldTarget = this.target;
 
-        TargetGenerationResult targetResult = TargetLibrary.generateTarget(this.modWeights, this.lastTargets);
+        TargetGenerationResult targetResult = TargetLibrary.generateTarget(this.weights, this.history);
         if (targetResult.hasFlag()) {
             this.newTargetTimeout = this.worldObj.getTotalWorldTime() + 5 * 20;
             Log.warning("Failed to get target, " + targetResult.getFlag());
@@ -186,33 +191,10 @@ public class TileDisplay extends TileEntity implements ITickable {
         // sync client with server as target picking only happens server-wise (for safety)
         if (oldTarget != this.target) {
             resetDeadline();
-            int dimension = getWorld().provider.getDimension();
-            Kismet.network.sendToDimension(new MessageDisplayTarget(this), dimension);
             return true;
         }
 
         return false;
-    }
-
-    public List<InformedStack> getLastTargets() {
-        return this.lastTargets;
-    }
-
-    public void setLastTargets(List<InformedStack> lastTargets) {
-        this.lastTargets = lastTargets;
-    }
-
-    public HashMap<String, Integer> getModWeights() {
-        return this.modWeights;
-    }
-
-    public void setModWeights(HashMap<String, Integer> modWeights) {
-        this.modWeights = modWeights;
-    }
-
-    @Override
-    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
-        return oldState.getBlock() != newState.getBlock();
     }
 
     private boolean isFulfilled() {
@@ -232,6 +214,10 @@ public class TileDisplay extends TileEntity implements ITickable {
         return this.target != null && this.target.hasItem();
     }
 
+    @Override
+    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
+        return oldState.getBlock() != newState.getBlock();
+    }
 
     @Override
     public void readFromNBT(NBTTagCompound nbt) {
@@ -248,23 +234,19 @@ public class TileDisplay extends TileEntity implements ITickable {
         }
 
         // 10 for COMPOUND, check NBTBase
-        NBTTagList modWeightsNbt = nbt.getTagList("modWeights", 10);
+        NBTTagList modWeightsNbt = nbt.getTagList("weights", 10);
         for (int i = 0; i < modWeightsNbt.tagCount(); i++) {
             NBTTagCompound nbtTagCompound = modWeightsNbt.getCompoundTagAt(i);
             String modId = nbtTagCompound.getString("id");
             int modWeight = nbtTagCompound.getInteger("weight");
-            this.modWeights.put(modId, modWeight);
+            this.weights.put(modId, modWeight);
         }
 
-        this.lastTargets.clear();
-        NBTTagList lastTargetsNbt = nbt.getTagList("lastTargets", 10);
+        this.history.clear();
+        NBTTagList lastTargetsNbt = nbt.getTagList("history", 10);
         for (int i = 0; i < lastTargetsNbt.tagCount(); i++) {
             NBTTagCompound compound = lastTargetsNbt.getCompoundTagAt(i);
-            this.lastTargets.add(new InformedStack(compound));
-        }
-
-        if (this.worldObj != null && this.worldObj.isRemote) {
-            this.stateChanged = true;
+            this.history.add(new InformedStack(compound));
         }
     }
 
@@ -283,21 +265,20 @@ public class TileDisplay extends TileEntity implements ITickable {
         }
 
         NBTTagList modWeightsNbt = new NBTTagList();
-        for (String key : this.modWeights.keySet()) {
+        for (String key : this.weights.keySet()) {
             NBTTagCompound nbtTagCompound = new NBTTagCompound();
             nbtTagCompound.setString("id", key);
-            nbtTagCompound.setInteger("weight", this.modWeights.get(key));
+            nbtTagCompound.setInteger("weight", this.weights.get(key));
             modWeightsNbt.appendTag(nbtTagCompound);
         }
-        compound.setTag("modWeights", modWeightsNbt);
+        compound.setTag("weights", modWeightsNbt);
 
         NBTTagList lastTargetsNbt = new NBTTagList();
-        for (InformedStack lastTarget : this.lastTargets) {
+        for (InformedStack lastTarget : this.history) {
             NBTTagCompound targetTag = lastTarget.writeToNBT();
             lastTargetsNbt.appendTag(targetTag);
         }
-        compound.setTag("lastTargets", lastTargetsNbt);
-
+        compound.setTag("history", lastTargetsNbt);
     }
 
     @Override
