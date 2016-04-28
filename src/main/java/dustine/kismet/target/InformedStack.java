@@ -111,6 +111,10 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
             return null;
         }
 
+        if (lhs.hasSubtypes != rhs.hasSubtypes) {
+            Log.warning(String.format("Stacks have different subtype state %s %s", lhs.getHasSubtypes(), rhs.getHasSubtypes()));
+        }
+
         // create a new informedStack via deep copy
         InformedStack informedStack = new InformedStack(lhs);
         informedStack.origins.addAll(rhs.getCurrentObtainableTypes());
@@ -127,6 +131,15 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
         this.sealed = true;
     }
 
+    public boolean getHasSubtypes() {
+        return this.hasSubtypes;
+    }
+
+    public void setHasSubtypes(boolean hasSubtypes) {
+        if (this.sealed) return;
+        this.hasSubtypes = hasSubtypes;
+    }
+
     public boolean isObtainable() {
         // forced stacks are always obtainable
         if (hasOrigin(EnumOrigin.FORCED))
@@ -141,15 +154,6 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
 
         // return false if we deplete all gens
         return false;
-    }
-
-    public boolean getHasSubtypes() {
-        return this.hasSubtypes;
-    }
-
-    public void setHasSubtypes(boolean hasSubtypes) {
-        if (this.sealed) return;
-        this.hasSubtypes = hasSubtypes;
     }
 
     public ItemStack getStack() {

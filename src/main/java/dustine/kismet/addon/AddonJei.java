@@ -22,9 +22,8 @@ public class AddonJei implements IModPlugin {
     public static IStackHelper stackHelper;
 
     public static List<InformedStack> enrich(InformedStack stack) {
+        // unfold into the subtypes
         final Map<String, InformedStack> mappedStacks = unfoldSubtypes(stack);
-        // remove wildcard stacks, if any remain somehow
-        mappedStacks.values().removeIf(wrapper -> wrapper.getStack().getMetadata() == OreDictionary.WILDCARD_VALUE);
         // add the craftable flag
         setCraftableFlag(mappedStacks.values());
 
@@ -37,11 +36,11 @@ public class AddonJei implements IModPlugin {
         for (InformedStack wrapper : stacks) {
             // skip the ones already positive
             if (wrapper.hasOrigin(EnumOrigin.RECIPE)) continue;
-
             // check the categories where this item appears as an output
             for (IRecipeCategory category : recipeRegistry.getRecipeCategoriesWithOutput(wrapper.getStack())) {
                 // and check the nr of recipes within
-                final List<Object> recipesWithOutput = recipeRegistry.getRecipesWithOutput(category, wrapper.getStack());
+                final List<Object> recipesWithOutput =
+                        recipeRegistry.getRecipesWithOutput(category, wrapper.getStack());
                 if (recipesWithOutput.size() > 0) {
                     wrapper.setOrigins(EnumOrigin.RECIPE, true);
                 }
@@ -70,7 +69,7 @@ public class AddonJei implements IModPlugin {
             return subtypeStacks;
         }
 
-        // readd the original wrapper to the list if it doesn't have the wildcard value
+        // re-add the original wrapper to the list if it doesn't have the wildcard value
         if (wrapper.getStack().getMetadata() != OreDictionary.WILDCARD_VALUE) {
             subtypeStacks.put(wrapper.toString(), wrapper);
         } else {
@@ -81,21 +80,16 @@ public class AddonJei implements IModPlugin {
 
         // add all subtypes to the mapped list
         for (InformedStack newWrapper : subtypes) {
-            // add the obtainability of the original wrapper into wrapper:0 (metadata 0)
-//            if (StackHelper.isEquivalent(wrapper, newWrapper)) {
-//                newWrapper.setOrigins(new HashSet<>(wrapper.getOrigins()));
-//            }
-
-            // check if the subtype stack is already in the stacks
-            // using a set of all unique keys for the items
             String key = newWrapper.toString();
-            if (subtypeStacks.containsKey(key) && !StackHelper.isEquivalent(wrapper, newWrapper)) {
-                // original stacks had this item already, join them
-                // this will emit a warning message as it's not supposed to happen but at least nothing is lost
-                Log.warning(String.format("Tried to register subtype twice %s %s", subtypeStacks.get(key),
-                        newWrapper));
+            // check for collisions (excluding the original stack)
+            if (subtypeStacks.containsKey(key)) {
+                if (!StackHelper.isEquivalent(wrapper, newWrapper)) {
+                    Log.warning(String.format("Tried to register subtype twice %s %s",
+                            subtypeStacks.get(key), newWrapper));
+                }
+            } else {
+                subtypeStacks.put(key, newWrapper);
             }
-            subtypeStacks.put(key, newWrapper);
         }
 
         return subtypeStacks;

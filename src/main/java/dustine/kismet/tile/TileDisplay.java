@@ -94,6 +94,11 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         return this.deadline;
     }
 
+    private void setDeadline(long deadline) {
+        this.deadline = deadline;
+        // no sync required as this action is done on both sides at once
+    }
+
     @Override
     public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
         if (capability == ITEM_HANDLER_CAPABILITY) {
@@ -103,11 +108,6 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
             return (T) this.targetSlot;
         }
         return super.getCapability(capability, facing);
-    }
-
-    private void setDeadline(long deadline) {
-        this.deadline = deadline;
-        // no sync required as this action is done on both sides at once
     }
 
     public String getStylizedScore() {
@@ -124,16 +124,6 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         return styleCode + this.score + resetStyleCode;
     }
 
-    @Override
-    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-        if (capability == ITEM_HANDLER_CAPABILITY) {
-            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
-                return super.hasCapability(capability, facing);
-            return true;
-        }
-        return super.hasCapability(capability, facing);
-    }
-
     public int getScore() {
         return this.score;
     }
@@ -142,6 +132,16 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         if (this.score != score) {
             this.score = score;
         }
+    }
+
+    @Override
+    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+        if (capability == ITEM_HANDLER_CAPABILITY) {
+            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
+                return super.hasCapability(capability, facing);
+            return true;
+        }
+        return super.hasCapability(capability, facing);
     }
 
     @Override
@@ -334,14 +334,14 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
     }
 
     public void setTarget(InformedStack target) {
-        boolean oldReady = isReady();
+        InformedStack oldTarget = this.target;
 
         if (!StackHelper.isEquivalent(this.target, target)) {
             this.target = target;
         }
 
         // check if we need to force a block update regarding the ready
-        if (oldReady != isReady())
+        if (oldTarget != target)
             this.stateChanged = true;
     }
 
