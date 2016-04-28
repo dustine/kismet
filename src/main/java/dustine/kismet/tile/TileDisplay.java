@@ -36,7 +36,7 @@ import java.util.Random;
 
 public class TileDisplay extends TileEntity implements ITickable, ICapabilityProvider {
     @CapabilityInject(IItemHandler.class)
-    public static Capability<IItemHandler> ITEM_HANDLER_CAPABILITY = null;
+    private static Capability<IItemHandler> ITEM_HANDLER_CAPABILITY = null;
     private final TextFormatting[] colors = new TextFormatting[] {
             TextFormatting.WHITE,
             TextFormatting.GREEN,
@@ -64,7 +64,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
 
     @CapabilityInject(IItemHandler.class)
     private static void capRegistered(Capability<IItemHandler> cap) {
-        Log.info(cap);
+//        Log.info(cap);
     }
 
     public String getStylizedDeadline() {
@@ -90,6 +90,10 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         return styleCode + remainingTimeString + resetStyleCode;
     }
 
+    private long getDeadline() {
+        return this.deadline;
+    }
+
     @Override
     public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
         if (capability == ITEM_HANDLER_CAPABILITY) {
@@ -99,20 +103,6 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
             return (T) this.targetSlot;
         }
         return super.getCapability(capability, facing);
-    }
-
-    private long getDeadline() {
-        return this.deadline;
-    }
-
-    @Override
-    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-        if (capability == ITEM_HANDLER_CAPABILITY) {
-            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
-                return super.hasCapability(capability, facing);
-            return true;
-        }
-        return super.hasCapability(capability, facing);
     }
 
     private void setDeadline(long deadline) {
@@ -132,6 +122,16 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
 
         String resetStyleCode = TextFormatting.RESET.toString();
         return styleCode + this.score + resetStyleCode;
+    }
+
+    @Override
+    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+        if (capability == ITEM_HANDLER_CAPABILITY) {
+            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
+                return super.hasCapability(capability, facing);
+            return true;
+        }
+        return super.hasCapability(capability, facing);
     }
 
     public int getScore() {

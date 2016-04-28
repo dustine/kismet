@@ -22,6 +22,8 @@ jei.description.block.chillDisplay=No time here fam.
 jei.description.block.timedDisplay=A timed display of your Kismet. Before the timer runs out you have to right-click the display with your own version of whatever it holds.\nIt also keeps track of your score so far, the latest streak of successful Kismets you've done in a row.
 
 # GUI
+gui.display.name=Kismet
+
 gui.config.category.main=Kismet
 gui.config.category.main.tooltip=Kismet Configurations
 

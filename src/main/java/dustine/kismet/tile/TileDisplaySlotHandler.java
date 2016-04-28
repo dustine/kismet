@@ -1,5 +1,6 @@
 package dustine.kismet.tile;
 
+import dustine.kismet.target.InformedStack;
 import dustine.kismet.util.StackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
@@ -35,7 +36,12 @@ public final class TileDisplaySlotHandler implements IItemHandler {
     @Override
     public ItemStack getStackInSlot(int slot) {
         validateSlotIndex(slot);
-        return ItemStack.copyItemStack(this.parent.getTarget().getStack());
+        final InformedStack target = this.parent.getTarget();
+        if (target == null) return null;
+
+        final ItemStack itemStack = ItemStack.copyItemStack(target.getStack());
+//        itemStack.stackSize = 0;
+        return itemStack;
     }
 
     private void validateSlotIndex(int slot) {

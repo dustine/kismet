@@ -9,16 +9,13 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
 public class ContainerDisplay extends ContainerKismet {
-    private final TileDisplay display;
-
     public ContainerDisplay(InventoryPlayer playerInventory, TileDisplay display) {
-        this.display = display;
         if (!display.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null)) {
             throw new RuntimeException("Tried to open GUI to display without inventory capability");
         }
         final IItemHandler itemHandler = display.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
 
-        this.addSlotToContainer(new SlotItemHandler(itemHandler, 0, 81, 33) {
+        this.addSlotToContainer(new SlotItemHandler(itemHandler, 0, 8, 17) {
             /**
              * Overwritten as we can't put items into the target slot
              *
@@ -26,15 +23,17 @@ public class ContainerDisplay extends ContainerKismet {
              */
             @Override
             public void putStack(ItemStack stack) {
+//                Log.info("tried to put " + stack);
+//                getItemHandler().insertItem(0, stack, false);
             }
         });
 
-        addPlayerSlots(playerInventory, 8, 84);
+        addPlayerSlots(playerInventory, 8, 82);
     }
 
     @Override
     public ItemStack transferStackInSlot(EntityPlayer playerIn, int index) {
-        return super.transferStackInSlot(playerIn, index);
+        return null;
     }
 
     @Override

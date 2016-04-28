@@ -2,8 +2,8 @@
   "forge_marker": 1,
   "defaults": {
     "textures": {
-      "particle": "blocks/redstone_block",
-      "body": "blocks/redstone_block",
+      "particle": "kismet:blocks/timedDisplay",
+      "body": "kismet:blocks/timedDisplay",
       "gem": "kismet:blocks/gem",
       "slab": "blocks/stone_slab_top"
     },

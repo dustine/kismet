@@ -1,6 +1,7 @@
 package dustine.kismet.gui;
 
 import dustine.kismet.Kismet;
+import dustine.kismet.client.gui.GuiDisplay;
 import dustine.kismet.inventory.ContainerDisplay;
 import dustine.kismet.tile.TileDisplay;
 import net.minecraft.entity.player.EntityPlayer;

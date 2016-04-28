@@ -148,8 +148,12 @@ public class BlockDisplay extends BlockContainerKismet<TileDisplay> {
             return true;
         }
 
-        if (hand == EnumHand.OFF_HAND && !world.isRemote) {
-            player.openGui(Kismet.instance, GuiHandler.EnumGuiID.DISPLAY.ordinal(), world, pos.getX(), pos.getY(), pos.getZ());
+        if (hand == EnumHand.OFF_HAND) {
+            // only show GUI on server
+            if (!world.isRemote) {
+                player.openGui(Kismet.instance, GuiHandler.EnumGuiID.DISPLAY.ordinal(), world, pos.getX(), pos.getY(), pos.getZ());
+            }
+            return true;
         }
 
         return false;
