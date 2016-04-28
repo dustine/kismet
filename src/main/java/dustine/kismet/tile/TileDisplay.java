@@ -17,11 +17,16 @@ import net.minecraft.network.Packet;
 import net.minecraft.network.play.INetHandlerPlayClient;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.common.capabilities.CapabilityInject;
+import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.minecraftforge.items.IItemHandler;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 
 import java.util.ArrayList;
@@ -29,7 +34,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-public class TileDisplay extends TileEntity implements ITickable {
+public class TileDisplay extends TileEntity implements ITickable, ICapabilityProvider {
+    @CapabilityInject(IItemHandler.class)
+    public static Capability<IItemHandler> ITEM_HANDLER_CAPABILITY = null;
     private final TextFormatting[] colors = new TextFormatting[] {
             TextFormatting.WHITE,
             TextFormatting.GREEN,
@@ -37,6 +44,7 @@ public class TileDisplay extends TileEntity implements ITickable {
             TextFormatting.DARK_PURPLE,
             TextFormatting.GOLD
     };
+    private IItemHandler targetSlot = null;
     private int skipped;
     private int score;
     private long deadline;
@@ -48,8 +56,15 @@ public class TileDisplay extends TileEntity implements ITickable {
 
     public TileDisplay() {
         super();
+        if (ITEM_HANDLER_CAPABILITY != null)
+            this.targetSlot = new TileDisplaySlotHandler(this);
         this.weights = new HashMap<>();
         this.history = new ArrayList<>();
+    }
+
+    @CapabilityInject(IItemHandler.class)
+    private static void capRegistered(Capability<IItemHandler> cap) {
+        Log.info(cap);
     }
 
     public String getStylizedDeadline() {
@@ -75,8 +90,29 @@ public class TileDisplay extends TileEntity implements ITickable {
         return styleCode + remainingTimeString + resetStyleCode;
     }
 
+    @Override
+    public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+        if (capability == ITEM_HANDLER_CAPABILITY) {
+            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
+                return super.getCapability(capability, facing);
+            //noinspection unchecked
+            return (T) this.targetSlot;
+        }
+        return super.getCapability(capability, facing);
+    }
+
     private long getDeadline() {
         return this.deadline;
+    }
+
+    @Override
+    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+        if (capability == ITEM_HANDLER_CAPABILITY) {
+            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
+                return super.hasCapability(capability, facing);
+            return true;
+        }
+        return super.hasCapability(capability, facing);
     }
 
     private void setDeadline(long deadline) {
@@ -107,7 +143,6 @@ public class TileDisplay extends TileEntity implements ITickable {
             this.score = score;
         }
     }
-
 
     @Override
     public void update() {
@@ -213,6 +248,7 @@ public class TileDisplay extends TileEntity implements ITickable {
     public boolean isReady() {
         return this.target != null && this.target.hasItem();
     }
+
 
     @Override
     public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {

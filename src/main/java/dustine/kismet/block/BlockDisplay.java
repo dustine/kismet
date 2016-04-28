@@ -1,5 +1,7 @@
 package dustine.kismet.block;
 
+import dustine.kismet.Kismet;
+import dustine.kismet.gui.GuiHandler;
 import dustine.kismet.tile.TileDisplay;
 import dustine.kismet.util.SoundHelper;
 import dustine.kismet.util.StackHelper;
@@ -144,6 +146,10 @@ public class BlockDisplay extends BlockContainerKismet<TileDisplay> {
             setTargetAsFulfilled(world, pos, state, player);
             // because of bug
             return true;
+        }
+
+        if (hand == EnumHand.OFF_HAND && !world.isRemote) {
+            player.openGui(Kismet.instance, GuiHandler.EnumGuiID.DISPLAY.ordinal(), world, pos.getX(), pos.getY(), pos.getZ());
         }
 
         return false;
