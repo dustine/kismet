@@ -12,14 +12,14 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 
-public class MessageGuiFulfillment extends MessageBase<MessageGuiFulfillment> {
+public class MessageGuiRemoteAction extends MessageBase<MessageGuiRemoteAction> {
     private BlockPos pos;
     private ItemStack stack;
 
-    public MessageGuiFulfillment() {
+    public MessageGuiRemoteAction() {
     }
 
-    public MessageGuiFulfillment(BlockPos pos, ItemStack stack) {
+    public MessageGuiRemoteAction(BlockPos pos, ItemStack stack) {
         super();
         this.pos = pos;
         this.stack = stack;
@@ -40,17 +40,18 @@ public class MessageGuiFulfillment extends MessageBase<MessageGuiFulfillment> {
     }
 
     @Override
-    protected void handleServerSide(MessageGuiFulfillment message, EntityPlayer player) {
+    protected void handleServerSide(MessageGuiRemoteAction message, EntityPlayer player) {
         final World world = player.getEntityWorld();
         final TileEntity tile = world.getTileEntity(message.pos);
         if (tile != null && tile instanceof TileDisplay) {
             final TileDisplay display = (TileDisplay) tile;
             final BlockDisplay block = (BlockDisplay) display.getBlockType();
+
             block.tryFulfillTarget(world, message.pos, world.getBlockState(message.pos), player, message.stack, display);
         }
     }
 
     @Override
-    protected void handleClientSide(MessageGuiFulfillment message, EntityPlayer player) {
+    protected void handleClientSide(MessageGuiRemoteAction message, EntityPlayer player) {
     }
 }

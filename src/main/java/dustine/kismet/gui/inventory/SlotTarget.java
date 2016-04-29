@@ -4,16 +4,27 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.SlotItemHandler;
 
+import java.awt.*;
+
 public class SlotTarget extends SlotItemHandler {
     private final double factor;
+    private Point realXY;
+    private double realFactor;
 
-    public SlotTarget(IItemHandler itemHandler, int index, int xPosition, int yPosition, double factor) {
-        super(itemHandler, index, xPosition, yPosition);
-        this.factor = factor;
+    public SlotTarget(IItemHandler itemHandler, int index, Point xY, double factor) {
+        this(itemHandler, index, xY, factor, xY, factor);
+    }
+
+    public SlotTarget(IItemHandler itemHandler, int index, Point iconXY, double iconFactor, Point realXY, double
+            realFactor) {
+        super(itemHandler, index, iconXY.x, iconXY.y);
+        this.factor = iconFactor;
+        this.realXY = realXY;
+        this.realFactor = realFactor;
     }
 
     public double getFactor() {
-        return factor;
+        return this.factor;
     }
 
     /**
@@ -30,4 +41,11 @@ public class SlotTarget extends SlotItemHandler {
         return false;
     }
 
+    public double getRealFactor() {
+        return this.realFactor;
+    }
+
+    public Point getRealO() {
+        return this.realXY;
+    }
 }

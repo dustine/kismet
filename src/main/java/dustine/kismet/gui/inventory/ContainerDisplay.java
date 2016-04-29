@@ -7,6 +7,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 
+import java.awt.*;
+
 public class ContainerDisplay extends ContainerKismet {
     private final TileDisplay display;
 
@@ -17,7 +19,8 @@ public class ContainerDisplay extends ContainerKismet {
         }
         final IItemHandler itemHandler = display.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
 
-        this.addSlotToContainer(new SlotTarget(itemHandler, 0, 10, 19, (44 * 3.0) / 48));
+        this.addSlotToContainer(new SlotTarget(
+                itemHandler, 0, new Point(10, 19), (44 * 3.0) / 48, new Point(8, 17), 3));
 
         addPlayerSlots(playerInventory, 8, 82);
     }
@@ -29,6 +32,6 @@ public class ContainerDisplay extends ContainerKismet {
 
     @Override
     public boolean canInteractWith(EntityPlayer playerIn) {
-        return display.isReady();
+        return this.display.isReady();
     }
 }

@@ -124,17 +124,6 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
     }
 
     @Override
-    public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-        if (capability == ITEM_HANDLER_CAPABILITY) {
-            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
-                return super.getCapability(capability, facing);
-            //noinspection unchecked
-            return (T) this.targetSlot;
-        }
-        return super.getCapability(capability, facing);
-    }
-
-    @Override
     public void update() {
         // isDirty is set to true whenever the internal state of the tile is changed
         // name coming from the parent's method markDirty()
@@ -155,6 +144,17 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
             final Chunk chunk = this.worldObj.getChunkFromBlockCoords(this.pos);
             this.worldObj.markAndNotifyBlock(this.pos, chunk, oldState, actualState, 3);
         }
+    }
+
+    @Override
+    public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+        if (capability == ITEM_HANDLER_CAPABILITY) {
+            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
+                return super.getCapability(capability, facing);
+            //noinspection unchecked
+            return (T) this.targetSlot;
+        }
+        return super.getCapability(capability, facing);
     }
 
     private boolean checkForNullTarget() {
@@ -187,16 +187,6 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
 
     private double getKeyChance() {
         return 1.0 / (this.skipped + 1);
-    }
-
-    @Override
-    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-        if (capability == ITEM_HANDLER_CAPABILITY) {
-            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
-                return super.hasCapability(capability, facing);
-            return true;
-        }
-        return super.hasCapability(capability, facing);
     }
 
     /**
@@ -235,8 +225,18 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         return false;
     }
 
-    private boolean isFulfilled() {
+    public boolean isFulfilled() {
         return this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FULFILLED);
+    }
+
+    @Override
+    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+        if (capability == ITEM_HANDLER_CAPABILITY) {
+            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
+                return super.hasCapability(capability, facing);
+            return true;
+        }
+        return super.hasCapability(capability, facing);
     }
 
     private void setFulfilled(boolean fulfilled) {

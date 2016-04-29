@@ -18,7 +18,7 @@ public class NetworkHandler {
         this.channel = NetworkRegistry.INSTANCE.newSimpleChannel(name);
 
         // registering messages
-        this.channel.registerMessage(MessageGuiFulfillment.class, MessageGuiFulfillment.class,
+        this.channel.registerMessage(MessageGuiRemoteAction.class, MessageGuiRemoteAction.class,
                 getDiscriminator(), Side.SERVER);
 
         this.channel.registerMessage(MessageKeyUsage.class, MessageKeyUsage.class,

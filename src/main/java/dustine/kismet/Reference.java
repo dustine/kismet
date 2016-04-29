@@ -11,6 +11,7 @@ public final class Reference {
 
     public static final class Colors {
         public static final int TEXT_GREY = 0x404040;
+        public static final int CYAN = 0x00FFFF;
     }
 
     public static final class Names {
@@ -34,5 +35,6 @@ public final class Reference {
 
     public static class GUI {
         public static final ResourceLocation DISPLAY = new ResourceLocation("kismet:textures/gui/display.png");
+        public static ResourceLocation CYAN = new ResourceLocation("kismet:textures/gui/cyan.png");
     }
 }
