@@ -36,7 +36,7 @@ class RenderTargetSlot {
         int y = slot.yDisplayPosition;
         int size = (int) (16 * slot.getFactor());
         ItemStack stack = slot.getStack();
-        final Minecraft minecraft = Minecraft.getMinecraft();
+        final Minecraft minecraft = this.guiDisplay.getMc();
         minecraft.thePlayer.inventory.getItemStack();
         boolean renderItem = stack != null;
 
@@ -44,20 +44,8 @@ class RenderTargetSlot {
         // behaviour related to the player changing the slot contents. as the target slot is just a view, all of it
         // wasn't necessary
 
-        this.guiDisplay.setzLevel(100.0F);
-        this.guiDisplay.setzLevel(100.0F);
-
-//        if (stack == null && slot.canBeHovered()) {
-//            TextureAtlasSprite textureatlassprite = slot.getBackgroundSprite();
-//
-//            if (textureatlassprite != null) {
-//                GlStateManager.disableLighting();
-//                minecraft.getTextureManager().bindTexture(slot.getBackgroundLocation());
-//                guiDisplay.drawTexturedModalRect(x, y, textureatlassprite, size, size);
-//                GlStateManager.enableLighting();
-//                renderItem = false;
-//            }
-//        }
+        this.guiDisplay.setZLevel(100.0F);
+        this.guiDisplay.setZLevel(100.0F);
 
         if (renderItem) {
             GlStateManager.enableDepth();
@@ -69,8 +57,8 @@ class RenderTargetSlot {
             // not needed as we won't have a stack size and/or damage on the item stack
         }
 
-        this.guiDisplay.setzLevel(0.0F);
-        this.guiDisplay.setzLevel(0.0F);
+        this.guiDisplay.setZLevel(0.0F);
+        this.guiDisplay.setZLevel(0.0F);
     }
 
     /**
@@ -79,7 +67,7 @@ class RenderTargetSlot {
      */
     private void renderItemAndEffectIntoGUI(EntityPlayerSP player, ItemStack stack, double factor, int x, int y) {
         if (stack != null && stack.getItem() != null) {
-            this.guiDisplay.setzLevel(this.guiDisplay.getzLevel() + 50.0F);
+            this.guiDisplay.setZLevel(this.guiDisplay.getZLevel() + 50.0F);
 
             try {
                 renderItemModelIntoGUI(stack, factor, x, y, this.guiDisplay.getItemRender().getItemModelWithOverrides(stack, null, player));
@@ -93,7 +81,7 @@ class RenderTargetSlot {
                 throw new ReportedException(crashreport);
             }
 
-            this.guiDisplay.setzLevel(this.guiDisplay.getzLevel() - 50.0F);
+            this.guiDisplay.setZLevel(this.guiDisplay.getZLevel() - 50.0F);
         }
     }
 
@@ -102,7 +90,7 @@ class RenderTargetSlot {
      * factor
      */
     private void renderItemModelIntoGUI(ItemStack stack, double factor, int x, int y, IBakedModel model) {
-        final TextureManager textureManager = Minecraft.getMinecraft().getTextureManager();
+        final TextureManager textureManager = this.guiDisplay.getMc().getTextureManager();
 
         GlStateManager.pushMatrix();
         textureManager.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
@@ -129,7 +117,7 @@ class RenderTargetSlot {
      * the {@link net.minecraft.client.renderer.RenderItem}
      */
     private void setupGuiTransform(double factor, int x, int y, boolean isGui3d) {
-        GlStateManager.translate((float) x, (float) y, 100.0F + this.guiDisplay.getzLevel());
+        GlStateManager.translate((float) x, (float) y, 100.0F + this.guiDisplay.getZLevel());
         GlStateManager.translate(8.0F * factor, 8.0F * factor, 0.0F);
         GlStateManager.scale(1.0F, -1.0F, 1.0F);
         GlStateManager.scale(16.0F * factor, 16.0F * factor, 16.0F * factor);

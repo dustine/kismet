@@ -1,13 +1,16 @@
 package dustine.kismet.client.gui;
 
+import dustine.kismet.Kismet;
 import dustine.kismet.Log;
 import dustine.kismet.Reference;
 import dustine.kismet.block.BlockTimedDisplay;
 import dustine.kismet.inventory.ContainerDisplay;
 import dustine.kismet.inventory.SlotTarget;
+import dustine.kismet.network.message.MessageGuiFulfillment;
 import dustine.kismet.target.EnumOrigin;
 import dustine.kismet.target.InformedStack;
 import dustine.kismet.tile.TileDisplay;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.ClickType;
@@ -72,43 +75,11 @@ public class GuiDisplay extends GuiKismet {
 
         // make the target slot work as if was highlighted
         InventoryPlayer inventoryplayer = this.mc.thePlayer.inventory;
-        if (inventoryplayer.getItemStack() == null && this.isMouseOverSlot(targetSlot, mouseX, mouseY) && targetSlot
+        if (inventoryplayer.getItemStack() == null && this.isMouseOverSlot(this.targetSlot, mouseX, mouseY) && this.targetSlot
                 .getHasStack()) {
-            ItemStack stack = targetSlot.getStack();
+            ItemStack stack = this.targetSlot.getStack();
             this.renderToolTip(stack, mouseX, mouseY);
         }
-
-//        GlStateManager.pushMatrix();
-//        GlStateManager.translate((float)this.guiLeft, (float)this.guiTop, 0.0F);
-//        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-//        GlStateManager.enableRescaleNormal();
-//        int k = 240;
-//        int l = 240;
-//        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)k, (float)l);
-//        GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-//
-//        for (int i1 = 0; i1 < this.inventorySlots.inventorySlots.size(); ++i1)
-//        {
-//            Slot slot = (Slot)this.inventorySlots.inventorySlots.get(i1);
-//            if()
-//            this.drawSlot(slot);
-//
-//            if (this.isMouseOverSlot(slot, mouseX, mouseY) && slot.canBeHovered())
-//            {
-//                GlStateManager.disableLighting();
-//                GlStateManager.disableDepth();
-//                int j1 = slot.xDisplayPosition;
-//                int k1 = slot.yDisplayPosition;
-//                GlStateManager.colorMask(true, true, true, false);
-//                this.drawGradientRect(j1, k1, j1 + 16, k1 + 16, -2130706433, -2130706433);
-//                GlStateManager.colorMask(true, true, true, true);
-//                GlStateManager.enableLighting();
-//                GlStateManager.enableDepth();
-//            }
-//        }
-//
-//        GlStateManager.popMatrix();
-
     }
 
     @Override
@@ -197,8 +168,14 @@ public class GuiDisplay extends GuiKismet {
     protected void handleMouseClick(Slot slotIn, int slotId, int mouseButton, ClickType type) {
         super.handleMouseClick(slotIn, slotId, mouseButton, type);
 
-        if (slotIn == targetSlot)
+        InventoryPlayer inventoryplayer = this.mc.thePlayer.inventory;
+        if (slotIn == this.targetSlot && inventoryplayer.getItemStack() != null) {
+            if (type == ClickType.PICKUP || type == ClickType.PICKUP_ALL) {
+                Kismet.network.sendToServer(new MessageGuiFulfillment(display.getPos(), inventoryplayer.getItemStack()));
+            }
+        }
             Log.info(type);
+//        this.
     }
 
     private List<EnumOrigin> getOrderedOrigins(InformedStack target) {
@@ -222,15 +199,19 @@ public class GuiDisplay extends GuiKismet {
         return new TextComponentTranslation(key).getFormattedText();
     }
 
-    public float getzLevel() {
+    float getZLevel() {
         return this.zLevel;
     }
 
-    public void setzLevel(float zLevel) {
+    void setZLevel(float zLevel) {
         this.zLevel = zLevel;
     }
 
-    public net.minecraft.client.renderer.RenderItem getItemRender() {
+    net.minecraft.client.renderer.RenderItem getItemRender() {
         return this.itemRender;
+    }
+
+    Minecraft getMc() {
+        return mc;
     }
 }

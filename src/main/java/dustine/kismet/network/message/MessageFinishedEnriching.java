@@ -4,6 +4,7 @@ import dustine.kismet.Kismet;
 import dustine.kismet.Log;
 import dustine.kismet.target.TargetLibraryBuilder;
 import dustine.kismet.world.savedata.WSDTargetDatabase;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 
@@ -14,6 +15,14 @@ import net.minecraft.entity.player.EntityPlayerMP;
  */
 public class MessageFinishedEnriching extends MessageBase<MessageFinishedEnriching> {
     public MessageFinishedEnriching() {
+    }
+
+    @Override
+    public void fromBytes(ByteBuf buf) {
+    }
+
+    @Override
+    public void toBytes(ByteBuf buf) {
     }
 
     @Override
