@@ -22,7 +22,7 @@ repositories {
 
 apply plugin: 'net.minecraftforge.gradle.forge'
 
-version = "1.9-0.7.0.0"
+version = "1.9-0.8.0.0"
 group = "dustine.kismet" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "Kismet"
 
