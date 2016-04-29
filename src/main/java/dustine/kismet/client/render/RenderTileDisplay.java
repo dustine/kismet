@@ -51,7 +51,7 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
                 lines.add(I18n.format("tile.timedDisplay.tag.streak", te.getStylizedScore()));
             }
             if (!fulfilled) {
-                lines.add(te.getStylizedDeadline());
+                lines.add(te.getStylizedDeadline(true));
             } else {
                 lines.add(I18n.format("tile.timedDisplay.tag.done"));
             }

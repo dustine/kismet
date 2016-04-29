@@ -67,7 +67,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
 //        Log.info(cap);
     }
 
-    public String getStylizedDeadline() {
+    public String getStylizedDeadline(boolean color) {
         // format the time remaining as hh:mm:ss
         // less error-prone way to get the seconds already rounded up
         final long l = getDeadline() - this.worldObj.getTotalWorldTime();
@@ -75,7 +75,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
 
         // yellow -> red -> bold red
         String styleCode;
-        if (remainingTime <= 15 * 60) {
+        if (color && remainingTime <= 15 * 60) {
             if (remainingTime > 5 * 60) {
                 styleCode = TextFormatting.YELLOW.toString();
             } else {
@@ -99,17 +99,6 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         // no sync required as this action is done on both sides at once
     }
 
-    @Override
-    public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-        if (capability == ITEM_HANDLER_CAPABILITY) {
-            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
-                return super.getCapability(capability, facing);
-            //noinspection unchecked
-            return (T) this.targetSlot;
-        }
-        return super.getCapability(capability, facing);
-    }
-
     public String getStylizedScore() {
         int deliminator = getScore() / 10;
         String styleCode;
@@ -124,6 +113,17 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         return styleCode + this.score + resetStyleCode;
     }
 
+    @Override
+    public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+        if (capability == ITEM_HANDLER_CAPABILITY) {
+            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
+                return super.getCapability(capability, facing);
+            //noinspection unchecked
+            return (T) this.targetSlot;
+        }
+        return super.getCapability(capability, facing);
+    }
+
     public int getScore() {
         return this.score;
     }
@@ -132,16 +132,6 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         if (this.score != score) {
             this.score = score;
         }
-    }
-
-    @Override
-    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-        if (capability == ITEM_HANDLER_CAPABILITY) {
-            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
-                return super.hasCapability(capability, facing);
-            return true;
-        }
-        return super.hasCapability(capability, facing);
     }
 
     @Override
@@ -171,6 +161,16 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         return (getTarget() == null || !getTarget().hasItem()) && getNewTarget();
     }
 
+    @Override
+    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+        if (capability == ITEM_HANDLER_CAPABILITY) {
+            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
+                return super.hasCapability(capability, facing);
+            return true;
+        }
+        return super.hasCapability(capability, facing);
+    }
+
     private boolean checkForDeadline() {
         if (getDeadline() < this.worldObj.getTotalWorldTime()) {
             resetDeadline();
@@ -192,8 +192,11 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
 
     public boolean rollForKey() {
         final Random random = Kismet.RANDOM;
-        double limiter = 1.0 / (this.skipped + 1);
-        return random.nextDouble() < limiter;
+        return random.nextDouble() < getKeyChance();
+    }
+
+    private double getKeyChance() {
+        return 1.0 / (this.skipped + 1);
     }
 
     /**
@@ -247,6 +250,15 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
 
     public boolean isReady() {
         return this.target != null && this.target.hasItem();
+    }
+
+    public String getStylizedKeyChance() {
+        double chance = getKeyChance();
+        if (chance < 0.001) {
+            return "< 0.001%";
+        } else {
+            return String.format("%.3f%%", chance * 100);
+        }
     }
 
 
@@ -354,4 +366,6 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
     public int getSkipped() {
         return this.skipped;
     }
+
+
 }

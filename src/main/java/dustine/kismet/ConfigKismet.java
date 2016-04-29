@@ -280,21 +280,8 @@ public final class ConfigKismet {
      * @return A camelCase origin name
      */
     private static String getTypeName(EnumOrigin origin) {
-        boolean wordBoundary = true;
-        final StringBuilder builder = new StringBuilder();
-        for (char s : origin.name().toCharArray()) {
-            if (s == '_') {
-                wordBoundary = true;
-                continue;
-            }
-            if (wordBoundary) {
-                wordBoundary = false;
-                builder.append(s);
-            } else {
-                builder.append(Character.toLowerCase(s));
-            }
-        }
-        return builder.toString();
+        final String camelCase = origin.toCamelCase();
+        return camelCase.substring(0, 1).toUpperCase() + camelCase.substring(1);
     }
 
     private static void addCatGeneralProperties(Map<String, List<Property>> categories) {

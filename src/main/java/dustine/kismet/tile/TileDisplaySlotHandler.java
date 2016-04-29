@@ -1,7 +1,6 @@
 package dustine.kismet.tile;
 
 import dustine.kismet.target.InformedStack;
-import dustine.kismet.util.StackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
@@ -50,7 +49,7 @@ public final class TileDisplaySlotHandler implements IItemHandler {
     }
 
     /**
-     * Tries to extract, and fails, the current target. Because there's nothing stored *ghost noises*
+     * Tries to insert, and fails, a stack. Because there's nothing stored *ghost noises*
      *
      * @param slot     the targeted slot
      * @param stack    the item to insert (validate against target)
@@ -60,14 +59,6 @@ public final class TileDisplaySlotHandler implements IItemHandler {
     @Override
     public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
         validateSlotIndex(slot);
-
-        if (!simulate) {
-            if (StackHelper.isEquivalent(this.parent.getTarget(), stack)) {
-                // todo make this more elegant
-                this.parent.setTarget(null);
-            }
-        }
-
         return stack;
     }
 
