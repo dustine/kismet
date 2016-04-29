@@ -150,7 +150,7 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 
         GlStateManager.disableTexture2D();
-        int stringWidth = lines.stream().map(fontRenderer::getStringWidth).max(Math::max).orElseGet(() -> 0) / 2;
+        int stringWidth = lines.stream().map(fontRenderer::getStringWidth).reduce(Math::max).orElseGet(() -> 0) / 2;
 
         Tessellator tessellator = Tessellator.getInstance();
         VertexBuffer vertexBuffer = tessellator.getBuffer();

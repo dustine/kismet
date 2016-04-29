@@ -1,5 +1,6 @@
 package dustine.kismet.client.gui;
 
+import dustine.kismet.Log;
 import dustine.kismet.Reference;
 import dustine.kismet.block.BlockTimedDisplay;
 import dustine.kismet.inventory.ContainerDisplay;
@@ -196,7 +197,8 @@ public class GuiDisplay extends GuiKismet {
     protected void handleMouseClick(Slot slotIn, int slotId, int mouseButton, ClickType type) {
         super.handleMouseClick(slotIn, slotId, mouseButton, type);
 
-
+        if (slotIn == targetSlot)
+            Log.info(type);
     }
 
     private List<EnumOrigin> getOrderedOrigins(InformedStack target) {
