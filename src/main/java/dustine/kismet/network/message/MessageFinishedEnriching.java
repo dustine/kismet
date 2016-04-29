@@ -2,7 +2,7 @@ package dustine.kismet.network.message;
 
 import dustine.kismet.Kismet;
 import dustine.kismet.Log;
-import dustine.kismet.target.TargetLibraryBuilder;
+import dustine.kismet.target.library.TargetLibraryBuilder;
 import dustine.kismet.world.savedata.WSDTargetDatabase;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayer;

@@ -1,7 +1,7 @@
 package dustine.kismet.block;
 
 import dustine.kismet.Kismet;
-import dustine.kismet.gui.GuiHandler;
+import dustine.kismet.gui.ModGuiHandler;
 import dustine.kismet.tile.TileDisplay;
 import dustine.kismet.util.SoundHelper;
 import dustine.kismet.util.StackHelper;
@@ -144,7 +144,7 @@ public class BlockDisplay extends BlockContainerKismet<TileDisplay> {
         if (hand == EnumHand.OFF_HAND) {
             // only show GUI on server
             if (!world.isRemote) {
-                player.openGui(Kismet.instance, GuiHandler.EnumGuiID.DISPLAY.ordinal(), world, pos.getX(), pos.getY(), pos.getZ());
+                player.openGui(Kismet.instance, ModGuiHandler.EnumGuiID.DISPLAY.ordinal(), world, pos.getX(), pos.getY(), pos.getZ());
             }
             return true;
         }

@@ -1,6 +1,6 @@
 package dustine.kismet;
 
-import dustine.kismet.gui.GuiHandler;
+import dustine.kismet.gui.ModGuiHandler;
 import dustine.kismet.network.NetworkHandler;
 import dustine.kismet.proxy.IProxy;
 import dustine.kismet.registry.ModBlocks;
@@ -9,8 +9,8 @@ import dustine.kismet.registry.ModRecipes;
 import dustine.kismet.registry.ModTiles;
 import dustine.kismet.server.command.CommandKismet;
 import dustine.kismet.server.event.EventOnceFixDatabase;
-import dustine.kismet.target.TargetDatabaseBuilder;
-import dustine.kismet.target.TargetLibraryBuilder;
+import dustine.kismet.target.library.TargetLibraryBuilder;
+import dustine.kismet.world.savedata.TargetDatabaseBuilder;
 import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
@@ -52,7 +52,7 @@ public class Kismet {
         ModItems.init();
         proxy.registerTESR();
 
-        GuiHandler.register();
+        ModGuiHandler.register();
 
 
         // register event handlers

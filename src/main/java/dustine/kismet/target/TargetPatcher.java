@@ -96,29 +96,29 @@ public class TargetPatcher {
         } else return Collections.emptySet();
     }
 
-    static class LootTableSeparator {
+    public static class LootTableSeparator {
         private Set<ResourceLocation> lootTables;
         private List<LootTable> fishingTables;
         private List<LootTable> remainingTables;
         private List<LootTable> entityTables;
 
-        LootTableSeparator(Set<ResourceLocation> lootTables) {
+        public LootTableSeparator(Set<ResourceLocation> lootTables) {
             this.lootTables = lootTables;
         }
 
-        List<LootTable> getFishingTables() {
+        public List<LootTable> getFishingTables() {
             return this.fishingTables;
         }
 
-        List<LootTable> getEntityTables() {
+        public List<LootTable> getEntityTables() {
             return this.entityTables;
         }
 
-        List<LootTable> getRemainingTables() {
+        public List<LootTable> getRemainingTables() {
             return this.remainingTables;
         }
 
-        LootTableSeparator invoke(World world) {
+        public LootTableSeparator invoke(World world) {
             final ArrayList<ResourceLocation> remainingTableLocations = new ArrayList<>(this.lootTables);
 
             // entity loot: "entity" is somewhere in the name or directory

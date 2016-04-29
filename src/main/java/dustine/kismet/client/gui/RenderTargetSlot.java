@@ -1,6 +1,6 @@
 package dustine.kismet.client.gui;
 
-import dustine.kismet.inventory.SlotTarget;
+import dustine.kismet.gui.inventory.SlotTarget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.inventory.GuiContainer;

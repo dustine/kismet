@@ -2,7 +2,11 @@ package dustine.kismet.server.command;
 
 import dustine.kismet.ConfigKismet;
 import dustine.kismet.Log;
-import dustine.kismet.target.*;
+import dustine.kismet.target.EnumOrigin;
+import dustine.kismet.target.InformedStack;
+import dustine.kismet.target.TargetPatcher;
+import dustine.kismet.target.library.TargetLibrary;
+import dustine.kismet.target.library.TargetLibraryBuilder;
 import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;

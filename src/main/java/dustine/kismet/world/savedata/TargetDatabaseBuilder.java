@@ -1,4 +1,4 @@
-package dustine.kismet.target;
+package dustine.kismet.world.savedata;
 
 import com.google.common.collect.ImmutableList;
 import com.google.gson.*;
@@ -6,9 +6,11 @@ import com.google.gson.reflect.TypeToken;
 import dustine.kismet.Kismet;
 import dustine.kismet.Log;
 import dustine.kismet.network.message.MessageEnrichStacks;
+import dustine.kismet.target.EnumOrigin;
+import dustine.kismet.target.InformedStack;
 import dustine.kismet.target.TargetPatcher.LootTableSeparator;
+import dustine.kismet.target.library.TargetLibraryBuilder;
 import dustine.kismet.util.StackHelper;
-import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockEmptyDrops;
 import net.minecraft.block.state.IBlockState;

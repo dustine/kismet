@@ -2,7 +2,7 @@ package dustine.kismet.gui;
 
 import dustine.kismet.Kismet;
 import dustine.kismet.client.gui.GuiDisplay;
-import dustine.kismet.inventory.ContainerDisplay;
+import dustine.kismet.gui.inventory.ContainerDisplay;
 import dustine.kismet.tile.TileDisplay;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.math.BlockPos;
@@ -10,14 +10,14 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.IGuiHandler;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 
-public class GuiHandler implements IGuiHandler {
-    private final static IGuiHandler INSTANCE = new GuiHandler();
+public class ModGuiHandler implements IGuiHandler {
+    private final static IGuiHandler INSTANCE = new ModGuiHandler();
 
-    private GuiHandler() {
+    private ModGuiHandler() {
     }
 
     public static void register() {
-        NetworkRegistry.INSTANCE.registerGuiHandler(Kismet.instance, GuiHandler.INSTANCE);
+        NetworkRegistry.INSTANCE.registerGuiHandler(Kismet.instance, ModGuiHandler.INSTANCE);
     }
 
     @Override

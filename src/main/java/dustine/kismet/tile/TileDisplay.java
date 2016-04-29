@@ -6,8 +6,8 @@ import dustine.kismet.Log;
 import dustine.kismet.block.BlockDisplay;
 import dustine.kismet.block.BlockTimedDisplay;
 import dustine.kismet.target.InformedStack;
-import dustine.kismet.target.TargetGenerationResult;
-import dustine.kismet.target.TargetLibrary;
+import dustine.kismet.target.library.TargetGenerationResult;
+import dustine.kismet.target.library.TargetLibrary;
 import dustine.kismet.util.StackHelper;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
@@ -113,6 +113,10 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         return styleCode + this.score + resetStyleCode;
     }
 
+    public int getScore() {
+        return this.score;
+    }
+
     @Override
     public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
         if (capability == ITEM_HANDLER_CAPABILITY) {
@@ -122,10 +126,6 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
             return (T) this.targetSlot;
         }
         return super.getCapability(capability, facing);
-    }
-
-    public int getScore() {
-        return this.score;
     }
 
     public void setScore(int score) {
@@ -161,16 +161,6 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         return (getTarget() == null || !getTarget().hasItem()) && getNewTarget();
     }
 
-    @Override
-    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-        if (capability == ITEM_HANDLER_CAPABILITY) {
-            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
-                return super.hasCapability(capability, facing);
-            return true;
-        }
-        return super.hasCapability(capability, facing);
-    }
-
     private boolean checkForDeadline() {
         if (getDeadline() < this.worldObj.getTotalWorldTime()) {
             resetDeadline();
@@ -188,6 +178,16 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
 
     private void resetDeadline() {
         setDeadline(this.worldObj.getTotalWorldTime() + ConfigKismet.getTimedLimit() * 20 * 60);
+    }
+
+    @Override
+    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+        if (capability == ITEM_HANDLER_CAPABILITY) {
+            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
+                return super.hasCapability(capability, facing);
+            return true;
+        }
+        return super.hasCapability(capability, facing);
     }
 
     public boolean rollForKey() {

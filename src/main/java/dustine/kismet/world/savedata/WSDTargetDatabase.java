@@ -3,7 +3,7 @@ package dustine.kismet.world.savedata;
 import com.google.common.collect.ImmutableList;
 import dustine.kismet.Reference;
 import dustine.kismet.target.InformedStack;
-import dustine.kismet.target.TargetLibraryBuilder;
+import dustine.kismet.target.library.TargetLibraryBuilder;
 import dustine.kismet.util.StackHelper;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;

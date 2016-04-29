@@ -1,4 +1,4 @@
-package dustine.kismet.inventory;
+package dustine.kismet.gui.inventory;
 
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
