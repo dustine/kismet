@@ -1,6 +1,4 @@
-package dustine.kismet.target.library;
-
-import dustine.kismet.target.InformedStack;
+package dustine.kismet.target;
 
 public class TargetGenerationResult {
     private final InformedStack value;

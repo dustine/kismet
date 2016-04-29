@@ -6,8 +6,8 @@ import dustine.kismet.Log;
 import dustine.kismet.block.BlockDisplay;
 import dustine.kismet.block.BlockTimedDisplay;
 import dustine.kismet.target.InformedStack;
-import dustine.kismet.target.library.TargetGenerationResult;
-import dustine.kismet.target.library.TargetLibrary;
+import dustine.kismet.target.TargetGenerationResult;
+import dustine.kismet.target.TargetLibrary;
 import dustine.kismet.util.StackHelper;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
@@ -117,6 +117,12 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         return this.score;
     }
 
+    public void setScore(int score) {
+        if (this.score != score) {
+            this.score = score;
+        }
+    }
+
     @Override
     public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
         if (capability == ITEM_HANDLER_CAPABILITY) {
@@ -126,12 +132,6 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
             return (T) this.targetSlot;
         }
         return super.getCapability(capability, facing);
-    }
-
-    public void setScore(int score) {
-        if (this.score != score) {
-            this.score = score;
-        }
     }
 
     @Override
@@ -180,6 +180,15 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         setDeadline(this.worldObj.getTotalWorldTime() + ConfigKismet.getTimedLimit() * 20 * 60);
     }
 
+    public boolean rollForKey() {
+        final Random random = Kismet.RANDOM;
+        return random.nextDouble() < getKeyChance();
+    }
+
+    private double getKeyChance() {
+        return 1.0 / (this.skipped + 1);
+    }
+
     @Override
     public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
         if (capability == ITEM_HANDLER_CAPABILITY) {
@@ -188,15 +197,6 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
             return true;
         }
         return super.hasCapability(capability, facing);
-    }
-
-    public boolean rollForKey() {
-        final Random random = Kismet.RANDOM;
-        return random.nextDouble() < getKeyChance();
-    }
-
-    private double getKeyChance() {
-        return 1.0 / (this.skipped + 1);
     }
 
     /**

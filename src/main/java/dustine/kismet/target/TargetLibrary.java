@@ -1,9 +1,8 @@
-package dustine.kismet.target.library;
+package dustine.kismet.target;
 
 import dustine.kismet.Kismet;
 import dustine.kismet.Log;
-import dustine.kismet.target.InformedStack;
-import dustine.kismet.target.library.TargetGenerationResult.EnumTargetFailure;
+import dustine.kismet.target.TargetGenerationResult.EnumTargetFailure;
 import dustine.kismet.util.StackHelper;
 
 import javax.annotation.Nonnull;

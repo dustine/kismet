@@ -9,7 +9,7 @@ import dustine.kismet.registry.ModRecipes;
 import dustine.kismet.registry.ModTiles;
 import dustine.kismet.server.command.CommandKismet;
 import dustine.kismet.server.event.EventOnceFixDatabase;
-import dustine.kismet.target.library.TargetLibraryBuilder;
+import dustine.kismet.target.TargetLibraryBuilder;
 import dustine.kismet.world.savedata.TargetDatabaseBuilder;
 import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.world.WorldServer;

@@ -1,11 +1,8 @@
-package dustine.kismet.target.library;
+package dustine.kismet.target;
 
 import dustine.kismet.ConfigKismet;
 import dustine.kismet.Kismet;
 import dustine.kismet.Log;
-import dustine.kismet.target.EnumOrigin;
-import dustine.kismet.target.InformedStack;
-import dustine.kismet.target.TargetPatcher;
 import dustine.kismet.util.StackHelper;
 import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.item.Item;
