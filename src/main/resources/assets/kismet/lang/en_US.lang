@@ -1,6 +1,6 @@
 # Blocks
-display.chillDisplay.name=Kismetic Display
-display.timedDisplay.name=Timed Kismetic Display
+tile.chillDisplay.name=Kismetic Display
+tile.timedDisplay.name=Timed Kismetic Display
 
 # Display
 tile.timedDisplay.tag.streak=Streak: %s

@@ -1,9 +1,13 @@
 package dustine.kismet.network.message;
 
 import dustine.kismet.block.BlockDisplay;
+import dustine.kismet.item.ItemKey;
+import dustine.kismet.item.ItemKismet;
 import dustine.kismet.tile.TileDisplay;
+import dustine.kismet.util.StackHelper;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTUtil;
@@ -14,40 +18,68 @@ import net.minecraftforge.fml.common.network.ByteBufUtils;
 
 public class MessageGuiRemoteAction extends MessageBase<MessageGuiRemoteAction> {
     private BlockPos pos;
-    private ItemStack stack;
+    private int slotIndex;
 
     public MessageGuiRemoteAction() {
     }
 
-    public MessageGuiRemoteAction(BlockPos pos, ItemStack stack) {
+    public MessageGuiRemoteAction(BlockPos pos, int slotIndex) {
         super();
         this.pos = pos;
-        this.stack = stack;
+        this.slotIndex = slotIndex;
     }
 
     @Override
     public void fromBytes(ByteBuf buf) {
         final NBTTagCompound posCompound = ByteBufUtils.readTag(buf);
         this.pos = NBTUtil.getPosFromTag(posCompound);
-        final NBTTagCompound stackCompound = ByteBufUtils.readTag(buf);
-        this.stack = ItemStack.loadItemStackFromNBT(stackCompound);
+        this.slotIndex = buf.readInt();
     }
 
     @Override
     public void toBytes(ByteBuf buf) {
         ByteBufUtils.writeTag(buf, NBTUtil.createPosTag(this.pos));
-        ByteBufUtils.writeTag(buf, this.stack.serializeNBT());
+        buf.writeInt(this.slotIndex);
     }
 
     @Override
     protected void handleServerSide(MessageGuiRemoteAction message, EntityPlayer player) {
+        ItemStack stack;
+        if (message.slotIndex < 0) {
+            // player holding stack
+            stack = player.inventory.getItemStack();
+        } else {
+            // stack from player inventory
+            final Slot slot = player.inventoryContainer.getSlot(message.slotIndex);
+            stack = slot.getStack();
+        }
+
+        if (stack == null || message.pos == null) return;
+
         final World world = player.getEntityWorld();
         final TileEntity tile = world.getTileEntity(message.pos);
+
         if (tile != null && tile instanceof TileDisplay) {
             final TileDisplay display = (TileDisplay) tile;
             final BlockDisplay block = (BlockDisplay) display.getBlockType();
 
-            block.tryFulfillTarget(world, message.pos, world.getBlockState(message.pos), player, message.stack, display);
+            if (StackHelper.isEquivalent(display.getTarget(), stack)) {
+                // fulfill target
+                block.setTargetAsFulfilled(world, message.pos, world.getBlockState(message.pos), player);
+            } else if (stack.getItem() instanceof ItemKismet) {
+                // use key
+                // after fulfilling target in case the key IS a target
+                ItemKey.useKeyOnDisplay(stack, player, world, message.pos);
+
+                // remove the key stack if it became empty
+                if (stack.stackSize <= 0) {
+                    if (message.slotIndex < 0) {
+                        player.inventory.setItemStack(null);
+                    } else {
+                        player.inventoryContainer.putStackInSlot(message.slotIndex, null);
+                    }
+                }
+            }
         }
     }
 
