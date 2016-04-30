@@ -15,12 +15,9 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
  */
 public abstract class MessageBase<REQ extends IMessage> implements IMessage, IMessageHandler<REQ, IMessage> {
     @Override
-    public void fromBytes(ByteBuf buf) {
-    }
-
+    public abstract void fromBytes(ByteBuf buf);
     @Override
-    public void toBytes(ByteBuf buf) {
-    }
+    public abstract void toBytes(ByteBuf buf);
 
     @Override
     public IMessage onMessage(REQ message, MessageContext ctx) {

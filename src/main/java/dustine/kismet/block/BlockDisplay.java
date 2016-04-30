@@ -1,5 +1,7 @@
 package dustine.kismet.block;
 
+import dustine.kismet.Kismet;
+import dustine.kismet.gui.ModGuiHandler;
 import dustine.kismet.tile.TileDisplay;
 import dustine.kismet.util.SoundHelper;
 import dustine.kismet.util.StackHelper;
@@ -11,11 +13,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
+import net.minecraft.util.*;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
@@ -25,7 +23,7 @@ import net.minecraftforge.common.property.IUnlistedProperty;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class BlockDisplay extends ContainerKismet<TileDisplay> {
+public class BlockDisplay extends BlockContainerKismet<TileDisplay> {
     public static final PropertyBool READY = PropertyBool.create("ready");
     public static final PropertyEnum<EnumFacing> FACING = PropertyEnum.create("facing", EnumFacing.class);
     public static final PropertyBool FULFILLED = PropertyBool.create("fulfilled");
@@ -40,8 +38,6 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
     public BlockDisplay() {
         super();
 
-        setHardness(5);
-
         // declaring properties
         setDefaultState(this.blockState.getBaseState()
                 .withProperty(READY, false)
@@ -51,7 +47,7 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
 
 
     @Override
-    public TileEntity createNewTileEntity(World worldIn, int meta) {
+    public TileDisplay createNewTileEntity(World worldIn, int meta) {
         return new TileDisplay();
     }
 
@@ -143,7 +139,20 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
         TileDisplay te = (TileDisplay) world.getTileEntity(pos);
         // do nothing if tile-entity is borked
         if (te == null) return false;
+        if (tryFulfillTarget(world, pos, state, player, heldItem, te)) return true;
 
+        if (hand == EnumHand.OFF_HAND) {
+            // only show GUI on server
+            if (!world.isRemote) {
+                player.openGui(Kismet.instance, ModGuiHandler.EnumGuiID.DISPLAY.ordinal(), world, pos.getX(), pos.getY(), pos.getZ());
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean tryFulfillTarget(World world, BlockPos pos, IBlockState state, EntityPlayer player, ItemStack heldItem, TileDisplay te) {
         // Check if the heldItem is the target
         if (heldItem != null && StackHelper.isEquivalent(te.getTarget(), heldItem)) {
             // fulfilled target~
@@ -151,15 +160,10 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
             // because of bug
             return true;
         }
-//        // Kismetic key = new target
-//        if (heldItem != null && heldItem.isItemEqual(new ItemStack(ModItems.KEY))) {
-//            return false;
-//        }
-
         return false;
     }
 
-    public void setTargetAsFulfilled(World world, BlockPos pos, IBlockState state, EntityPlayer player) {
+    protected void setTargetAsFulfilled(World world, BlockPos pos, IBlockState state, EntityPlayer player) {
         if (state.getValue(FULFILLED)) return;
 
         SoundHelper.onTargetFulfilled(world, player, pos);
@@ -182,5 +186,8 @@ public class BlockDisplay extends ContainerKismet<TileDisplay> {
         return new ExtendedBlockState(this, listedProperties, unlistedProperties);
     }
 
-
+    @Override
+    public IBlockState withRotation(IBlockState state, Rotation rot) {
+        return state.withProperty(FACING, rot.rotate(state.getValue(FACING)));
+    }
 }

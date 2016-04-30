@@ -1,4 +1,4 @@
-package dustine.kismet.target;
+package dustine.kismet.world.savedata;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

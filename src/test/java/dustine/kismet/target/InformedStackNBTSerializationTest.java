@@ -17,22 +17,22 @@ import static org.junit.Assert.assertTrue;
 
 @RunWith(Parameterized.class)
 public class InformedStackNBTSerializationTest {
-    private final Set<InformedStack.EnumOrigin> obtainable;
+    private final Set<EnumOrigin> obtainable;
 
-    public InformedStackNBTSerializationTest(Set<InformedStack.EnumOrigin> obtainable) {
+    public InformedStackNBTSerializationTest(Set<EnumOrigin> obtainable) {
         this.obtainable = obtainable;
     }
 
     @Parameterized.Parameters(name = "{index}: {0}")
-    public static Collection<Set<InformedStack.EnumOrigin>> data() {
+    public static Collection<Set<EnumOrigin>> data() {
         // generate case combinations
-        final ArrayList<Set<InformedStack.EnumOrigin>> possibilities = new ArrayList<>();
-        int n = InformedStack.EnumOrigin.values().length;
+        final ArrayList<Set<EnumOrigin>> possibilities = new ArrayList<>();
+        int n = EnumOrigin.values().length;
         for (long l = 0; l < Math.pow(2, n); l++) {
-            final Set<InformedStack.EnumOrigin> itCase = new HashSet<>();
+            final Set<EnumOrigin> itCase = new HashSet<>();
             for (int o = 0; o < n; o++) {
                 if (((l >> o) & 0b1) == 0b1) {
-                    itCase.add(InformedStack.EnumOrigin.values()[o]);
+                    itCase.add(EnumOrigin.values()[o]);
                 }
             }
             possibilities.add(itCase);
@@ -47,7 +47,7 @@ public class InformedStackNBTSerializationTest {
 
         final InformedStack serialized = new InformedStack(testCase.serializeNBT());
 
-        final Set<InformedStack.EnumOrigin> serializedObtainable = serialized.getOrigins();
+        final Set<EnumOrigin> serializedObtainable = serialized.getOrigins();
         assertThat("same length", serializedObtainable.size(), is(this.obtainable.size()));
         assertTrue("serialized c testcase", serializedObtainable.containsAll(this.obtainable));
         assertTrue("testcase c serialized", this.obtainable.containsAll(serializedObtainable));

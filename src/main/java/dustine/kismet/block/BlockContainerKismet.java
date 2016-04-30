@@ -7,18 +7,18 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-public abstract class ContainerKismet<T extends TileEntity> extends BlockKismet implements ITileEntityProvider {
-    public ContainerKismet() {
+public abstract class BlockContainerKismet<T extends TileEntity> extends BlockKismet implements ITileEntityProvider {
+    public BlockContainerKismet() {
         this(Material.ROCK);
     }
 
-    public ContainerKismet(Material material) {
+    public BlockContainerKismet(Material material) {
         super(material);
         this.isBlockContainer = true;
     }
 
     @Override
-    abstract public TileEntity createNewTileEntity(World worldIn, int meta);
+    abstract public T createNewTileEntity(World worldIn, int meta);
 
     @Override
     public void breakBlock(World world, BlockPos pos, IBlockState state) {
@@ -26,10 +26,13 @@ public abstract class ContainerKismet<T extends TileEntity> extends BlockKismet 
         world.removeTileEntity(pos);
     }
 
+    /**
+     * Called on both Client and Server when World#addBlockEvent is called
+     */
     @Override
-    public boolean onBlockEventReceived(World worldIn, BlockPos pos, IBlockState state, int eventID, int eventParam) {
-        super.onBlockEventReceived(worldIn, pos, state, eventID, eventParam);
-        TileEntity tileEntity = worldIn.getTileEntity(pos);
+    public boolean onBlockEventReceived(World world, BlockPos pos, IBlockState state, int eventID, int eventParam) {
+        super.onBlockEventReceived(world, pos, state, eventID, eventParam);
+        TileEntity tileEntity = world.getTileEntity(pos);
         return tileEntity != null && tileEntity.receiveClientEvent(eventID, eventParam);
     }
 }

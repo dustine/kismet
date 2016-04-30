@@ -18,8 +18,8 @@ public class NetworkHandler {
         this.channel = NetworkRegistry.INSTANCE.newSimpleChannel(name);
 
         // registering messages
-        this.channel.registerMessage(MessageDisplayTarget.class, MessageDisplayTarget.class,
-                getDiscriminator(), Side.CLIENT);
+        this.channel.registerMessage(MessageGuiRemoteAction.class, MessageGuiRemoteAction.class,
+                getDiscriminator(), Side.SERVER);
 
         this.channel.registerMessage(MessageKeyUsage.class, MessageKeyUsage.class,
                 getDiscriminator(), Side.CLIENT);
@@ -36,17 +36,17 @@ public class NetworkHandler {
                 getDiscriminator(), Side.SERVER);
 
         // the discriminator can't go above 256
-        if (discriminator >= 256)
+        if (this.discriminator >= 256)
             Log.error(String.format("Channel %s over maximum registered messages (should be %d, was %d)", this.name,
-                    256, discriminator));
+                    256, this.discriminator));
     }
 
     private int getDiscriminator() {
-        return discriminator++;
+        return this.discriminator++;
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public void sendTo(MessageBase message, EntityPlayerMP player) {

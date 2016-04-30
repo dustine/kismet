@@ -1,8 +1,7 @@
 package dustine.kismet;
 
 import com.google.common.collect.ImmutableList;
-import dustine.kismet.target.InformedStack;
-import dustine.kismet.target.InformedStack.EnumOrigin;
+import dustine.kismet.target.EnumOrigin;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
@@ -35,14 +34,7 @@ public final class ConfigKismet {
     private static EnumGenMode genMode;
     private static List<String> genBlacklist;
 
-    private static List<String> hiddenBlacklist;
-
-    private static Map<InformedStack.EnumOrigin, Boolean> genFlags;
-    private static List<String> hiddenGen;
-
-    public static List<String> getHiddenBlacklist() {
-        return hiddenBlacklist;
-    }
+    private static Map<EnumOrigin, Boolean> genFlags;
 
     private static String[] getEnumValues(Class<? extends Enum<?>> e) {
         return Arrays.asList(e.getEnumConstants())
@@ -96,8 +88,7 @@ public final class ConfigKismet {
         final Property propTimedLimit = getProperty(categories, CATEGORY_GENERAL, Names.timedLimit);
 
 
-        final Property propHiddenGen = getProperty(categories, CATEGORY_TARGETS, Names.hiddenGen);
-        final Map<InformedStack.EnumOrigin, Property> propGenFlags = new HashMap<>();
+        final Map<EnumOrigin, Property> propGenFlags = new HashMap<>();
 
         for (EnumOrigin type : EnumOrigin.values()) {
             // skip the forced flag
@@ -108,7 +99,6 @@ public final class ConfigKismet {
         final Property propGenMode = getProperty(categories, CATEGORY_TARGETS, Names.genMode);
 
         final Property propGenBlacklist = getProperty(categories, CATEGORY_TARGETS, Names.genBlacklist);
-        final Property propHiddenBlacklist = getProperty(categories, CATEGORY_TARGETS, Names.hiddenBlacklist);
         final Property propForceAdd = getProperty(categories, CATEGORY_TARGETS, Names.forceAdd);
 
         // config field order, one per category
@@ -134,8 +124,6 @@ public final class ConfigKismet {
             if (timedLimit < timedLimitMin) {
                 timedLimit = Defaults.timedLimit;
             }
-
-            hiddenGen = Arrays.asList(propHiddenGen.getStringList());
             genFlags = new HashMap<>();
 
             for (EnumOrigin type : EnumOrigin.values()) {
@@ -153,7 +141,6 @@ public final class ConfigKismet {
             }
 
             genBlacklist = Arrays.asList(propGenBlacklist.getStringList());
-            hiddenBlacklist = Arrays.asList(propHiddenBlacklist.getStringList());
             forceAdd = Arrays.asList(propForceAdd.getStringList());
         }
 
@@ -167,7 +154,6 @@ public final class ConfigKismet {
 
         propTimedLimit.set(timedLimit);
 
-        propHiddenGen.set(hiddenGen.toArray(new String[] {}));
         for (EnumOrigin type : EnumOrigin.values()) {
             // skip the forced flag
             if (type.equals(EnumOrigin.FORCED)) continue;
@@ -177,7 +163,6 @@ public final class ConfigKismet {
         propGenMode.set(genMode.toString());
 
         propGenBlacklist.set(genBlacklist.toArray(new String[] {}));
-        propHiddenBlacklist.set(hiddenBlacklist.toArray(new String[] {}));
         propForceAdd.set(forceAdd.toArray(new String[] {}));
 
         if (config.hasChanged()) {
@@ -231,26 +216,12 @@ public final class ConfigKismet {
                 "kind are flagged as 'recipe') or any valid minecraft item at all, respectively");
         catTargets.add(propGenMode);
 
-        Property propHiddenGen = config.get(CATEGORY_TARGETS, Names.hiddenGen, Defaults.hiddenGen)
-                .setShowInGui(false)
-                .setRequiresWorldRestart(true);
-        propHiddenGen.setComment("List of items and origin flags that override any registered targets (and their origin flags). This is also where other mods could add their own items that they wished to be properly categorized. " +
-                "Any item with an unknown or missing origin flag will be tagged as 'Other'");
-        catTargets.add(propHiddenGen);
-
         addGenFlagProperties(catTargets);
 
         Property propGenBlacklist = config.get(CATEGORY_TARGETS, Names.genBlacklist, Defaults.genBlacklist)
                 .setValidationPattern(blacklistPattern);
         propGenBlacklist.setComment("List of items that will be ignored on target selection");
         catTargets.add(propGenBlacklist);
-
-        Property propHiddenBlacklist = config.get(CATEGORY_TARGETS, Names.hiddenBlacklist, Defaults.hiddenBlacklist)
-                .setShowInGui(false)
-                .setRequiresWorldRestart(true);
-        propHiddenBlacklist.setComment("List of items that will be forcefully added to the blacklist. More for any " +
-                "cleanup of weird edge cases on the mod target algorithms");
-        catTargets.add(propHiddenBlacklist);
 
         categories.put(CATEGORY_TARGETS, catTargets);
     }
@@ -259,15 +230,14 @@ public final class ConfigKismet {
         List<Property> catGenFlags = new ArrayList<>();
         for (EnumOrigin type : EnumOrigin.values()) {
             if (type.equals(EnumOrigin.FORCED) || type.equals(EnumOrigin.OTHER)) continue;
-            Property propGenFlag = config.get(CATEGORY_TARGETS, "gen" + getTypeName(type), Defaults.genFlags.get(type));
+            Property propGenFlag = config.get(CATEGORY_TARGETS, "gen" + getTypeName(type), true);
             propGenFlag.setComment(getComment(type));
             catGenFlags.add(propGenFlag);
             catGenFlags.sort((o1, o2) -> o1.getName().compareTo(o2.getName()));
         }
 
         // add others as the last one
-        Property propGenFlagOthers = config.get(CATEGORY_TARGETS, "gen" + getTypeName(EnumOrigin.OTHER),
-                Defaults.genFlags.get(EnumOrigin.OTHER));
+        Property propGenFlagOthers = config.get(CATEGORY_TARGETS, "gen" + getTypeName(EnumOrigin.OTHER), true);
         propGenFlagOthers.setComment(getComment(EnumOrigin.OTHER));
         catGenFlags.add(propGenFlagOthers);
 
@@ -285,11 +255,19 @@ public final class ConfigKismet {
             case RECIPE:
                 return "Allows items with associated crafting/smelting/mod recipes as targets";
             case LOOT_TABLE:
-                return "Allows items present in the loot tables (mod drops, chest loot) as targets";
-            case BLOCK_DROPS:
+                return "Allows items present in the loot tables (chest loot) as targets";
+            case MOB_DROP:
+                return "Allows items obtainable from mobs or animals (loot tables) as targets";
+            case TRADE:
+                return "Allows items resulting from villager trading as targets";
+            case BLOCK_DROP:
                 return "Allows items that are dropped from breaking blocks as targets";
             case SILK_TOUCH:
                 return "Allows blocks that can be mined with silk touch as targets";
+            case SHEAR:
+                return "Allows shearable blocks as targets";
+            case FISHING:
+                return "Allows fishing results (loot tables) as targets";
             default:
                 return "Uh, this isn't supposed to happen, this is the default comment";
         }
@@ -302,21 +280,8 @@ public final class ConfigKismet {
      * @return A camelCase origin name
      */
     private static String getTypeName(EnumOrigin origin) {
-        boolean wordBoundary = true;
-        final StringBuilder builder = new StringBuilder();
-        for (char s : origin.name().toCharArray()) {
-            if (s == '_') {
-                wordBoundary = true;
-                continue;
-            }
-            if (wordBoundary) {
-                wordBoundary = false;
-                builder.append(s);
-            } else {
-                builder.append(Character.toLowerCase(s));
-            }
-        }
-        return builder.toString();
+        final String camelCase = origin.toCamelCase();
+        return camelCase.substring(0, 1).toUpperCase() + camelCase.substring(1);
     }
 
     private static void addCatGeneralProperties(Map<String, List<Property>> categories) {
@@ -412,14 +377,6 @@ public final class ConfigKismet {
         return genFlags.get(type);
     }
 
-    public static List<String> getHiddenGen() {
-        return hiddenGen;
-    }
-
-    public static void setHiddenGen(List<String> hiddenGen) {
-        ConfigKismet.hiddenGen = hiddenGen;
-    }
-
     public enum EnumGenMode {
         NONE("None"),
         FILTERED("Filtered only"),
@@ -441,11 +398,9 @@ public final class ConfigKismet {
         private static final String chillEnabled = "chillEnabled";
         private static final String timedLimit = "timedLimit";
         private static final String timedEnabled = "timedEnabled";
-        private static final String hiddenBlacklist = "hiddenBlacklist";
         private static final String genMode = "genMode";
         private static final String genBlacklist = "genBlacklist";
         private static final String forceAdd = "forceAdd";
-        private static final String hiddenGen = "hiddenGen";
     }
 
     private static class Defaults {
@@ -453,27 +408,6 @@ public final class ConfigKismet {
         static final boolean chillEnabled = true;
         static final boolean timedEnabled = true;
         static final int timedLimit = 24000 / 20 / 60; // a minecraft day
-        static final String[] hiddenGen = new String[] {
-                "LOOT_TABLE:minecraft:egg",
-                "LOOT_TABLE:minecraft:elytra",
-                "LOOT_TABLE:minecraft:nether_star",
-                "LOOT_TABLE:minecraft:record_11",
-                "LOOT_TABLE:minecraft:record_blocks",
-                "LOOT_TABLE:minecraft:record_chirp",
-                "LOOT_TABLE:minecraft:record_far",
-                "LOOT_TABLE:minecraft:record_mall",
-                "LOOT_TABLE:minecraft:record_mellohi",
-                "LOOT_TABLE:minecraft:record_stal",
-                "LOOT_TABLE:minecraft:record_strad",
-                "LOOT_TABLE:minecraft:record_wait",
-                "LOOT_TABLE:minecraft:record_ward",
-                "SHEAR:minecraft:vine",
-                ":minecraft:dragon_breath"
-        };
-        static final String[] hiddenBlacklist = new String[] {
-                // the deprecated wooden slab, still in the game as a block
-                "minecraft:stone_slab:2"
-        };
         static final String[] genBlacklist = new String[] {
                 "kismet",
                 "minecraft:carpet",
@@ -490,16 +424,6 @@ public final class ConfigKismet {
                 "minecraft:wool:0",
                 "minecraft:carpet:0"
         };
-        static Map<InformedStack.EnumOrigin, Boolean> genFlags = new HashMap<>();
-
-        static {
-            Defaults.genFlags.put(EnumOrigin.OTHER, true);
-            Defaults.genFlags.put(EnumOrigin.FLUID, true);
-            Defaults.genFlags.put(EnumOrigin.RECIPE, true);
-            Defaults.genFlags.put(EnumOrigin.LOOT_TABLE, true);
-            Defaults.genFlags.put(EnumOrigin.BLOCK_DROPS, true);
-            Defaults.genFlags.put(EnumOrigin.SILK_TOUCH, true);
-        }
     }
 
     private static class ClientConfigEventHandler {

@@ -11,6 +11,8 @@ public class BlockKismet extends Block {
 
     public BlockKismet(Material material) {
         super(material);
+        setHardness(5);
+        setHarvestLevel("pickaxe", 2);
         setCreativeTab(CreativeTabKismet.KISMET_TAB);
     }
 }

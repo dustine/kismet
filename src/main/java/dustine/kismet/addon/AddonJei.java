@@ -2,6 +2,7 @@ package dustine.kismet.addon;
 
 import dustine.kismet.Log;
 import dustine.kismet.registry.ModBlocks;
+import dustine.kismet.target.EnumOrigin;
 import dustine.kismet.target.InformedStack;
 import dustine.kismet.util.StackHelper;
 import mezz.jei.api.*;
@@ -21,11 +22,8 @@ public class AddonJei implements IModPlugin {
     public static IStackHelper stackHelper;
 
     public static List<InformedStack> enrich(InformedStack stack) {
-        // fix hasSubtypes
-        stack.refreshHasSubtypes();
+        // unfold into the subtypes
         final Map<String, InformedStack> mappedStacks = unfoldSubtypes(stack);
-        // remove wildcard stacks, if any remain somehow
-        mappedStacks.values().removeIf(wrapper -> wrapper.getStack().getMetadata() == OreDictionary.WILDCARD_VALUE);
         // add the craftable flag
         setCraftableFlag(mappedStacks.values());
 
@@ -37,15 +35,14 @@ public class AddonJei implements IModPlugin {
         // if recipe = can be crafted
         for (InformedStack wrapper : stacks) {
             // skip the ones already positive
-            if (wrapper.hasOrigin(InformedStack.EnumOrigin.RECIPE)) continue;
-
+            if (wrapper.hasOrigin(EnumOrigin.RECIPE)) continue;
             // check the categories where this item appears as an output
             for (IRecipeCategory category : recipeRegistry.getRecipeCategoriesWithOutput(wrapper.getStack())) {
-                if (wrapper.hasOrigin(InformedStack.EnumOrigin.RECIPE)) break;
                 // and check the nr of recipes within
-                final List<Object> recipesWithOutput = recipeRegistry.getRecipesWithOutput(category, wrapper.getStack());
+                final List<Object> recipesWithOutput =
+                        recipeRegistry.getRecipesWithOutput(category, wrapper.getStack());
                 if (recipesWithOutput.size() > 0) {
-                    wrapper.setOrigins(InformedStack.EnumOrigin.RECIPE, true);
+                    wrapper.setOrigins(EnumOrigin.RECIPE, true);
                 }
             }
         }
@@ -53,44 +50,46 @@ public class AddonJei implements IModPlugin {
 
     private static Map<String, InformedStack> unfoldSubtypes(InformedStack wrapper) {
         final Map<String, InformedStack> subtypeStacks = new HashMap<>();
-        final ItemStack stack = wrapper.getStack();
-
-        // skip if we don't have a wildcard stack
-        if (wrapper.getStack().getMetadata() != OreDictionary.WILDCARD_VALUE) {
-            assert stackHelper.getSubtypes(stack).size() < 2;
-            subtypeStacks.put(wrapper.toString(), wrapper);
-            return subtypeStacks;
-        }
+        final ItemStack stack = ItemStack.copyItemStack(wrapper.getStack());
+        stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
 
         // unfold the wildcard stack into the subtypes
         List<InformedStack> subtypes = stackHelper.getSubtypes(stack).stream()
                 .map(InformedStack::new)
                 .collect(Collectors.toList());
 
-        // check for subtypes. because, y'know, we have a list of subtypes
-        if (subtypes.size() < 2) {
-            subtypes.forEach(InformedStack::refreshHasSubtypes);
+        // force the subtypes listing because, y'know, we have a list of subtypes!!
+        wrapper.setHasSubtypes(subtypes.size() > 1);
+        subtypes.forEach(subtype -> subtype.setHasSubtypes(subtypes.size() > 1));
+
+        if (!wrapper.getHasSubtypes()) {
+            final InformedStack unfoldedStack = subtypes.get(0);
+            unfoldedStack.setOrigins(wrapper.getOrigins());
+            subtypeStacks.put(unfoldedStack.toString(), unfoldedStack);
+            return subtypeStacks;
+        }
+
+        // re-add the original wrapper to the list if it doesn't have the wildcard value
+        if (wrapper.getStack().getMetadata() != OreDictionary.WILDCARD_VALUE) {
+            subtypeStacks.put(wrapper.toString(), wrapper);
         } else {
-            subtypes.forEach(subtype -> subtype.setHasSubtypes(true));
+            if (!wrapper.getOrigins().isEmpty()) {
+                Log.warning("Discarted obtainability data from unfolded wrapper " + wrapper + wrapper.getOrigins());
+            }
         }
 
         // add all subtypes to the mapped list
         for (InformedStack newWrapper : subtypes) {
-            // add the obtainability of the original wrapper into wrapper:0 (metadata 0)
-            if (StackHelper.isEquivalent(wrapper, newWrapper)) {
-                newWrapper.setOrigins(wrapper.getOrigins());
-            }
-
-            // check if the subtype stack is already in the stacks
-            // using a set of all unique keys for the items
             String key = newWrapper.toString();
+            // check for collisions (excluding the original stack)
             if (subtypeStacks.containsKey(key)) {
-                // original stacks had this item already, join them
-                // this will emit a warning message as it's not supposed to happen but at least nothing is lost
-                Log.warning(String.format("Tried to register subtype twice %s %s", subtypeStacks.get(key),
-                        newWrapper));
+                if (!StackHelper.isEquivalent(wrapper, newWrapper)) {
+                    Log.warning(String.format("Tried to register subtype twice %s %s",
+                            subtypeStacks.get(key), newWrapper));
+                }
+            } else {
+                subtypeStacks.put(key, newWrapper);
             }
-            subtypeStacks.put(key, newWrapper);
         }
 
         return subtypeStacks;

@@ -1,7 +1,8 @@
 # Blocks
-tile.chillDisplay.name=Kismetic Display
-tile.timedDisplay.name=Timed Kismetic Display
+display.chillDisplay.name=Kismetic Display
+display.timedDisplay.name=Timed Kismetic Display
 
+# Display
 tile.timedDisplay.tag.streak=Streak: %s
 tile.timedDisplay.tag.done=§bDone!
 
@@ -22,10 +23,26 @@ jei.description.block.chillDisplay=No time here fam.
 jei.description.block.timedDisplay=A timed display of your Kismet. Before the timer runs out you have to right-click the display with your own version of whatever it holds.\nIt also keeps track of your score so far, the latest streak of successful Kismets you've done in a row.
 
 # GUI
+## Display GUI
+gui.display.name=Kismet
+
+gui.display.origin.forced=Forced by config
+gui.display.origin.other=Miscellaneous origin (dragon breath, water bottle, ...)
+gui.display.origin.blockDrop=Dropped from breaking blocks
+gui.display.origin.fishing=On fishing looting tables
+gui.display.origin.fluid=Can be scooped with a bucket
+gui.display.origin.lootTable=On the loot tables (chest loot, ...)
+gui.display.origin.mobDrop=Dropped from entities (monsters, animals, ...)
+gui.display.origin.recipe=End result from crafting/smelting/mod recipe
+gui.display.origin.silkTouch=Block drop from silk touch enchanted tools
+gui.display.origin.shear=Block/entity drop from using shears
+gui.display.origin.trade=Can be traded with Vanilla villagers
+
+## Config GUI
 gui.config.category.main=Kismet
 gui.config.category.main.tooltip=Kismet Configurations
 
-## Config fields
+### Config fields
 gui.config.general.chillEnabled=Enable Chill Display
 gui.config.general.chillEnabled.tooltip=Allows crafting of a display variant that doesn't impose a time limit (no streaks though).
 
@@ -41,7 +58,7 @@ gui.config.general.timedLimit.tooltip=Defines how long a target lasts on a timed
 gui.config.general.nukedLimit=Nuked Deadline
 gui.config.general.nukedLimit.tooltip=Defines how long a target lasts on a nuked display (the one that blows up), in minutes.
 
-### List target
+#### List target
 
 gui.config.category.targets=Targets
 gui.config.category.targets.tooltip=Settings regarding the allowed/disallowed items to be picked as targets, either by a predetermined set or procedurally.

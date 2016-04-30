@@ -17,7 +17,7 @@ public class TargetLibrary {
     private static List<InformedStack> library;
 
     /**
-     * todo rewrite this all and remove comments from function body Pick a random mod, using as a metric w*#stacks(mod),
+     * todo rewrite this all and remove comments from function body Pick a RANDOM mod, using as a metric w*#stacks(mod),
      * where w is a non-negative integer related to the previous occurrence of targets of this mod, and #stacks the
      * number of ItemStacks, related to this mod, eligible to be picked as a target.
      * <p>
@@ -76,7 +76,7 @@ public class TargetLibrary {
         metrics = edgeCaseSolver.getMetrics();
         targets = edgeCaseSolver.getTargets();
 
-        String targetMod = getWeightedRandomMod(metrics, Kismet.random);
+        String targetMod = getWeightedRandomMod(metrics, Kismet.RANDOM);
         // target should always be assigned a value, but just in case...
         if (targetMod == null) {
             Log.error(String.format("Failed to get a targeted mod, from %s and %s", weights, lastTargets));
@@ -89,12 +89,12 @@ public class TargetLibrary {
 
         // okay, now we can truly finally pick a target
         // configFilteredItems is already filtered to only have valid stacks so it's just a process of picking a
-        // random index and returning the contents on that index
+        // RANDOM index and returning the contents on that index
         final String finalTargetMod = targetMod;
         List<InformedStack> unwrappedStacks = targets.stream()
                 .filter(item -> finalTargetMod.equals(StackHelper.getMod(item)))
                 .collect(Collectors.toList());
-        int index = Kismet.random.nextInt(unwrappedStacks.size());
+        int index = Kismet.RANDOM.nextInt(unwrappedStacks.size());
         InformedStack newTarget = unwrappedStacks.get(index);
 
         // finally, we have a target.
@@ -106,7 +106,7 @@ public class TargetLibrary {
     private static String getWeightedRandomMod(Map<String, Integer> metrics, Random random) {
         int max = metrics.values().stream().reduce(0, (i, j) -> i + j);
         // no edge case so let's move on right along on schedule
-        // get a random number  on [0, max)
+        // get a RANDOM number  on [0, max)
         int r = random.nextInt(max);
         // now iterate over the cumulative sum of the weights until you get a sum bigger than r
         int sum = 0;

@@ -1,5 +1,6 @@
 package dustine.kismet;
 
+import dustine.kismet.gui.ModGuiHandler;
 import dustine.kismet.network.NetworkHandler;
 import dustine.kismet.proxy.IProxy;
 import dustine.kismet.registry.ModBlocks;
@@ -8,8 +9,8 @@ import dustine.kismet.registry.ModRecipes;
 import dustine.kismet.registry.ModTiles;
 import dustine.kismet.server.command.CommandKismet;
 import dustine.kismet.server.event.EventOnceFixDatabase;
-import dustine.kismet.target.TargetDatabaseBuilder;
 import dustine.kismet.target.TargetLibraryBuilder;
+import dustine.kismet.world.savedata.TargetDatabaseBuilder;
 import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
@@ -23,15 +24,18 @@ import java.util.Random;
 
 @Mod(modid = Reference.MOD_ID, name = Reference.Names.MOD, version = Reference.VERSION, guiFactory = Reference.GUI_FACTORY_CLASS)
 public class Kismet {
-    public static final Random random = new Random();
-    public final static CommandKismet command = new CommandKismet();
+    public static final Random RANDOM = new Random();
     public static NetworkHandler network;
     public static TargetDatabaseBuilder databaseBuilder;
+
     @Mod.Instance(Reference.MOD_ID)
     public static Kismet instance;
+
     @SidedProxy(clientSide = Reference.CLIENT_PROXY_CLASS, serverSide = Reference.SERVER_PROXY_CLASS)
     public static IProxy proxy;
+
     private boolean jeiLoaded;
+
     private EventOnceFixDatabase eventOnceFixDatabase;
 
     @EventHandler
@@ -44,9 +48,12 @@ public class Kismet {
 
         // register blocks, items, tile entities
         ModBlocks.init();
-        ModItems.init();
         ModTiles.init();
+        ModItems.init();
         proxy.registerTESR();
+
+        ModGuiHandler.register();
+
 
         // register event handlers
 
@@ -73,7 +80,7 @@ public class Kismet {
     @EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
         // register commands
-        event.registerServerCommand(command);
+        event.registerServerCommand(new CommandKismet());
 
         final WorldServer world = (WorldServer) event.getServer().getEntityWorld();
         databaseBuilder = new TargetDatabaseBuilder(world);

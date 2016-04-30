@@ -9,7 +9,7 @@ import net.minecraftforge.oredict.ShapedOreRecipe;
 
 public class ModRecipes {
     public static void init() {
-        GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ModItems.KEY, 4), "g  ", "egg", "g n",
+        GameRegistry.addRecipe(new ShapedOreRecipe(new ItemStack(ModItems.KEY, 1), "g  ", "egg", "g n",
                 'g', "ingotGold",
                 'e', "gemEmerald",
                 'n', "nuggetGold"));

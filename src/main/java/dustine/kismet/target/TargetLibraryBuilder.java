@@ -30,11 +30,6 @@ public class TargetLibraryBuilder {
 
         // generated stacks filter keys
         final Set<String> filter = new HashSet<>();
-        for (String s : ConfigKismet.getHiddenBlacklist()) {
-            // skip entries that start with an !
-            if (s.startsWith("!")) continue;
-            filter.add(standardizeFilter(s));
-        }
         for (String s : ConfigKismet.getGenBlacklist()) {
             // skip entries that start with an !
             if (s.startsWith("!")) continue;
@@ -43,8 +38,9 @@ public class TargetLibraryBuilder {
         filter.remove(null);
 
         stacks.values().removeIf(wrapper -> !isTarget(wrapper, filter));
-
         TargetLibrary.setLibrary(new ArrayList<>(stacks.values()));
+
+        Log.info("Built target library");
     }
 
     /**
@@ -58,8 +54,8 @@ public class TargetLibraryBuilder {
         Map<String, InformedStack> stacks = new HashMap<>();
 
         // forced stacks, the ones that are added for sure to the filtered stacks
-        for (InformedStack.EnumOrigin type : InformedStack.EnumOrigin.values()) {
-            addConfigGen(stacks);
+        for (EnumOrigin type : EnumOrigin.values()) {
+            addOverrides(stacks);
         }
 
         // add all the targets now to this list
@@ -74,34 +70,17 @@ public class TargetLibraryBuilder {
         return stacks;
     }
 
-    private static void addConfigGen(Map<String, InformedStack> stacks) {
-        for (String entry : ConfigKismet.getHiddenGen()) {
-            // skip entries that start with an !
-            // also skip mods on the whitelist as it's only for specific tempStacks
-            if (entry.startsWith("!") || isMod(entry)) continue;
-
-            // convert origin:item into, well, origin and item
-            InformedStack.EnumOrigin origin = InformedStack.EnumOrigin.OTHER;
-            String item = entry.substring(entry.indexOf(":") + 1);
-            if (!entry.startsWith(":")) {
-                final String typeString = entry.split(":", 1)[0];
-                origin = InformedStack.EnumOrigin.OTHER;
-                for (InformedStack.EnumOrigin o :
-                        InformedStack.EnumOrigin.values()) {
-                    if (o.getName().equalsIgnoreCase(typeString)) {
-                        origin = o;
-                        break;
-                    }
-                }
-            }
+    private static void addOverrides(Map<String, InformedStack> stacks) {
+        for (String item : ConfigKismet.getForceAdd()) {
+            if (item.startsWith("!") || isMod(item)) continue;
 
             final ItemStack stack = getItemStack(item);
             if (stack == null) continue;
 
             // add the entries as subtype-having wrappers
-            final InformedStack wrapper = new InformedStack(stack, origin);
+            final InformedStack wrapper = new InformedStack(stack, EnumOrigin.FORCED);
             // force hasSubtypes to true if user specified a metadata value
-            if (hasMetadata(entry))
+            if (hasMetadata(item))
                 wrapper.setHasSubtypes(true);
             wrapper.seal();
 
@@ -110,6 +89,28 @@ public class TargetLibraryBuilder {
                 stacks.put(key, stacks.get(key).joinWith(wrapper));
             } else
                 stacks.put(key, wrapper);
+        }
+
+        for (EnumOrigin origin : EnumOrigin.values()) {
+            for (String item : TargetPatcher.getOverrides(origin)) {
+                if (item.startsWith("!") || isMod(item)) continue;
+
+                final ItemStack stack = getItemStack(item);
+                if (stack == null) continue;
+
+                // add the entries as subtype-having wrappers
+                final InformedStack wrapper = new InformedStack(stack, origin);
+                // force hasSubtypes to true if user specified a metadata value
+                if (hasMetadata(item))
+                    wrapper.setHasSubtypes(true);
+                wrapper.seal();
+
+                String key = wrapper.toString();
+                if (stacks.containsKey(key)) {
+                    stacks.put(key, stacks.get(key).joinWith(wrapper));
+                } else
+                    stacks.put(key, wrapper);
+            }
         }
     }
 
@@ -210,7 +211,7 @@ public class TargetLibraryBuilder {
         if (wrapper == null || wrapper.getStack() == null) return false;
 
         // forcefully added stacks always go true, even if they're on the blacklist
-        if (wrapper.hasOrigin(InformedStack.EnumOrigin.FORCED)) return true;
+        if (wrapper.hasOrigin(EnumOrigin.FORCED)) return true;
 
         // generation mode dictates if we continue or not
         switch (ConfigKismet.getGenMode()) {

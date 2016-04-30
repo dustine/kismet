@@ -1,11 +1,18 @@
 package dustine.kismet;
 
+import net.minecraft.util.ResourceLocation;
+
 public final class Reference {
     public static final String MOD_ID = "kismet";
     public static final String VERSION = "@VERSION@";
     public static final String SERVER_PROXY_CLASS = "dustine.kismet.proxy.ServerProxy";
     public static final String CLIENT_PROXY_CLASS = "dustine.kismet.proxy.ClientProxy";
     public static final String GUI_FACTORY_CLASS = "dustine.kismet.client.gui.ModGuiFactory";
+
+    public static final class Colors {
+        public static final int TEXT_GREY = 0x404040;
+        public static final int CYAN = 0x00FFFF;
+    }
 
     public static final class Names {
         public static final String MOD = "Kismet";
@@ -22,8 +29,12 @@ public final class Reference {
         }
 
         public static final class Tiles {
-
             public static final String TILE_DISPLAY = "tile_display";
         }
+    }
+
+    public static class GUI {
+        public static final ResourceLocation DISPLAY = new ResourceLocation("kismet:textures/gui/display.png");
+        public static ResourceLocation CYAN = new ResourceLocation("kismet:textures/gui/cyan.png");
     }
 }

@@ -1,5 +1,6 @@
 package dustine.kismet.server.command;
 
+import dustine.kismet.target.EnumOrigin;
 import dustine.kismet.target.InformedStack;
 import dustine.kismet.target.TargetLibrary;
 import dustine.kismet.target.TargetLibraryBuilder;
@@ -36,7 +37,7 @@ public class CCStats implements ICommandComponent {
         final Collection<InformedStack> configStacks = TargetLibraryBuilder.getConfigStacks(targetDatabase.getStacks()).values();
 
         // types
-        for (InformedStack.EnumOrigin type : InformedStack.EnumOrigin.values()) {
+        for (EnumOrigin type : EnumOrigin.values()) {
             CommandKismet.sendLine(sender, String.format("[§b%s§r]: %d, %d, %d", type,
                     targetDatabase.getStacks().stream().filter(s -> s.hasOrigin(type)).count(),
                     configStacks.stream().filter(s -> s.hasOrigin(type)).count(),
