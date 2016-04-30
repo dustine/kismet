@@ -26,7 +26,9 @@ public class ContainerDisplay extends ContainerKismet {
         }
         final IItemHandler itemHandler = display.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
 
-        this.targetSlot = new SlotTarget(itemHandler, 0, new Point(10, 19), (44 * 3.0) / 48, new Point(8, 17), 3);
+        this.targetSlot = new SlotTarget(itemHandler, 0, new Point(8, 17), 3 * 16,
+                new Point(10, 19), 44);
+
         this.addSlotToContainer(this.targetSlot);
         this.setGuiSlots(1);
 

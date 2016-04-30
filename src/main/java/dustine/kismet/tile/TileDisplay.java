@@ -47,6 +47,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
     private IItemHandler targetSlot = null;
     private int skipped;
     private int score;
+    private int highScore;
     private long deadline;
     private InformedStack target;
     private List<InformedStack> history;
@@ -121,6 +122,8 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         if (this.score != score) {
             this.score = score;
         }
+        // update the high score too
+        setHighScore(Math.max(getHighScore(), getScore()));
     }
 
     @Override
@@ -155,6 +158,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
             resetDeadline();
 
             if (!isFulfilled()) {
+                // reset the variables and save the high score
                 this.history.clear();
                 setScore(0);
             }
@@ -276,6 +280,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         setSkipped(nbt.getInteger("skipped"));
         setDeadline(nbt.getLong("deadline"));
         setScore(nbt.getInteger("score"));
+        setHighScore(nbt.getInteger("highScore"));
 
         if (nbt.hasKey("target")) {
             this.target = new InformedStack(nbt.getCompoundTag("target"));
@@ -307,6 +312,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         compound.setInteger("skipped", getSkipped());
         compound.setLong("deadline", getDeadline());
         compound.setInteger("score", getScore());
+        compound.setInteger("highscore", getHighScore());
 
         // target can be null :/
         if (getTarget() != null) {
@@ -367,5 +373,13 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
 
     public int getSkipped() {
         return this.skipped;
+    }
+
+    public void setHighScore(int highScore) {
+        this.highScore = highScore;
+    }
+
+    public int getHighScore() {
+        return highScore;
     }
 }

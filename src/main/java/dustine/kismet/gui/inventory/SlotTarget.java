@@ -7,24 +7,20 @@ import net.minecraftforge.items.SlotItemHandler;
 import java.awt.*;
 
 public class SlotTarget extends SlotItemHandler {
-    private final double factor;
-    private Point realXY;
-    private double realFactor;
+    private final int iconSize;
+    private final Point iconOrigin;
+    private final int slotSize;
 
-    public SlotTarget(IItemHandler itemHandler, int index, Point xY, double factor) {
-        this(itemHandler, index, xY, factor, xY, factor);
+    public SlotTarget(IItemHandler itemHandler, int index, Point slotOrigin, int slotSize, Point iconOrigin, int
+            iconFactor) {
+        super(itemHandler, index, slotOrigin.x, slotOrigin.y);
+        this.iconSize = iconFactor;
+        this.iconOrigin = iconOrigin;
+        this.slotSize = slotSize;
     }
 
-    public SlotTarget(IItemHandler itemHandler, int index, Point iconXY, double iconFactor, Point realXY, double
-            realFactor) {
-        super(itemHandler, index, iconXY.x, iconXY.y);
-        this.factor = iconFactor;
-        this.realXY = realXY;
-        this.realFactor = realFactor;
-    }
-
-    public double getFactor() {
-        return this.factor;
+    public int getIconSize() {
+        return this.iconSize;
     }
 
     /**
@@ -38,14 +34,14 @@ public class SlotTarget extends SlotItemHandler {
 
     @Override
     public boolean canBeHovered() {
-        return false;
+        return true;
     }
 
-    public double getRealFactor() {
-        return this.realFactor;
+    public int getSlotSize() {
+        return this.slotSize;
     }
 
-    public Point getRealO() {
-        return this.realXY;
+    public Point getIconOrigin() {
+        return iconOrigin;
     }
 }
