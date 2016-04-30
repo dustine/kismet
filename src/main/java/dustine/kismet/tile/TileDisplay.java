@@ -146,17 +146,6 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         }
     }
 
-    @Override
-    public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-        if (capability == ITEM_HANDLER_CAPABILITY) {
-            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
-                return super.getCapability(capability, facing);
-            //noinspection unchecked
-            return (T) this.targetSlot;
-        }
-        return super.getCapability(capability, facing);
-    }
-
     private boolean checkForNullTarget() {
         return (getTarget() == null || !getTarget().hasItem()) && getNewTarget();
     }
@@ -229,16 +218,6 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         return this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FULFILLED);
     }
 
-    @Override
-    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-        if (capability == ITEM_HANDLER_CAPABILITY) {
-            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
-                return super.hasCapability(capability, facing);
-            return true;
-        }
-        return super.hasCapability(capability, facing);
-    }
-
     private void setFulfilled(boolean fulfilled) {
         IBlockState state = this.worldObj.getBlockState(this.pos);
         boolean oldFulfilled = state.getValue(BlockDisplay.FULFILLED);
@@ -261,6 +240,29 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         }
     }
 
+    @Override
+    public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+        if (capability == ITEM_HANDLER_CAPABILITY) {
+            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING)
+                    .getOpposite())
+                return super.getCapability(capability, facing);
+            //noinspection unchecked
+            return (T) this.targetSlot;
+        }
+        return super.getCapability(capability, facing);
+    }
+
+
+    @Override
+    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+        if (capability == ITEM_HANDLER_CAPABILITY) {
+            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING)
+                    .getOpposite())
+                return super.hasCapability(capability, facing);
+            return true;
+        }
+        return super.hasCapability(capability, facing);
+    }
 
     @Override
     public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
@@ -366,6 +368,4 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
     public int getSkipped() {
         return this.skipped;
     }
-
-
 }

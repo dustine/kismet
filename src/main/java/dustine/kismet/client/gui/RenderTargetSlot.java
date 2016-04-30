@@ -70,7 +70,8 @@ class RenderTargetSlot {
             this.guiDisplay.setZLevel(this.guiDisplay.getZLevel() + 50.0F);
 
             try {
-                renderItemModelIntoGUI(stack, factor, x, y, this.guiDisplay.getItemRender().getItemModelWithOverrides(stack, null, player));
+                renderItemModelIntoGUI(stack, factor, x, y,
+                        this.guiDisplay.getItemRender().getItemModelWithOverrides(stack, null, player));
             } catch (Throwable throwable) {
                 CrashReport crashreport = CrashReport.makeCrashReport(throwable, "Rendering item");
                 CrashReportCategory crashreportcategory = crashreport.makeCategory("Item being rendered");

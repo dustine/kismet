@@ -112,7 +112,8 @@ class CCDump implements ICommandComponent {
     }
 
     @Override
-    public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos) {
+    public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args,
+                                                BlockPos pos) {
         return Arrays.asList(EnumLists.values()).stream().map(EnumLists::getName).collect(Collectors.toList());
     }
 

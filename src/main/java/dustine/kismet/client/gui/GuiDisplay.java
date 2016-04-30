@@ -119,7 +119,8 @@ public class GuiDisplay extends GuiKismet {
             GlStateManager.disableLighting();
             GlStateManager.disableDepth();
             GlStateManager.colorMask(true, true, true, false);
-            this.drawGradientRect(slotX, slotY, (int) (slotX + 16 * this.targetSlot.getRealFactor()), (int) (slotY + 16 * this.targetSlot.getRealFactor()), -2130706433, -2130706433);
+            final int size = (int) (16 * this.targetSlot.getRealFactor());
+            this.drawGradientRect(slotX, slotY, slotX + size, slotY + size, -2130706433, -2130706433);
             GlStateManager.colorMask(true, true, true, true);
             GlStateManager.enableLighting();
             GlStateManager.enableDepth();
@@ -131,7 +132,6 @@ public class GuiDisplay extends GuiKismet {
         return stack != null && isMouseOverSlot(this.targetSlot, mouseX, mouseY) &&
                 (stack.getItem() instanceof ItemKey || StackHelper.isEquivalent(this.display.getTarget(), stack));
     }
-
 
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
@@ -150,7 +150,9 @@ public class GuiDisplay extends GuiKismet {
 
             for (EnumOrigin origin : origins) {
                 if (target.hasOrigin(origin)) {
-                    this.drawTexturedModalRect(relOx + originIconOrigin.x + originIconSize * iconLocation++, relOy + originIconOrigin.y, originIconSize * origin.ordinal(), originIconTextureY, originIconSize, originIconSize);
+                    this.drawTexturedModalRect(relOx + originIconOrigin.x + originIconSize * iconLocation++,
+                            relOy + originIconOrigin.y, originIconSize * origin.ordinal(), originIconTextureY,
+                            originIconSize, originIconSize);
                 }
             }
         }

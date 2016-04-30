@@ -39,11 +39,6 @@ public class CommandKismet extends CommandBase {
     }
 
     @Override
-    public int getRequiredPermissionLevel() {
-        return 2;
-    }
-
-    @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
         if (args.length == 0 || "help".equalsIgnoreCase(args[0])) {
             throw new WrongUsageException(getCommandName());
@@ -60,8 +55,19 @@ public class CommandKismet extends CommandBase {
         sender.addChatMessage(new TextComponentString(msg));
     }
 
+    static void send(ICommandSender sender, String msg) {
+        sender.addChatMessage(new TextComponentString(String.format("[%s] %s", Reference.Names.MOD_PRETTY, msg)));
+    }
+
     @Override
-    public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos) {
+    public int getRequiredPermissionLevel() {
+        return 2;
+    }
+
+
+    @Override
+    public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args,
+                                                BlockPos pos) {
         if (!sender.canCommandSenderUseCommand(getRequiredPermissionLevel(), getCommandName()))
             return Collections.emptyList();
 
@@ -78,10 +84,6 @@ public class CommandKismet extends CommandBase {
                     component.getTabCompletionOptions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos)
             );
         }
-    }
-
-    static void send(ICommandSender sender, String msg) {
-        sender.addChatMessage(new TextComponentString(String.format("[%s] %s", Reference.Names.MOD_PRETTY, msg)));
     }
 
 

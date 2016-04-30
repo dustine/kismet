@@ -40,7 +40,8 @@ public class CCReset implements ICommandComponent {
     }
 
     @Override
-    public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos) {
+    public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args,
+                                                BlockPos pos) {
         return Collections.emptyList();
     }
 }

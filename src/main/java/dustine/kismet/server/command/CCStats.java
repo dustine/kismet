@@ -34,7 +34,8 @@ public class CCStats implements ICommandComponent {
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws WrongUsageException {
         final WSDTargetDatabase targetDatabase = WSDTargetDatabase.get(sender.getEntityWorld());
         CommandKismet.send(sender, "Printing library stats: Savedata, Database, Library");
-        final Collection<InformedStack> configStacks = TargetLibraryBuilder.getConfigStacks(targetDatabase.getStacks()).values();
+        final Collection<InformedStack> configStacks = TargetLibraryBuilder.getConfigStacks(targetDatabase.getStacks())
+                .values();
 
         // types
         for (EnumOrigin type : EnumOrigin.values()) {
@@ -68,7 +69,8 @@ public class CCStats implements ICommandComponent {
     }
 
     @Override
-    public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos) {
+    public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args,
+                                                BlockPos pos) {
         return null;
     }
 }

@@ -134,7 +134,9 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         float playerAngle = renderManager.playerViewY;
         GlStateManager.rotate(-playerAngle, 0.0F, 1.0F, 0.0F);
         // take into account 3rd person view
-        GlStateManager.rotate((float) (renderManager.options.thirdPersonView == 2 ? -1 : 1) * renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
+        GlStateManager
+                .rotate((float) (renderManager.options.thirdPersonView == 2 ? -1 : 1) * renderManager.playerViewX, 1.0F,
+                        0.0F, 0.0F);
         GlStateManager.rotate(180, 0, 0, 1);
         GlStateManager.scale(0.025, 0.025, 0.025);
 
@@ -147,7 +149,9 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         FontRenderer fontRenderer = getFontRenderer();
 
         GlStateManager.enableBlend();
-        GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+        GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA,
+                GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE,
+                GlStateManager.DestFactor.ZERO);
 
         GlStateManager.disableTexture2D();
         int stringWidth = lines.stream().map(fontRenderer::getStringWidth).reduce(Math::max).orElseGet(() -> 0) / 2;

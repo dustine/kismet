@@ -41,7 +41,9 @@ public class TargetPatcher {
         overrides.get(EnumOrigin.MOB_DROP).addAll(Arrays.asList(
                 "minecraft:egg",
                 "minecraft:nether_star",
-                "minecraft:record_11", "minecraft:record_blocks", "minecraft:record_chirp", "minecraft:record_far", "minecraft:record_mall", "minecraft:record_mellohi", "minecraft:record_stal", "minecraft:record_strad", "minecraft:record_wait", "minecraft:record_ward"
+                "minecraft:record_11", "minecraft:record_blocks", "minecraft:record_chirp", "minecraft:record_far",
+                "minecraft:record_mall", "minecraft:record_mellohi", "minecraft:record_stal", "minecraft:record_strad",
+                "minecraft:record_wait", "minecraft:record_ward"
         ));
 
         // target cataloguing engine doesn't do shearing yet because of reasons.
@@ -49,14 +51,18 @@ public class TargetPatcher {
         // also doesn't work for entities, so we hard-code the vanilla values
         overrides.get(EnumOrigin.SHEAR).addAll(Arrays.asList(
                 "minecraft:deadbush",
-                "minecraft:double_plant:0", "minecraft:double_plant:1", "minecraft:double_plant:4", "minecraft:double_plant:5",
+                "minecraft:double_plant:0", "minecraft:double_plant:1", "minecraft:double_plant:4",
+                "minecraft:double_plant:5",
                 "minecraft:leaves:0", "minecraft:leaves:1", "minecraft:leaves:2", "minecraft:leaves:3",
                 "minecraft:leaves2:0", "minecraft:leaves2:1",
                 "minecraft:red_mushroom",
                 "minecraft:tallgrass:1", "minecraft:tallgrass:2",
                 "minecraft:vine",
                 "minecraft:web",
-                "minecraft:wool:0", "minecraft:wool:1", "minecraft:wool:2", "minecraft:wool:3", "minecraft:wool:4", "minecraft:wool:5", "minecraft:wool:6", "minecraft:wool:7", "minecraft:wool:8", "minecraft:wool:9", "minecraft:wool:10", "minecraft:wool:11", "minecraft:wool:12", "minecraft:wool:13", "minecraft:wool:14", "minecraft:wool:15"
+                "minecraft:wool:0", "minecraft:wool:1", "minecraft:wool:2", "minecraft:wool:3", "minecraft:wool:4",
+                "minecraft:wool:5", "minecraft:wool:6", "minecraft:wool:7", "minecraft:wool:8", "minecraft:wool:9",
+                "minecraft:wool:10", "minecraft:wool:11", "minecraft:wool:12", "minecraft:wool:13", "minecraft:wool:14",
+                "minecraft:wool:15"
         ));
 
         // target cataloguing engine doesn't do shearing yet because of reasons.
@@ -141,7 +147,9 @@ public class TargetPatcher {
             return this;
         }
 
-        private void storeTablesFromLocations(World world, ArrayList<ResourceLocation> remainingTableLocations, Set<ResourceLocation> entityTableLocations, Set<ResourceLocation> fishingTableLocations) {
+        private void storeTablesFromLocations(World world, ArrayList<ResourceLocation> remainingTableLocations,
+                                              Set<ResourceLocation> entityTableLocations,
+                                              Set<ResourceLocation> fishingTableLocations) {
             final LootTableManager lootTableManager = world.getLootTableManager();
 
             this.entityTables = entityTableLocations.stream()

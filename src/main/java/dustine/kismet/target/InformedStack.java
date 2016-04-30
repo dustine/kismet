@@ -112,7 +112,8 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
         }
 
         if (lhs.hasSubtypes != rhs.hasSubtypes) {
-            Log.warning(String.format("Stacks have different subtype state %s %s", lhs.getHasSubtypes(), rhs.getHasSubtypes()));
+            Log.warning(String.format("Stacks have different subtype state %s %s", lhs.getHasSubtypes(),
+                    rhs.getHasSubtypes()));
         }
 
         // create a new informedStack via deep copy
