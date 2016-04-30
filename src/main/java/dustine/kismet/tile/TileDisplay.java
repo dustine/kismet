@@ -119,9 +119,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
     }
 
     public void setScore(int score) {
-        if (this.score != score) {
-            this.score = score;
-        }
+        this.score = score;
         // update the high score too
         setHighScore(Math.max(getHighScore(), getScore()));
     }
@@ -312,7 +310,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         compound.setInteger("skipped", getSkipped());
         compound.setLong("deadline", getDeadline());
         compound.setInteger("score", getScore());
-        compound.setInteger("highscore", getHighScore());
+        compound.setInteger("highScore", getHighScore());
 
         // target can be null :/
         if (getTarget() != null) {
