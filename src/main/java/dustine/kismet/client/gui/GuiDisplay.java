@@ -83,11 +83,6 @@ public class GuiDisplay extends GuiKismet {
     }
 
     @Override
-    protected void drawItemStack(ItemStack stack, int x, int y, String altText) {
-        super.drawItemStack(stack, x, y, altText);
-    }
-
-    @Override
     protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
         // text tags
         // retrieved from GuiChest so idk what any of these constants do :P
@@ -136,6 +131,7 @@ public class GuiDisplay extends GuiKismet {
         return stack != null && isMouseOverSlot(this.targetSlot, mouseX, mouseY) &&
                 (stack.getItem() instanceof ItemKey || StackHelper.isEquivalent(this.display.getTarget(), stack));
     }
+
 
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
