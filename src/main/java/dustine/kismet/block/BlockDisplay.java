@@ -139,7 +139,13 @@ public class BlockDisplay extends BlockContainerKismet<TileDisplay> {
         TileDisplay te = (TileDisplay) world.getTileEntity(pos);
         // do nothing if tile-entity is borked
         if (te == null) return false;
-        if (tryFulfillTarget(world, pos, state, player, heldItem, te)) return true;
+
+        if (heldItem != null && StackHelper.isEquivalent(te.getTarget(), heldItem)) {
+            // fulfilled target~
+            setTargetAsFulfilled(world, pos, state, player);
+            // because of bug
+            return true;
+        }
 
         if (hand == EnumHand.OFF_HAND) {
             // only show GUI on server
@@ -152,18 +158,7 @@ public class BlockDisplay extends BlockContainerKismet<TileDisplay> {
         return false;
     }
 
-    public boolean tryFulfillTarget(World world, BlockPos pos, IBlockState state, EntityPlayer player, ItemStack heldItem, TileDisplay te) {
-        // Check if the heldItem is the target
-        if (heldItem != null && StackHelper.isEquivalent(te.getTarget(), heldItem)) {
-            // fulfilled target~
-            setTargetAsFulfilled(world, pos, state, player);
-            // because of bug
-            return true;
-        }
-        return false;
-    }
-
-    protected void setTargetAsFulfilled(World world, BlockPos pos, IBlockState state, EntityPlayer player) {
+    public void setTargetAsFulfilled(World world, BlockPos pos, IBlockState state, EntityPlayer player) {
         if (state.getValue(FULFILLED)) return;
 
         SoundHelper.onTargetFulfilled(world, player, pos);

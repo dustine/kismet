@@ -8,13 +8,17 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.FakePlayer;
 
 public class SoundHelper {
     public static void onKeyUsage(World world, EntityPlayer player, BlockPos pos, boolean success) {
-        if (success) {
-            correctClick(world, player, pos);
-        } else {
-            player.renderBrokenItemStack(new ItemStack(ModItems.KEY));
+        // be kind, don't play sounds if automated with a fake player
+        if (player != null && !(player instanceof FakePlayer)) {
+            if (success) {
+                correctClick(world, player, pos);
+            } else {
+                player.renderBrokenItemStack(new ItemStack(ModItems.KEY));
+            }
         }
     }
 
@@ -25,6 +29,8 @@ public class SoundHelper {
     }
 
     public static void onTargetFulfilled(World world, EntityPlayer player, BlockPos pos) {
-        correctClick(world, player, pos);
+        // be kind, don't play sounds if automated with a fake player
+        if (player != null && !(player instanceof FakePlayer))
+            correctClick(world, player, pos);
     }
 }
