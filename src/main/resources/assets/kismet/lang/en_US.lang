@@ -83,8 +83,8 @@ gui.config.targets.genRecipe.tooltip=Items with associated crafting/smelting/mod
 gui.config.targets.genLootTable=Lootable
 gui.config.targets.genLootTable.tooltip=Items that are registered in the loot tables (dungeon chest loot and other chest loots), excluding ones dropped by entities or gained by fishing, are added as targets
 
-gui.config.targets.getMobDrop=Mob lootable
-gui.config.targets.getMobDrop.tooltip=Items that are dropped from entities, passive or agressive, are added as targets (uses loot tables)
+gui.config.targets.genMobDrop=Mob lootable
+gui.config.targets.genMobDrop.tooltip=Items that are dropped from entities, passive or agressive, are added as targets (uses loot tables)
 
 gui.config.targets.genFishing=Fishable
 gui.config.targets.genFishing.tooltip=Items that can be fishable are added as targets (uses loot tables)
