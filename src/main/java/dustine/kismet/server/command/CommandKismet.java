@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class CommandKismet extends CommandBase {
-    private final List<ICommandComponent> components;
+    private final List<CommandComponent> components;
     private final List<String> names;
 
     public CommandKismet() {
@@ -22,10 +22,10 @@ public class CommandKismet extends CommandBase {
         this.components.add(new CCDump(getCommandName()));
         this.components.add(new CCStats(getCommandName()));
         this.components.add(new CCRefresh(getCommandName()));
-
+        this.components.add(new CCServerOnlyReset(getCommandName()));
 
         // cached
-        this.names = this.components.stream().map(ICommandComponent::getComponentName).collect(Collectors.toList());
+        this.names = this.components.stream().map(CommandComponent::getCommandName).collect(Collectors.toList());
     }
 
     @Override
@@ -33,31 +33,38 @@ public class CommandKismet extends CommandBase {
         return Reference.MOD_ID;
     }
 
+    static void sendLine(ICommandSender sender, String msg) {
+        sender.addChatMessage(new TextComponentString(msg));
+    }
+
     @Override
     public String getCommandUsage(ICommandSender sender) {
         return "commands.kismet.usage";
     }
 
+    public static void send(ICommandSender sender, String msg) {
+        sender.addChatMessage(new TextComponentString(String.format("[%s] %s", Reference.Names.MOD_PRETTY, msg)));
+    }
+
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
         if (args.length == 0 || "help".equalsIgnoreCase(args[0])) {
-            throw new WrongUsageException(getCommandName());
+            throw new WrongUsageException(getCommandUsage(sender));
         }
 
-        final ICommandComponent component = this.components.stream()
-                .filter(c -> args[0].equals(c.getComponentName()))
+        final CommandComponent component = this.components.stream()
+                .filter(c -> args[0].equals(c.getCommandName()))
                 .findFirst()
                 .orElseThrow(() -> new WrongUsageException(getCommandName()));
+
         component.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
     }
 
-    static void sendLine(ICommandSender sender, String msg) {
-        sender.addChatMessage(new TextComponentString(msg));
+    public static void error(String error) throws CommandException {
+        throw new CommandException(String.format("[%s] %s", Reference.Names.MOD, error));
     }
 
-    static void send(ICommandSender sender, String msg) {
-        sender.addChatMessage(new TextComponentString(String.format("[%s] %s", Reference.Names.MOD_PRETTY, msg)));
-    }
+
 
     @Override
     public int getRequiredPermissionLevel() {
@@ -74,12 +81,12 @@ public class CommandKismet extends CommandBase {
         if (args.length == 1) {
             return getListOfStringsMatchingLastWord(args, this.names);
         } else {
-            final Optional<ICommandComponent> name = this.components.stream()
-                    .filter(c -> args[0].equals(c.getComponentName()))
+            final Optional<CommandComponent> name = this.components.stream()
+                    .filter(c -> args[0].equals(c.getCommandName()))
                     .findFirst();
             if (!name.isPresent())
                 return Collections.emptyList();
-            final ICommandComponent component = name.get();
+            final CommandComponent component = name.get();
             return getListOfStringsMatchingLastWord(args,
                     component.getTabCompletionOptions(server, sender, Arrays.copyOfRange(args, 1, args.length), pos)
             );

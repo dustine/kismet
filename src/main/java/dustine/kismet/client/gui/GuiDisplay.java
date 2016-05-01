@@ -18,7 +18,6 @@ import net.minecraftforge.fml.client.config.GuiUtils;
 
 import java.awt.*;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -223,19 +222,7 @@ public class GuiDisplay extends GuiKismet {
     }
 
     private List<EnumOrigin> getOrderedOrigins(InformedStack target) {
-        final List<EnumOrigin> origins = Arrays.stream(EnumOrigin.values())
-                .filter(target::hasOrigin)
-                .sorted((o1, o2) -> o1.toString().compareTo(o2.toString()))
-                .collect(Collectors.toList());
-        if (origins.contains(EnumOrigin.FORCED)) {
-            origins.remove(EnumOrigin.FORCED);
-            origins.add(0, EnumOrigin.FORCED);
-        }
-        if (origins.contains(EnumOrigin.OTHER)) {
-            origins.remove(EnumOrigin.OTHER);
-            origins.add(EnumOrigin.OTHER);
-        }
-        return origins;
+        return EnumOrigin.getSorted(true).stream().filter(target::hasOrigin).collect(Collectors.toList());
     }
 
     private String getOriginSubtitle(EnumOrigin origin) {

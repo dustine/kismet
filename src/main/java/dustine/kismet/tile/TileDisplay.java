@@ -1,10 +1,10 @@
 package dustine.kismet.tile;
 
-import dustine.kismet.ConfigKismet;
 import dustine.kismet.Kismet;
 import dustine.kismet.Log;
 import dustine.kismet.block.BlockDisplay;
 import dustine.kismet.block.BlockTimedDisplay;
+import dustine.kismet.config.ConfigKismet;
 import dustine.kismet.target.InformedStack;
 import dustine.kismet.target.TargetGenerationResult;
 import dustine.kismet.target.TargetLibrary;

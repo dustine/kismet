@@ -13,34 +13,28 @@ import net.minecraft.util.math.BlockPos;
 import java.util.Collection;
 import java.util.List;
 
-public class CCStats implements ICommandComponent {
-    private final String parentName;
-
-    public CCStats(String parentName) {
-        this.parentName = parentName;
+public class CCStats extends CommandComponent {
+    public CCStats(String parent) {
+        super(parent);
     }
 
     @Override
-    public String getComponentName() {
+    public String getCommandName() {
         return "stats";
-    }
-
-    @Override
-    public String getParentName() {
-        return parentName;
     }
 
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws WrongUsageException {
         final WSDTargetDatabase targetDatabase = WSDTargetDatabase.get(sender.getEntityWorld());
         CommandKismet.send(sender, "Printing library stats: Savedata, Database, Library");
-        final Collection<InformedStack> configStacks = TargetLibraryBuilder.getConfigStacks(targetDatabase.getStacks())
+        final Collection<InformedStack> configStacks = TargetLibraryBuilder
+                .getConfigStacks(targetDatabase.getDatabase())
                 .values();
 
         // types
-        for (EnumOrigin type : EnumOrigin.values()) {
+        for (EnumOrigin type : EnumOrigin.getSorted(true)) {
             CommandKismet.sendLine(sender, String.format("[§b%s§r]: %d, %d, %d", type,
-                    targetDatabase.getStacks().stream().filter(s -> s.hasOrigin(type)).count(),
+                    targetDatabase.getDatabase().stream().filter(s -> s.hasOrigin(type)).count(),
                     configStacks.stream().filter(s -> s.hasOrigin(type)).count(),
                     TargetLibrary.getLibrary().stream().filter(s -> s.hasOrigin(type)).count()
             ));
@@ -48,21 +42,21 @@ public class CCStats implements ICommandComponent {
 
         // empty types
         CommandKismet.sendLine(sender, String.format("[#0]: %d, %d, %d",
-                targetDatabase.getStacks().stream().filter(s -> s.getOrigins().size() == 0).count(),
+                targetDatabase.getDatabase().stream().filter(s -> s.getOrigins().size() == 0).count(),
                 configStacks.stream().filter(s -> s.getOrigins().size() == 0).count(),
                 TargetLibrary.getLibrary().stream().filter(s -> s.getOrigins().size() == 0).count()
         ));
 
         // obtainable
         CommandKismet.sendLine(sender, String.format("§d%s§r: %d, %d, %d", "Obtainable",
-                targetDatabase.getStacks().stream().filter(InformedStack::isObtainable).count(),
+                targetDatabase.getDatabase().stream().filter(InformedStack::isObtainable).count(),
                 configStacks.stream().filter(InformedStack::isObtainable).count(),
                 TargetLibrary.getLibrary().stream().filter(InformedStack::isObtainable).count()
         ));
 
         // total
         CommandKismet.sendLine(sender, String.format("§d%s§r: %d, %d, %d", "Total",
-                targetDatabase.getStacks().size(),
+                targetDatabase.getDatabase().size(),
                 configStacks.size(),
                 TargetLibrary.getLibrary().size()
         ));

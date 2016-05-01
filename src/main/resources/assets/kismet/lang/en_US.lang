@@ -2,25 +2,31 @@
 tile.chillDisplay.name=Kismetic Display
 tile.timedDisplay.name=Timed Kismetic Display
 
-# Display
+# Items
+item.key.name=Kismetic Key
+
+# Display Render
 tile.timedDisplay.tag.streak=Streak: %s
 tile.timedDisplay.tag.done=§bDone!
 
 tile.chillDisplay.tag.score=Score: %s
 
-# Items
-item.key.name=Kismetic Key
-
 # Creative Tabs
 itemGroup.kismet=Kismet
 
 # Command
-commands.kismet.usage=/kismet <regen>
+commands.kismet.usage=/kismet <block|dump|force|pardon|refresh|regen|reset|serverOnlyReset|stats|unforce>, more info at https://github.com/dustine/kismet/wiki/Commands
+commands.kismet.dump.usage=/kismet dump <blacklist|database|library|override|savedata>
+commands.kismet.block.usage=/kismet block <mod:item> [damage] [nbt] OR <mod:item>[:damage[:nbt]]
+commands.kismet.pardon.usage=/kismet pardon <mod:item> [damage] [nbt] OR <mod:item>[:damage[:nbt]]
+commands.kismet.force.usage=/kismet force <mod:item> [damage] [nbt] OR <mod:item>[:damage[:nbt]]
+commands.kismet.unforce.usage=/kismet unforce <mod:item> [damage] [nbt] OR <mod:item>[:damage[:nbt]]
 
 # Addons
 ## JEI
-jei.description.block.chillDisplay=No time here fam.
-jei.description.block.timedDisplay=A timed display of your Kismet. Before the timer runs out you have to right-click the display with your own version of whatever it holds.\nIt also keeps track of your score so far, the latest streak of successful Kismets you've done in a row.
+jei.description.tile.chillDisplay=A display of your Kismet without a time limit. To get the next goal right-click it with your own version of whatever it holds.\n It al
+jei.description.tile.timedDisplay=A timed display of your Kismet. Before the timer runs out you have to right-click the display with your own version of whatever it holds.\nIt also keeps track of your streak so far and the highest streak you ever had.
+jei.description.item.key=A key used to expedite any Kismetic Displays, consuming it. If used on an unfulfilled display it'll reroll the goal, but it's a decreasing chance of it happening the more keys you use without fulfilling goals on your own. Using one on a fulfilled displays will instead show the next goal right away without any chance of failure or worsening the reroll chance.
 
 # GUI
 ## Display GUI
@@ -59,18 +65,44 @@ gui.config.general.nukedLimit=Nuked Deadline
 gui.config.general.nukedLimit.tooltip=Defines how long a target lasts on a nuked display (the one that blows up), in minutes.
 
 #### List target
-
 gui.config.category.targets=Targets
 gui.config.category.targets.tooltip=Settings regarding the allowed/disallowed items to be picked as targets, either by a predetermined set or procedurally.
 
-gui.config.targets.forceAdd=Targets
-gui.config.targets.forceAdd.tooltip=Item strings present here will be used as possible random targets, alongside any additionally added procedurally.\nUse the format "[!]mod:name[:metadata]", where [] indicates optional, ! disables the entry.
+gui.config.targets.forceAdd=Forced Targets
+gui.config.targets.forceAdd.tooltip=Item strings present here will be forced as possible random targets, alongside any additionally added procedurally (see bellow).\nUse the format "[!]mod:name[:metadata]", where [] indicates optional, ! disables the entry.
 
-gui.config.targets.genMode=Generate Additional Targets
-gui.config.targets.genMode.tooltip=Kismet can add items beyond the ones present in the forceAdd, depending on the behaviour specified on this field.\n§lWhitelist only§r: only the items present in the Whitelist will be used as targets.\n§lAdd only obtainable§r: Kismet will search which items can be obtainable in-game (crafting, world gen, etc.) and only add these as possible targets.\n§lAdd all others§r: Kismet will add all items that are registered in-game, no matter if they're obtainable or not.
+gui.config.targets.genMode=Generate Targets?
+gui.config.targets.genMode.tooltip=Kismet can add items beyond the ones present in the forceAdd, depending on the behaviour specified on this field.\n§lNone§r: Kismet won't generate targets and will only use ones that were forced.\n§lFiltered§r: Kismet will search which items can be obtainable according to the filters bellow and add them accordingly.\n§lAll§r: Kismet will add all items that are registered in-game, no matter how they're obtainable.
+
+gui.config.targets.genFluid=Bucketable
+gui.config.targets.genFluid.tooltip=Fluids that can be scooped by a bucket will be added as targets, in their bucket form
+
+gui.config.targets.genRecipe=Craftable
+gui.config.targets.genRecipe.tooltip=Items with associated crafting/smelting/mod recipes are added as targets
+
+gui.config.targets.genLootTable=Lootable
+gui.config.targets.genLootTable.tooltip=Items that are registered in the loot tables (dungeon chest loot and other chest loots), excluding ones dropped by entities or gained by fishing, are added as targets
+
+gui.config.targets.getMobDrop=Mob lootable
+gui.config.targets.getMobDrop.tooltip=Items that are dropped from entities, passive or agressive, are added as targets (uses loot tables)
+
+gui.config.targets.genFishing=Fishable
+gui.config.targets.genFishing.tooltip=Items that can be fishable are added as targets (uses loot tables)
+
+gui.config.targets.genTrade=Tradeable
+gui.config.targets.genTrade.tooltip=Items that can be gained from trading with vanilla villagers are added as targets
+
+gui.config.targets.genBlockDrop=Mineable
+gui.config.targets.genBlockDrop.tooltip=Items gathered from mining blocks, without or with fortune enchant, are added as targets
+
+gui.config.targets.genSilkTouch=Silkable
+gui.config.targets.genSilkTouch.tooltip=Blocks that can be obtained with the silk touch enchant are added as targets
+
+gui.config.targets.genShear=Shearable
+gui.config.targets.genShear.tooltip=Items that can be gathered with shears are added as targets
+
+gui.config.targets.genOther=Others
+gui.config.targets.genOther.tooltip=Miscellaneous items, such as dragon's breath, are added as targets
 
 gui.config.targets.genFilter=Generated Targets Filter
-gui.config.targets.genStacksFilter.tooltip=Only items that follow the rules present in this list will be added as possible targets to the game (if Generate Additional Targets allows so).\nUse the format "[!]mod[:name[:metadata]]", where [] indicates optional, ! disables the entry.
-
-gui.config.targets.filterMode=Filter Mode
-gui.config.targets.filterMode.tooltip=Toggles the additional target's filter behaviour between forceAdd and genFilter
+gui.config.targets.genFilter.tooltip=Targets generated by Kismet presents on this list won't be chosen as targets. Effectively a target blacklist that doesn't apply to Forced Targets.

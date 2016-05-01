@@ -1,7 +1,8 @@
 package dustine.kismet.proxy;
 
-import dustine.kismet.ConfigKismet;
 import dustine.kismet.block.BlockKismet;
+import dustine.kismet.config.ConfigKismet;
+import dustine.kismet.config.ConfigKismetOverride;
 import dustine.kismet.item.ItemKismet;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -10,7 +11,8 @@ import net.minecraft.item.ItemStack;
 public abstract class CommonProxy implements IProxy {
     @Override
     public void initConfig() {
-        ConfigKismet.preInit();
+        ConfigKismet.init();
+        ConfigKismetOverride.init();
     }
 
     @Override

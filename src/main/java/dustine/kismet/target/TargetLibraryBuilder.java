@@ -1,23 +1,20 @@
 package dustine.kismet.target;
 
-import dustine.kismet.ConfigKismet;
-import dustine.kismet.Kismet;
 import dustine.kismet.Log;
+import dustine.kismet.config.ConfigKismet;
 import dustine.kismet.util.StackHelper;
 import dustine.kismet.world.savedata.WSDTargetDatabase;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.JsonToNBT;
-import net.minecraft.nbt.NBTException;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.Loader;
-import net.minecraftforge.oredict.OreDictionary;
 
 import javax.annotation.Nonnull;
 import java.util.*;
 
 public class TargetLibraryBuilder {
+    public static void build(WSDTargetDatabase targetDatabase) {
+        build(targetDatabase.getDatabase());
+    }
+
     /**
      * Recreates the possible target stack library at TargetLibrary according to the current config. This function reads
      * the existing "stacks" information stored in the @world and rewrites the "forcedStacks" to assure any
@@ -30,7 +27,7 @@ public class TargetLibraryBuilder {
 
         // generated stacks filter keys
         final Set<String> filter = new HashSet<>();
-        for (String s : ConfigKismet.getGenBlacklist()) {
+        for (String s : ConfigKismet.getGenFilter()) {
             // skip entries that start with an !
             if (s.startsWith("!")) continue;
             filter.add(standardizeFilter(s));
@@ -54,9 +51,7 @@ public class TargetLibraryBuilder {
         Map<String, InformedStack> stacks = new HashMap<>();
 
         // forced stacks, the ones that are added for sure to the filtered stacks
-        for (EnumOrigin type : EnumOrigin.values()) {
-            addOverrides(stacks);
-        }
+        addOverrides(stacks);
 
         // add all the targets now to this list
         originalStacks.forEach(stack -> {
@@ -74,7 +69,7 @@ public class TargetLibraryBuilder {
         for (String item : ConfigKismet.getForceAdd()) {
             if (item.startsWith("!") || isMod(item)) continue;
 
-            final ItemStack stack = getItemStack(item);
+            final ItemStack stack = StackHelper.getItemStack(item);
             if (stack == null) continue;
 
             // add the entries as subtype-having wrappers
@@ -95,7 +90,7 @@ public class TargetLibraryBuilder {
             for (String item : TargetPatcher.getOverrides(origin)) {
                 if (item.startsWith("!") || isMod(item)) continue;
 
-                final ItemStack stack = getItemStack(item);
+                final ItemStack stack = StackHelper.getItemStack(item);
                 if (stack == null) continue;
 
                 // add the entries as subtype-having wrappers
@@ -117,74 +112,12 @@ public class TargetLibraryBuilder {
     private static boolean hasMetadata(String entry) {
         final String[] split = entry.split(":");
         if (split.length < 3) return false;
-        Integer meta = tryParse(split[2]);
+        Integer meta = StackHelper.tryParse(split[2]);
         return meta != null;
     }
 
     private static boolean isMod(String s) {
         return !s.contains(":");
-    }
-
-    public static ItemStack getItemStack(@Nonnull String s) {
-        return getItemStack(s, false);
-    }
-
-    private static ItemStack getItemStack(@Nonnull String entry, boolean wildcards) {
-        final String[] split = entry.split(":");
-
-        if (split.length < 2) {
-            Log.warning("Weird location: " + entry);
-            return null;
-        }
-
-        // define item (mod:itemName)
-        ItemStack stack;
-        ResourceLocation loc = new ResourceLocation(split[0], split[1]);
-        if (Item.REGISTRY.getKeys().contains(loc)) {
-            stack = new ItemStack(Item.REGISTRY.getObject(loc));
-        } else {
-            Log.error("Weird location: " + entry);
-            return null;
-        }
-
-        // add metadata
-        if (split.length > 2) {
-            // input metadata
-            Integer meta = tryParse(split[2]);
-            if (meta != null) {
-                // there's metadata, add it
-                stack.setItemDamage(meta);
-            } else {
-                Log.error(String.format("Weird metadata %s in %s", split[2], entry));
-                if (wildcards && Kismet.proxy.sideSafeHasSubtypes(stack)) {
-                    stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
-                }
-            }
-        } else {
-            if (wildcards && Kismet.proxy.sideSafeHasSubtypes(stack)) {
-                stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
-            }
-        }
-
-        // add nbt data
-        if (split.length > 3) {
-            try {
-                NBTTagCompound nbt = JsonToNBT.getTagFromJson(split[3]);
-                stack.setTagCompound(nbt);
-            } catch (NBTException e) {
-                Log.error(String.format("Weird NBT %s in %s", split[3], entry), e);
-            }
-        }
-
-        return stack;
-    }
-
-    private static Integer tryParse(String text) {
-        try {
-            return Integer.parseInt(text);
-        } catch (NumberFormatException e) {
-            return null;
-        }
     }
 
     private static String standardizeFilter(@Nonnull String s) {
@@ -200,7 +133,7 @@ public class TargetLibraryBuilder {
 
         // else treat it as item filtering (with possible metadata)
         ItemStack stack;
-        stack = getItemStack(s, true);
+        stack = StackHelper.getItemStack(s, true);
         if (stack == null) return null;
 
         return StackHelper.toUniqueKey(stack);
@@ -231,9 +164,5 @@ public class TargetLibraryBuilder {
         // if this stack matches exactly one in the forced list, skip it (will be added later)
         // and if it's on the filter list, skip it as well (blacklisted)
         return filter.stream().noneMatch(name::startsWith);
-    }
-
-    public static void build(WSDTargetDatabase targetDatabase) {
-        build(targetDatabase.getStacks());
     }
 }

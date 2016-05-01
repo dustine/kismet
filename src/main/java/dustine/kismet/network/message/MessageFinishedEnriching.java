@@ -2,7 +2,9 @@ package dustine.kismet.network.message;
 
 import dustine.kismet.Kismet;
 import dustine.kismet.Log;
+import dustine.kismet.server.command.CommandKismet;
 import dustine.kismet.target.TargetLibraryBuilder;
+import dustine.kismet.world.savedata.TargetDatabaseBuilder;
 import dustine.kismet.world.savedata.WSDTargetDatabase;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayer;
@@ -31,8 +33,14 @@ public class MessageFinishedEnriching extends MessageBase<MessageFinishedEnrichi
             final EntityPlayerMP playerMP = (EntityPlayerMP) player;
             final boolean sent = Kismet.databaseBuilder.sendNextPacket(playerMP);
             if (!sent) {
+                if (TargetDatabaseBuilder.isCommand()) {
+                    CommandKismet.send(player, "Finished! Refreshing target library now...");
+                }
                 Log.info("Build target database");
                 TargetLibraryBuilder.build(WSDTargetDatabase.get(player.getEntityWorld()));
+                if (TargetDatabaseBuilder.isCommand()) {
+                    CommandKismet.send(player, "Done! Database reset finished.");
+                }
             }
         }
     }

@@ -18,7 +18,9 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.FurnaceRecipes;
+import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.nbt.JsonToNBT;
 import net.minecraft.nbt.NBTException;
 import net.minecraft.nbt.NBTTagCompound;
@@ -59,24 +61,36 @@ public class TargetDatabaseBuilder {
     private WSDTargetDatabase targetDatabase;
 
     private Queue<List<InformedStack>> remainingPackets = new ArrayDeque<>();
+    private static boolean command = false;
 
     public TargetDatabaseBuilder(WorldServer world) {
         this.targetDatabase = WSDTargetDatabase.get(world);
+    }
+
+    public static void setCommand(boolean command) {
+        TargetDatabaseBuilder.command = command;
+    }
+
+    public static boolean isCommand() {
+        return command;
     }
 
     /**
      * Generates the target lists within the game.
      *
      * @param player The player entity to use to enrich the state
+     * @param command If the build action came from a command or not
      */
-    public void generateStacks(EntityPlayerMP player) {
+    public void build(EntityPlayerMP player, boolean command) {
+        TargetDatabaseBuilder.command = command;
         this.targetDatabase = WSDTargetDatabase.get(player.worldObj);
-        this.targetDatabase.setStacks(new HashMap<>());
+        this.targetDatabase.setDatabase(new HashMap<>());
 
         Map<String, InformedStack> stacks = getRegisteredItems();
-        identifyLoot(player.getServerWorld(), stacks);
-        identifyBlockDrops(player.getServerWorld(), stacks);
-        identifyBuckets(player.getServerWorld(), stacks);
+        final WorldServer world = player.getServerWorld();
+        identifyLoot(world, stacks);
+        identifyBlockDrops(world, stacks);
+        identifyBuckets(world, stacks);
 
         // separate the stacks per mod, for smaller packets
         final HashMap<String, List<InformedStack>> modSortedStacks = new HashMap<>();
@@ -111,18 +125,7 @@ public class TargetDatabaseBuilder {
             }
         }
 
-        buckets.stream()
-                .filter(stack -> stack != null && stack.getItem() != null)
-                .forEach(stack -> {
-                    InformedStack wrapper = new InformedStack(stack, EnumOrigin.FLUID);
-                    final String key = StackHelper.toUniqueKey(wrapper);
-//                    wrapper.setHasSubtypes(true);
-                    if (stacks.containsKey(key)) {
-                        stacks.get(key).setOrigins(EnumOrigin.FLUID, true);
-                    } else {
-                        stacks.put(key, wrapper);
-                    }
-                });
+        buckets.forEach(joinWithStackMap(stacks, EnumOrigin.FLUID));
     }
 
     private static void identifyBlockDrops(World world, Map<String, InformedStack> stacks) {
@@ -242,17 +245,31 @@ public class TargetDatabaseBuilder {
 
     private static Consumer<String> addToStackMap(Map<String, InformedStack> stacks, EnumOrigin type) {
         return key -> {
-            ItemStack stack = TargetLibraryBuilder.getItemStack(key);
-            if (stack != null && stack.getItem() != null) {
-                InformedStack wrapper = new InformedStack(stack, type);
-                wrapper.setHasSubtypes(true);
-                if (stacks.containsKey(key)) {
-                    stacks.get(key).setOrigins(type, true);
-                } else {
-                    stacks.put(key, wrapper);
-                }
-            }
+            ItemStack stack = StackHelper.getItemStack(key);
+            if (stack == null || stack.getItem() == null) return;
+
+            joinStackWithStackMap(stacks, type, stack, key);
         };
+    }
+
+    private static Consumer<ItemStack> joinWithStackMap(Map<String, InformedStack> stacks, EnumOrigin type) {
+        return stack -> {
+            if (stack == null || stack.getItem() == null) return;
+            String key = StackHelper.toUniqueKey(stack);
+
+            joinStackWithStackMap(stacks, type, stack, key);
+        };
+    }
+
+    private static void joinStackWithStackMap(Map<String, InformedStack> stacks, EnumOrigin type, ItemStack stack,
+                                              String key) {
+        InformedStack wrapper = new InformedStack(stack, type);
+        wrapper.setHasSubtypes(true);
+        if (stacks.containsKey(key)) {
+            stacks.get(key).setOrigins(type, true);
+        } else {
+            stacks.put(key, wrapper);
+        }
     }
 
     private static Set<String> iterateLootJsonTree(List<LootTable> allTables) {
@@ -293,7 +310,7 @@ public class TargetDatabaseBuilder {
                 switch (function.get("function").getAsString()) {
                     case "minecraft:furnace_smelt":
                         // change the item to be the smelted version
-                        ItemStack stack = TargetLibraryBuilder.getItemStack(name);
+                        ItemStack stack = StackHelper.getItemStack(name);
                         final ItemStack smeltedStack = FurnaceRecipes.instance().getSmeltingResult(stack);
                         variants.add(smeltedStack.getItem().getRegistryName().toString());
                         break;
@@ -364,6 +381,40 @@ public class TargetDatabaseBuilder {
         }
     }
 
+    /**
+     * Generates the target lists within the game.
+     *
+     * @param player  The player entity to use to enrich the state
+     * @param command If the build action came from a command or not
+     */
+    public void build(EntityPlayerMP player, boolean command) {
+        TargetDatabaseBuilder.command = command;
+        this.targetDatabase = WSDTargetDatabase.get(player.worldObj);
+        this.targetDatabase.setDatabase(new HashMap<>());
+
+        Map<String, InformedStack> stacks = getRegisteredItems();
+        final WorldServer world = player.getServerWorld();
+        identifyLoot(world, stacks);
+        identifyBlockDrops(world, stacks);
+        identifyBuckets(world, stacks);
+
+        // separate the stacks per mod, for smaller packets
+        final HashMap<String, List<InformedStack>> modSortedStacks = new HashMap<>();
+        for (InformedStack wrapper : stacks.values()) {
+            String mod = StackHelper.getMod(wrapper);
+            if (!modSortedStacks.containsKey(mod)) {
+                final ArrayList<InformedStack> wrappers = new ArrayList<>();
+                wrappers.add(wrapper);
+                modSortedStacks.put(mod, wrappers);
+            } else {
+                modSortedStacks.get(mod).add(wrapper);
+            }
+        }
+
+        this.remainingPackets.addAll(modSortedStacks.values());
+        sendNextPacket(player);
+    }
+
     public boolean sendNextPacket(EntityPlayerMP player) {
         if (this.remainingPackets == null || this.remainingPackets.isEmpty()) return false;
         final List<InformedStack> toSend = this.remainingPackets.poll();
@@ -377,6 +428,39 @@ public class TargetDatabaseBuilder {
      */
     public void tryBuildLibraryWithLastGeneratedDatabase() {
         if (this.targetDatabase == null || !this.targetDatabase.isValid()) return;
-        TargetLibraryBuilder.build(this.targetDatabase.getStacks());
+        TargetLibraryBuilder.build(this.targetDatabase.getDatabase());
+    }
+
+    public void buildServerSide(EntityPlayerMP player) {
+        this.targetDatabase = WSDTargetDatabase.get(player.worldObj);
+        this.targetDatabase.setDatabase(new HashMap<>());
+
+        Map<String, InformedStack> stacks = getRegisteredItems();
+        stacks.forEach((s, stack) -> stack.getStack().setItemDamage(0));
+
+        final WorldServer world = player.getServerWorld();
+        identifyLoot(world, stacks);
+        identifyBlockDrops(world, stacks);
+        identifyBuckets(world, stacks);
+        identifyRecipes(stacks);
+        stacks.values().forEach(InformedStack::refreshHasSubtypes);
+        stacks.values().forEach(InformedStack::seal);
+
+        this.targetDatabase.enrichStacks(stacks.values());
+    }
+
+    private static void identifyRecipes(Map<String, InformedStack> stacks) {
+        final List<ItemStack> crafts = new ArrayList<>();
+
+        // crafting
+        crafts.addAll(CraftingManager.getInstance().getRecipeList().stream()
+                .map(IRecipe::getRecipeOutput)
+                .collect(Collectors.toList()));
+        // furnacing
+        crafts.addAll(FurnaceRecipes.instance().getSmeltingList().values());
+        // no potions though u_u
+        // todo potions are DEFINITELY possible, it's just not obvious at first sight
+
+        crafts.forEach(joinWithStackMap(stacks, EnumOrigin.RECIPE));
     }
 }

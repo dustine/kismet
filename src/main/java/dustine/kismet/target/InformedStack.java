@@ -1,8 +1,8 @@
 package dustine.kismet.target;
 
 import com.google.common.collect.Lists;
-import dustine.kismet.ConfigKismet;
 import dustine.kismet.Log;
+import dustine.kismet.config.ConfigKismet;
 import dustine.kismet.util.StackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;

@@ -1,6 +1,7 @@
 package dustine.kismet.world.savedata;
 
 import com.google.common.collect.ImmutableList;
+import dustine.kismet.Log;
 import dustine.kismet.Reference;
 import dustine.kismet.target.InformedStack;
 import dustine.kismet.target.TargetLibraryBuilder;
@@ -11,8 +12,8 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldSavedData;
 import net.minecraft.world.storage.MapStorage;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @SuppressWarnings("WeakerAccess")
@@ -20,7 +21,7 @@ public class WSDTargetDatabase extends WorldSavedData {
     private static final String NAME = Reference.Names.TARGET_DATABASE;
 
     private boolean valid = false;
-    private Map<String, InformedStack> stacks = new HashMap<>();
+    private Map<String, InformedStack> database = new HashMap<>();
 
     public WSDTargetDatabase() {
         super(NAME);
@@ -47,15 +48,15 @@ public class WSDTargetDatabase extends WorldSavedData {
     public void readFromNBT(NBTTagCompound nbt) {
         if (nbt.hasKey("valid")) this.valid = nbt.getBoolean("valid");
 
-        this.stacks.clear();
-        NBTTagList proceduralNbt = nbt.getTagList("stacks", 10);
+        this.database.clear();
+        NBTTagList proceduralNbt = nbt.getTagList("database", 10);
         for (int i = 0; i < proceduralNbt.tagCount(); i++) {
             NBTTagCompound tagCompound = proceduralNbt.getCompoundTagAt(i);
             final InformedStack wrapper = new InformedStack(tagCompound);
-            this.stacks.put(wrapper.toString(), wrapper);
+            this.database.put(wrapper.toString(), wrapper);
         }
 
-        TargetLibraryBuilder.build(this.stacks.values());
+        TargetLibraryBuilder.build(this.database.values());
     }
 
     @Override
@@ -63,22 +64,26 @@ public class WSDTargetDatabase extends WorldSavedData {
         nbt.setBoolean("valid", this.valid);
 
         NBTTagList stacksNbt = new NBTTagList();
-        for (InformedStack wrapper : this.stacks.values()) {
+        for (InformedStack wrapper : this.database.values()) {
+            if (wrapper == null) {
+                Log.error("Null wrapper in savedata");
+                continue;
+            }
             NBTTagCompound tagCompound = wrapper.serializeNBT();
             if (tagCompound != null) {
                 stacksNbt.appendTag(tagCompound);
             }
         }
-        nbt.setTag("stacks", stacksNbt);
+        nbt.setTag("database", stacksNbt);
     }
 
-    public ImmutableList<InformedStack> getStacks() {
-        return ImmutableList.copyOf(this.stacks.values());
+    public ImmutableList<InformedStack> getDatabase() {
+        return ImmutableList.copyOf(this.database.values());
     }
 
-    public void setStacks(Map<String, InformedStack> stacks) {
-        this.stacks = stacks;
-        if (stacks.isEmpty())
+    public void setDatabase(Map<String, InformedStack> database) {
+        this.database = database;
+        if (database.isEmpty())
             this.valid = false;
         markDirty();
     }
@@ -96,14 +101,14 @@ public class WSDTargetDatabase extends WorldSavedData {
     /**
      * @param newStacks
      */
-    public void enrichStacks(List<InformedStack> newStacks) {
+    public void enrichStacks(Collection<InformedStack> newStacks) {
         newStacks.forEach(wrapper -> {
             String key = StackHelper.toUniqueKey(wrapper);
-            if (this.stacks.containsKey(key)) {
-                InformedStack originalStack = this.stacks.get(key);
-                this.stacks.put(key, originalStack.joinWith(wrapper));
+            if (this.database.containsKey(key)) {
+                InformedStack originalStack = this.database.get(key);
+                this.database.put(key, originalStack.joinWith(wrapper));
             } else {
-                this.stacks.put(key, wrapper);
+                this.database.put(key, wrapper);
             }
         });
 

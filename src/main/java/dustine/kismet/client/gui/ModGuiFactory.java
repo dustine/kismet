@@ -2,8 +2,8 @@ package dustine.kismet.client.gui;
 
 
 import com.google.common.collect.ImmutableList;
-import dustine.kismet.ConfigKismet;
 import dustine.kismet.Reference;
+import dustine.kismet.config.ConfigKismet;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.I18n;
