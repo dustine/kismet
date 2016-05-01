@@ -58,55 +58,20 @@ public class TargetDatabaseBuilder {
             .registerTypeHierarchyAdapter(LootCondition.class, new LootConditionManager.Serializer())
             .registerTypeHierarchyAdapter(LootContext.EntityTarget.class, new LootContext.EntityTarget.Serializer())
             .create();
-    private WSDTargetDatabase targetDatabase;
-
-    private Queue<List<InformedStack>> remainingPackets = new ArrayDeque<>();
     private static boolean command = false;
+    private WSDTargetDatabase targetDatabase;
+    private Queue<List<InformedStack>> remainingPackets = new ArrayDeque<>();
 
     public TargetDatabaseBuilder(WorldServer world) {
         this.targetDatabase = WSDTargetDatabase.get(world);
-    }
-
-    public static void setCommand(boolean command) {
-        TargetDatabaseBuilder.command = command;
     }
 
     public static boolean isCommand() {
         return command;
     }
 
-    /**
-     * Generates the target lists within the game.
-     *
-     * @param player The player entity to use to enrich the state
-     * @param command If the build action came from a command or not
-     */
-    public void build(EntityPlayerMP player, boolean command) {
+    public static void setCommand(boolean command) {
         TargetDatabaseBuilder.command = command;
-        this.targetDatabase = WSDTargetDatabase.get(player.worldObj);
-        this.targetDatabase.setDatabase(new HashMap<>());
-
-        Map<String, InformedStack> stacks = getRegisteredItems();
-        final WorldServer world = player.getServerWorld();
-        identifyLoot(world, stacks);
-        identifyBlockDrops(world, stacks);
-        identifyBuckets(world, stacks);
-
-        // separate the stacks per mod, for smaller packets
-        final HashMap<String, List<InformedStack>> modSortedStacks = new HashMap<>();
-        for (InformedStack wrapper : stacks.values()) {
-            String mod = StackHelper.getMod(wrapper);
-            if (!modSortedStacks.containsKey(mod)) {
-                final ArrayList<InformedStack> wrappers = new ArrayList<>();
-                wrappers.add(wrapper);
-                modSortedStacks.put(mod, wrappers);
-            } else {
-                modSortedStacks.get(mod).add(wrapper);
-            }
-        }
-
-        this.remainingPackets.addAll(modSortedStacks.values());
-        sendNextPacket(player);
     }
 
     private static void identifyBuckets(WorldServer world, Map<String, InformedStack> stacks) {
@@ -152,6 +117,8 @@ public class TargetDatabaseBuilder {
             }
         });
 
+        silkDrops.removeAll(drops);
+
         // set all of these as obtainable
         drops.forEach(addToStackMap(stacks, EnumOrigin.BLOCK_DROP));
 
@@ -162,26 +129,28 @@ public class TargetDatabaseBuilder {
         Set<String> drops = new HashSet<>();
 
         // a state machine that loops around while it adds new items to the drops
-        int size = drops.size();
-        int chances = 256;
-        do {
-            // assuming fortune 5 to get the best drops
-            // hoping the block doesn't do stuff diff with lesser fortunes...
-            // fixme assume the worse described above and test for diff fortunes
-            try {
-                drops.addAll(block.getDrops(world, BlockPos.ORIGIN, state, 5).stream()
-                        .map(StackHelper::toUniqueKey)
-                        .collect(Collectors.toList()));
-            } catch (Exception e) {
-                Log.error("Error while gathering blocks for " +
-                        StackHelper.toUniqueKey(new ItemStack(block)) + state, e);
-                continue;
-            }
-            if (size != drops.size()) {
-                size = drops.size();
-                chances = 256;
-            }
-        } while (--chances > 0);
+        for (int fortune = 5; fortune >= 0; --fortune) {
+            int size = drops.size();
+            int chances = 50;
+            do {
+                // assuming fortune 5 to get the best drops
+                // hoping the block doesn't do stuff diff with lesser fortunes...
+                // fixme assume the worse described above and test for diff fortunes
+                try {
+                    drops.addAll(block.getDrops(world, BlockPos.ORIGIN, state, fortune).stream()
+                            .map(StackHelper::toUniqueKey)
+                            .collect(Collectors.toList()));
+                } catch (Exception e) {
+                    Log.error("Error while gathering blocks for " +
+                            StackHelper.toUniqueKey(new ItemStack(block)) + state, e);
+                    continue;
+                }
+                if (size != drops.size()) {
+                    size = drops.size();
+                    chances = 50;
+                }
+            } while (--chances > 0);
+        }
 
         return drops;
     }
@@ -381,6 +350,21 @@ public class TargetDatabaseBuilder {
         }
     }
 
+    private static void identifyRecipes(Map<String, InformedStack> stacks) {
+        final List<ItemStack> crafts = new ArrayList<>();
+
+        // crafting
+        crafts.addAll(CraftingManager.getInstance().getRecipeList().stream()
+                .map(IRecipe::getRecipeOutput)
+                .collect(Collectors.toList()));
+        // furnacing
+        crafts.addAll(FurnaceRecipes.instance().getSmeltingList().values());
+        // no potions though u_u
+        // todo potions are DEFINITELY possible, it's just not obvious at first sight
+
+        crafts.forEach(joinWithStackMap(stacks, EnumOrigin.RECIPE));
+    }
+
     /**
      * Generates the target lists within the game.
      *
@@ -447,20 +431,5 @@ public class TargetDatabaseBuilder {
         stacks.values().forEach(InformedStack::seal);
 
         this.targetDatabase.enrichStacks(stacks.values());
-    }
-
-    private static void identifyRecipes(Map<String, InformedStack> stacks) {
-        final List<ItemStack> crafts = new ArrayList<>();
-
-        // crafting
-        crafts.addAll(CraftingManager.getInstance().getRecipeList().stream()
-                .map(IRecipe::getRecipeOutput)
-                .collect(Collectors.toList()));
-        // furnacing
-        crafts.addAll(FurnaceRecipes.instance().getSmeltingList().values());
-        // no potions though u_u
-        // todo potions are DEFINITELY possible, it's just not obvious at first sight
-
-        crafts.forEach(joinWithStackMap(stacks, EnumOrigin.RECIPE));
     }
 }
