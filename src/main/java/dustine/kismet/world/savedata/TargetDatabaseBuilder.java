@@ -347,6 +347,7 @@ public class TargetDatabaseBuilder {
         identifyBuckets(world, stacks);
         TargetHelper.identifyRecipes(stacks);
 
+        stacks.values().removeIf(stack -> stack.getOrigins().isEmpty());
         stacks.values().forEach(InformedStack::refreshHasSubtypes);
         stacks.values().forEach(InformedStack::seal);
 
@@ -379,31 +380,26 @@ public class TargetDatabaseBuilder {
         final HashMap<String, InformedStack> stacks = new HashMap<>();
         this.clientStacks.forEach(stack -> stacks.put(stack.toString(), stack));
 
-        final Iterator<InformedStack> itr = this.serverStacks.iterator();
-
         // join server stacks with client stacks
-        while (itr.hasNext()) {
-            final InformedStack stack = itr.next();
+        for (InformedStack stack : serverStacks) {
             final String key = stack.toString();
             if (stacks.containsKey(key)) {
-                stacks.get(key).joinWith(stack);
-                itr.remove();
-            } else {
-                // this stack wasn't in client stacks, so try adding it again with hasSubtypes forced to false
-                final InformedStack tweakedStack = InformedStack.getUnsealedCopy(stack);
-                tweakedStack.setHasSubtypes(false);
-                tweakedStack.seal();
-                // same code as above here
-                final String tweakedKey = tweakedStack.toString();
-                if (stacks.containsKey(tweakedKey)) {
-                    stacks.get(tweakedKey).joinWith(tweakedStack);
-                    itr.remove();
-                }
+                stacks.put(key, stacks.get(key).joinWith(stack));
+                continue;
             }
-        }
 
-        if (!this.serverStacks.isEmpty()) {
-            Log.error("Server-generated targets have been discarted: " + this.serverStacks);
+            // this stack wasn't in client stacks, so try adding it again with hasSubtypes forced to false
+            final InformedStack tweakedStack = InformedStack.getUnsealedCopy(stack);
+            tweakedStack.setHasSubtypes(false);
+            tweakedStack.seal();
+            // same code as above here
+            final String tweakedKey = tweakedStack.toString();
+            if (stacks.containsKey(tweakedKey)) {
+                stacks.put(tweakedKey, stacks.get(tweakedKey).joinWith(tweakedStack));
+            } else {
+                Log.debug("Server-generated target have been forcefully added: " + tweakedStack);
+                stacks.put(key, stack);
+            }
         }
 
         this.targetDatabase = WSDTargetDatabase.get(player.worldObj);
