@@ -372,6 +372,7 @@ public class TargetDatabaseBuilder {
     }
 
     public void finishBuilding(UUID id, EntityPlayerMP player) {
+        this.targetDatabase = WSDTargetDatabase.get(player.worldObj);
         if (!this.id.equals(id)) {
             idError(id, player);
             return;
@@ -381,7 +382,7 @@ public class TargetDatabaseBuilder {
         this.clientStacks.forEach(stack -> stacks.put(stack.toString(), stack));
 
         // join server stacks with client stacks
-        for (InformedStack stack : serverStacks) {
+        for (InformedStack stack : this.serverStacks) {
             final String key = stack.toString();
             if (stacks.containsKey(key)) {
                 stacks.put(key, stacks.get(key).joinWith(stack));
@@ -402,7 +403,6 @@ public class TargetDatabaseBuilder {
             }
         }
 
-        this.targetDatabase = WSDTargetDatabase.get(player.worldObj);
         this.targetDatabase.enrichStacks(stacks.values());
 
         if (command) {
@@ -426,6 +426,7 @@ public class TargetDatabaseBuilder {
     }
 
     private void idError(UUID id, EntityPlayerMP player) {
+        this.targetDatabase = WSDTargetDatabase.get(player.worldObj);
         if (command) {
             player.addChatMessage(new TextComponentString("§c%s Error, internal ID mismatch."));
         }
@@ -433,6 +434,7 @@ public class TargetDatabaseBuilder {
     }
 
     public boolean receiveClientTargets(List<InformedStack> stacks, UUID id, EntityPlayerMP player) {
+        this.targetDatabase = WSDTargetDatabase.get(player.worldObj);
         if (!this.id.equals(id)) {
             idError(id, player);
             return false;
