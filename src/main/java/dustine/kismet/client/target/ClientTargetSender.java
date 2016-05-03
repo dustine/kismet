@@ -7,6 +7,7 @@ import dustine.kismet.network.message.MessageClientTargets;
 import dustine.kismet.network.message.MessageClientTargetsResponse;
 import dustine.kismet.target.InformedStack;
 import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.NBTUtil;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -38,6 +39,12 @@ public class ClientTargetSender {
             final DataOutputStream stream = new DataOutputStream(counter);
             final Iterator<InformedStack> itr = this.stacks.iterator();
 
+            try {
+                CompressedStreamTools.write(NBTUtil.createUUIDTag(this.id), stream);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
             while (itr.hasNext()) {
                 final InformedStack stack = itr.next();
 
@@ -49,8 +56,10 @@ public class ClientTargetSender {
                 }
 
                 try {
-                    CompressedStreamTools.writeCompressed(stack.writeToNBT(), stream);
+                    CompressedStreamTools.write(stack.writeToNBT(), stream);
                     if (counter.getCount() >= Short.MAX_VALUE) {
+                        // client -> servers have a max size of Short.MAX_VALUE, in bytes
+                        // so we add stacks until we're juuuust over the min size
                         if (toSend.isEmpty()) {
                             // ... we haven't added any to toSend, this single stack is BIGGER than the limit
                             Log.error(String.format("This stack is just too damn big to send by network: %s", stack));
