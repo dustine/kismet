@@ -4,6 +4,9 @@ import com.google.common.collect.ImmutableList;
 import dustine.kismet.Kismet;
 import dustine.kismet.Log;
 import dustine.kismet.Reference;
+import dustine.kismet.block.BlockChillDisplay;
+import dustine.kismet.block.BlockKismet;
+import dustine.kismet.block.BlockTimedDisplay;
 import dustine.kismet.target.EnumOrigin;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.MinecraftForge;
@@ -354,20 +357,27 @@ public final class ConfigKismet {
         return ImmutableList.copyOf(genFilter);
     }
 
-    public static boolean isChillEnabled() {
-        return chillEnabled;
-    }
-
-    public static boolean isTimedEnabled() {
-        return timedEnabled;
-    }
-
     public static boolean isGenFlag(EnumOrigin type) {
         if (type.equals(EnumOrigin.FORCED)) {
             Log.warning("Tried to check if FORCED are allowed");
             return true;
         }
         return genFlags.get(type);
+    }
+
+    public static boolean isBlockEnabled(BlockKismet blockType) {
+        if (blockType instanceof BlockTimedDisplay) {
+            return isTimedEnabled();
+        } else
+            return blockType instanceof BlockChillDisplay && isChillEnabled();
+    }
+
+    public static boolean isChillEnabled() {
+        return chillEnabled;
+    }
+
+    public static boolean isTimedEnabled() {
+        return timedEnabled;
     }
 
     public enum EnumGenMode {

@@ -7,7 +7,10 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,8 +31,7 @@ public class CommandKismet extends CommandBase {
         this.names = this.components.stream().map(CommandComponent::getCommandName).collect(Collectors.toList());
     }
 
-    @Override
-    public String getCommandName() {
+    @Override public String getCommandName() {
         return Reference.MOD_ID;
     }
 
@@ -37,13 +39,20 @@ public class CommandKismet extends CommandBase {
         sender.addChatMessage(new TextComponentString(msg));
     }
 
-    @Override
-    public String getCommandUsage(ICommandSender sender) {
-        return "commands.kismet.usage";
+    public static void send(ICommandSender sender, String msg) {
+        final ITextComponent component = new TextComponentString("")
+                .appendSibling(new TextComponentString(String.format("[%s] ", Reference.Names.MOD))
+                        .setStyle(new Style().setColor(TextFormatting.YELLOW)))
+                .appendSibling(new TextComponentString(msg));
+        sender.addChatMessage(component);
     }
 
-    public static void send(ICommandSender sender, String msg) {
-        sender.addChatMessage(new TextComponentString(String.format("[%s] %s", Reference.Names.MOD_PRETTY, msg)));
+    public static void error(String error) throws CommandException {
+        throw new CommandException(String.format("[%s] %s", Reference.Names.MOD, error));
+    }
+
+    @Override public String getCommandUsage(ICommandSender sender) {
+        return "commands.kismet.usage";
     }
 
     @Override
@@ -60,21 +69,12 @@ public class CommandKismet extends CommandBase {
         component.execute(server, sender, Arrays.copyOfRange(args, 1, args.length));
     }
 
-    public static void error(String error) throws CommandException {
-        throw new CommandException(String.format("[%s] %s", Reference.Names.MOD, error));
-    }
-
-
-
-    @Override
-    public int getRequiredPermissionLevel() {
+    @Override public int getRequiredPermissionLevel() {
         return 2;
     }
 
-
-    @Override
-    public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args,
-                                                BlockPos pos) {
+    @Override public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args,
+                                                          BlockPos pos) {
         if (!sender.canCommandSenderUseCommand(getRequiredPermissionLevel(), getCommandName()))
             return Collections.emptyList();
 

@@ -30,7 +30,7 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
      */
     @Override
     public void renderTileEntityAt(TileDisplay te, double x, double y, double z, float partialTicks, int destroyStage) {
-        if (te == null) return;
+        if (te == null || !te.isReady()) return;
 
         // check if we have a blockTimedDisplay, and if so, its status on fulfillment
         final Boolean fulfilled = getWorld().getBlockState(te.getPos()).getValue(BlockDisplay.FULFILLED);

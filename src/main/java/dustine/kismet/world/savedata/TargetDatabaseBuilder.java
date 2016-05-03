@@ -5,6 +5,7 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import dustine.kismet.Kismet;
 import dustine.kismet.Log;
+import dustine.kismet.Reference;
 import dustine.kismet.network.message.MessageClientTargets;
 import dustine.kismet.server.command.CommandKismet;
 import dustine.kismet.target.EnumOrigin;
@@ -25,7 +26,9 @@ import net.minecraft.nbt.NBTException;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.storage.loot.*;
@@ -419,7 +422,10 @@ public class TargetDatabaseBuilder {
     private void idError(UUID id, EntityPlayerMP player) {
         this.targetDatabase = WSDTargetDatabase.get(player.worldObj);
         if (command) {
-            player.addChatMessage(new TextComponentString("§c%s Error, internal ID mismatch."));
+            player.addChatMessage(
+                    new TextComponentString(String.format("[%s] Error, internal ID mismatch.", Reference.MOD_ID))
+                            .setStyle(new Style().setColor(TextFormatting.RED))
+            );
         }
         Log.error(String.format("ID mismatch S:%s C:%s", this.id, id));
     }

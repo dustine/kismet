@@ -3,6 +3,7 @@ package dustine.kismet.tile;
 import dustine.kismet.Kismet;
 import dustine.kismet.Log;
 import dustine.kismet.block.BlockDisplay;
+import dustine.kismet.block.BlockKismet;
 import dustine.kismet.block.BlockTimedDisplay;
 import dustine.kismet.config.ConfigKismet;
 import dustine.kismet.target.Target;
@@ -44,6 +45,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
             TextFormatting.DARK_PURPLE,
             TextFormatting.GOLD
     };
+    private final int DEADLINE_MULTIPLIER = 20;
     private IItemHandler targetSlot = null;
     private int skipped;
     private int score;
@@ -168,7 +170,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
     }
 
     private void resetDeadline() {
-        setDeadline(this.worldObj.getTotalWorldTime() + ConfigKismet.getTimedLimit() * 20 * 60);
+        setDeadline(this.worldObj.getTotalWorldTime() + ConfigKismet.getTimedLimit() * DEADLINE_MULTIPLIER);
     }
 
     public boolean rollForKey() {
@@ -230,7 +232,8 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
     }
 
     public boolean isReady() {
-        return this.target != null && this.target.hasItem();
+        return this.target != null && this.target.hasItem() && ConfigKismet.isBlockEnabled(
+                (BlockKismet) this.getBlockType());
     }
 
     public String getStylizedKeyChance() {
