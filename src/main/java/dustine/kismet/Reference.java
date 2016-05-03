@@ -32,8 +32,12 @@ public final class Reference {
         }
     }
 
-    public static class GUI {
+    public static class Gui {
         public static final ResourceLocation DISPLAY = new ResourceLocation("kismet:textures/gui/display.png");
+        public static final String ORIGIN = "kismet:textures/gui/origin/%s.png";
+        public static final ResourceLocation TIME = new ResourceLocation("kismet:textures/gui/info/time.png");
+        public static final ResourceLocation KEYS = new ResourceLocation("kismet:textures/gui/info/keys.png");
+        public static final ResourceLocation SCORE = new ResourceLocation("kismet:textures/gui/info/score.png");
         public static ResourceLocation HIGHLIGHT = new ResourceLocation("kismet:textures/gui/highlight.png");
     }
 }

@@ -26,7 +26,7 @@ public class ModGuiHandler implements IGuiHandler {
             case DISPLAY:
                 return new ContainerDisplay(player.inventory, (TileDisplay) world.getTileEntity(new BlockPos(x, y, z)));
         }
-        throw new IllegalArgumentException("Unknown GUI ID");
+        throw new IllegalArgumentException("Unknown Gui ID");
     }
 
     @Override
@@ -35,7 +35,7 @@ public class ModGuiHandler implements IGuiHandler {
             case DISPLAY:
                 return new GuiDisplay(player.inventory, (TileDisplay) world.getTileEntity(new BlockPos(x, y, z)));
         }
-        throw new IllegalArgumentException("Unknown GUI ID");
+        throw new IllegalArgumentException("Unknown Gui ID");
     }
 
     public enum EnumGuiID {

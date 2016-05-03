@@ -72,7 +72,7 @@ public final class ConfigKismet {
     /**
      * Synchronise the three copies of the data 1) loadConfigFromFile && readFieldsFromConfig -> initialise everything
      * from the disk file 2) !loadConfigFromFile && readFieldsFromConfig --> copy everything from the config file
-     * (altered by GUI) 3) !loadConfigFromFile && !readFieldsFromConfig --> copy everything from the native fields
+     * (altered by Gui) 3) !loadConfigFromFile && !readFieldsFromConfig --> copy everything from the native fields
      *
      * @param loadConfigFromFile   if true, load the config field from the config file on disk
      * @param readFieldsFromConfig if true, reload the member variables from the config field
@@ -320,7 +320,7 @@ public final class ConfigKismet {
     }
 
     /**
-     * Save the GUI-stored values, without accessing disk config Not needed to use
+     * Save the Gui-stored values, without accessing disk config Not needed to use
      */
     private static void syncFromGUI() {
         syncConfig(false, true);
@@ -436,9 +436,9 @@ public final class ConfigKismet {
                         if (Kismet.databaseBuilder != null)
                             Kismet.databaseBuilder.tryBuildLibraryWithLastGeneratedDatabase();
                     }
-                    Log.debug("Config changed on GUI, category " + category);
+                    Log.debug("Config changed on Gui, category " + category);
                 } else {
-                    Log.debug("Config changed on GUI, no category");
+                    Log.debug("Config changed on Gui, no category");
                 }
             }
         }

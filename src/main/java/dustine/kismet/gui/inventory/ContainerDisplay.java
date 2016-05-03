@@ -22,7 +22,7 @@ public class ContainerDisplay extends ContainerKismet {
     public ContainerDisplay(InventoryPlayer playerInventory, TileDisplay display) {
         this.display = display;
         if (!display.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null)) {
-            throw new RuntimeException("Tried to open GUI to display without inventory capability");
+            throw new RuntimeException("Tried to open Gui to display without inventory capability");
         }
         final IItemHandler itemHandler = display.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, null);
 
@@ -65,7 +65,7 @@ public class ContainerDisplay extends ContainerKismet {
     }
 
     /**
-     * Emulates right clicking the display with the stack from the GUI. Only "works" on client side, but does the
+     * Emulates right clicking the display with the stack from the Gui. Only "works" on client side, but does the
      * minimum to avoid desyncs (most of the work is done server side anyway so desyncs would be stuff reverting back,
      * nothing serious).
      *

@@ -149,7 +149,7 @@ public class BlockDisplay extends BlockContainerKismet<TileDisplay> {
         }
 
         if (hand == EnumHand.OFF_HAND) {
-            // only show GUI on server
+            // only show Gui on server
             if (!world.isRemote) {
                 player.openGui(Kismet.instance, ModGuiHandler.EnumGuiID.DISPLAY.ordinal(), world, pos.getX(),
                         pos.getY(), pos.getZ());
