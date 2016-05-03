@@ -1,12 +1,17 @@
 package dustine.kismet.util;
 
 import dustine.kismet.Kismet;
+import dustine.kismet.Log;
 import dustine.kismet.target.InformedStack;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.JsonToNBT;
+import net.minecraft.nbt.NBTException;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.oredict.OreDictionary;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -102,5 +107,66 @@ public class StackHelper {
 
     public static String getMod(InformedStack item) {
         return item.getStack().getItem().getRegistryName().getResourceDomain();
+    }
+
+    public static ItemStack getItemStack(@Nonnull String s) {
+        return getItemStack(s, false);
+    }
+
+    public static ItemStack getItemStack(@Nonnull String entry, boolean wildcards) {
+        final String[] split = entry.split(":");
+
+        if (split.length < 2) {
+            Log.warning("Weird location: " + entry);
+            return null;
+        }
+
+        // define item (mod:itemName)
+        ItemStack stack;
+        ResourceLocation loc = new ResourceLocation(split[0], split[1]);
+        if (Item.REGISTRY.getKeys().contains(loc)) {
+            stack = new ItemStack(Item.REGISTRY.getObject(loc));
+        } else {
+            Log.error("Weird location: " + entry);
+            return null;
+        }
+
+        // add metadata
+        if (split.length > 2) {
+            // input metadata
+            Integer meta = tryParse(split[2]);
+            if (meta != null) {
+                // there's metadata, add it
+                stack.setItemDamage(meta);
+            } else {
+                Log.error(String.format("Weird metadata %s in %s", split[2], entry));
+                return null;
+            }
+        } else {
+            if (wildcards && Kismet.proxy.sideSafeHasSubtypes(stack)) {
+                stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
+            }
+        }
+
+        // add nbt data
+        if (split.length > 3) {
+            try {
+                NBTTagCompound nbt = JsonToNBT.getTagFromJson(split[3]);
+                stack.setTagCompound(nbt);
+            } catch (NBTException e) {
+                Log.error(String.format("Weird NBT %s in %s", split[3], entry), e);
+                return null;
+            }
+        }
+
+        return stack;
+    }
+
+    public static Integer tryParse(String text) {
+        try {
+            return Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

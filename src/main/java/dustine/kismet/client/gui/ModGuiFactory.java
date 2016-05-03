@@ -2,8 +2,8 @@ package dustine.kismet.client.gui;
 
 
 import com.google.common.collect.ImmutableList;
-import dustine.kismet.ConfigKismet;
 import dustine.kismet.Reference;
+import dustine.kismet.config.ConfigKismet;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.resources.I18n;
@@ -48,7 +48,8 @@ public class ModGuiFactory implements IModGuiFactory {
     public static class ModConfigGui extends GuiConfig {
 
         public ModConfigGui(GuiScreen parentScreen) {
-            super(parentScreen, getConfigElements(Configuration.CATEGORY_GENERAL), Reference.MOD_ID, false, false, null);
+            super(parentScreen, getConfigElements(Configuration.CATEGORY_GENERAL), Reference.MOD_ID, false, false,
+                    null);
 
             this.title = ConfigKismet.getConfig().toString();
             this.titleLine2 = I18n.format("gui.config.category.main");

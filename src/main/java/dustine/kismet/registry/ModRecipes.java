@@ -1,6 +1,6 @@
 package dustine.kismet.registry;
 
-import dustine.kismet.ConfigKismet;
+import dustine.kismet.config.ConfigKismet;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;

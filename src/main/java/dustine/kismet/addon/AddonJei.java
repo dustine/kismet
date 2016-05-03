@@ -2,6 +2,7 @@ package dustine.kismet.addon;
 
 import dustine.kismet.Log;
 import dustine.kismet.registry.ModBlocks;
+import dustine.kismet.registry.ModItems;
 import dustine.kismet.target.EnumOrigin;
 import dustine.kismet.target.InformedStack;
 import dustine.kismet.util.StackHelper;
@@ -25,12 +26,12 @@ public class AddonJei implements IModPlugin {
         // unfold into the subtypes
         final Map<String, InformedStack> mappedStacks = unfoldSubtypes(stack);
         // add the craftable flag
-        setCraftableFlag(mappedStacks.values());
+        setCraftingFlags(mappedStacks.values());
 
         return new ArrayList<>(mappedStacks.values());
     }
 
-    private static void setCraftableFlag(Collection<InformedStack> stacks) {
+    private static void setCraftingFlags(Collection<InformedStack> stacks) {
         // crafting algorithm
         // if recipe = can be crafted
         for (InformedStack wrapper : stacks) {
@@ -95,9 +96,27 @@ public class AddonJei implements IModPlugin {
         return subtypeStacks;
     }
 
+    public static void setCraftingFlags(InformedStack stack) {
+//        if (stack.hasOrigin(EnumOrigin.RECIPE)) return;
+        // check the categories where this item appears as an output
+        for (IRecipeCategory category : recipeRegistry.getRecipeCategoriesWithOutput(stack.getStack())) {
+            // and check the nr of recipes within
+            final List<Object> recipesWithOutput =
+                    recipeRegistry.getRecipesWithOutput(category, stack.getStack());
+            if (recipesWithOutput.size() > 0) {
+//                Log.info(category.getUid());
+                stack.setOrigins(EnumOrigin.RECIPE, true);
+            } else {
+                Log.info("why you inconsistent NEI");
+            }
+        }
+    }
+
     @Override
     public void register(@Nonnull IModRegistry registry) {
-        registry.addDescription(new ItemStack(ModBlocks.CHILL_DISPLAY), "jei.description.block.display");
+        registry.addDescription(new ItemStack(ModBlocks.CHILL_DISPLAY), "jei.description.tile.chillDisplay");
+        registry.addDescription(new ItemStack(ModBlocks.TIMED_DISPLAY), "jei.description.tile.timedDisplay");
+        registry.addDescription(new ItemStack(ModItems.KEY), "jei.description.item.key");
         stackHelper = registry.getJeiHelpers().getStackHelper();
     }
 

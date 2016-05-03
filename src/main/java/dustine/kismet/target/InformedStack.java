@@ -1,8 +1,8 @@
 package dustine.kismet.target;
 
 import com.google.common.collect.Lists;
-import dustine.kismet.ConfigKismet;
 import dustine.kismet.Log;
+import dustine.kismet.config.ConfigKismet;
 import dustine.kismet.util.StackHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -82,6 +82,12 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
         }
     }
 
+    public static InformedStack getUnsealedCopy(InformedStack stack) {
+        final InformedStack newStack = new InformedStack(stack);
+        newStack.sealed = false;
+        return newStack;
+    }
+
     @Override
     public String toString() {
         return StackHelper.toUniqueKey(this);
@@ -112,7 +118,8 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
         }
 
         if (lhs.hasSubtypes != rhs.hasSubtypes) {
-            Log.warning(String.format("Stacks have different subtype state %s %s", lhs.getHasSubtypes(), rhs.getHasSubtypes()));
+            Log.warning(String.format("Stacks have different subtype state %s %s", lhs.getHasSubtypes(),
+                    rhs.getHasSubtypes()));
         }
 
         // create a new informedStack via deep copy
@@ -176,5 +183,4 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
     public boolean isSealed() {
         return this.sealed;
     }
-
 }

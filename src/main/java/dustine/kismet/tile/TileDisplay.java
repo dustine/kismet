@@ -1,10 +1,10 @@
 package dustine.kismet.tile;
 
-import dustine.kismet.ConfigKismet;
 import dustine.kismet.Kismet;
 import dustine.kismet.Log;
 import dustine.kismet.block.BlockDisplay;
 import dustine.kismet.block.BlockTimedDisplay;
+import dustine.kismet.config.ConfigKismet;
 import dustine.kismet.target.InformedStack;
 import dustine.kismet.target.TargetGenerationResult;
 import dustine.kismet.target.TargetLibrary;
@@ -47,6 +47,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
     private IItemHandler targetSlot = null;
     private int skipped;
     private int score;
+    private int highScore;
     private long deadline;
     private InformedStack target;
     private List<InformedStack> history;
@@ -118,9 +119,9 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
     }
 
     public void setScore(int score) {
-        if (this.score != score) {
-            this.score = score;
-        }
+        this.score = score;
+        // update the high score too
+        setHighScore(Math.max(getHighScore(), getScore()));
     }
 
     @Override
@@ -146,17 +147,6 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         }
     }
 
-    @Override
-    public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-        if (capability == ITEM_HANDLER_CAPABILITY) {
-            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
-                return super.getCapability(capability, facing);
-            //noinspection unchecked
-            return (T) this.targetSlot;
-        }
-        return super.getCapability(capability, facing);
-    }
-
     private boolean checkForNullTarget() {
         return (getTarget() == null || !getTarget().hasItem()) && getNewTarget();
     }
@@ -166,6 +156,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
             resetDeadline();
 
             if (!isFulfilled()) {
+                // reset the variables and save the high score
                 this.history.clear();
                 setScore(0);
             }
@@ -229,16 +220,6 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         return this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FULFILLED);
     }
 
-    @Override
-    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-        if (capability == ITEM_HANDLER_CAPABILITY) {
-            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING).getOpposite())
-                return super.hasCapability(capability, facing);
-            return true;
-        }
-        return super.hasCapability(capability, facing);
-    }
-
     private void setFulfilled(boolean fulfilled) {
         IBlockState state = this.worldObj.getBlockState(this.pos);
         boolean oldFulfilled = state.getValue(BlockDisplay.FULFILLED);
@@ -261,6 +242,29 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         }
     }
 
+    @Override
+    public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
+        if (capability == ITEM_HANDLER_CAPABILITY) {
+            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING)
+                    .getOpposite())
+                return super.getCapability(capability, facing);
+            //noinspection unchecked
+            return (T) this.targetSlot;
+        }
+        return super.getCapability(capability, facing);
+    }
+
+
+    @Override
+    public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
+        if (capability == ITEM_HANDLER_CAPABILITY) {
+            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING)
+                    .getOpposite())
+                return super.hasCapability(capability, facing);
+            return true;
+        }
+        return super.hasCapability(capability, facing);
+    }
 
     @Override
     public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
@@ -274,6 +278,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         setSkipped(nbt.getInteger("skipped"));
         setDeadline(nbt.getLong("deadline"));
         setScore(nbt.getInteger("score"));
+        setHighScore(nbt.getInteger("highScore"));
 
         if (nbt.hasKey("target")) {
             this.target = new InformedStack(nbt.getCompoundTag("target"));
@@ -305,6 +310,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         compound.setInteger("skipped", getSkipped());
         compound.setLong("deadline", getDeadline());
         compound.setInteger("score", getScore());
+        compound.setInteger("highScore", getHighScore());
 
         // target can be null :/
         if (getTarget() != null) {
@@ -367,5 +373,11 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         return this.skipped;
     }
 
+    public void setHighScore(int highScore) {
+        this.highScore = highScore;
+    }
 
+    public int getHighScore() {
+        return highScore;
+    }
 }

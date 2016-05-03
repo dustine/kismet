@@ -1,6 +1,9 @@
-package dustine.kismet;
+package dustine.kismet.config;
 
 import com.google.common.collect.ImmutableList;
+import dustine.kismet.Kismet;
+import dustine.kismet.Log;
+import dustine.kismet.Reference;
 import dustine.kismet.target.EnumOrigin;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.MinecraftForge;
@@ -32,7 +35,7 @@ public final class ConfigKismet {
     private static int timedLimit;
     private static List<String> forceAdd;
     private static EnumGenMode genMode;
-    private static List<String> genBlacklist;
+    private static List<String> genFilter;
 
     private static Map<EnumOrigin, Boolean> genFlags;
 
@@ -43,7 +46,7 @@ public final class ConfigKismet {
                 .collect(Collectors.toList()).toArray(new String[0]);
     }
 
-    public static void preInit() {
+    public static void init() {
         File configFile = new File(Loader.instance().getConfigDir(), Reference.MOD_ID + ".cfg");
         if (config == null)
             config = new Configuration(configFile);
@@ -53,8 +56,8 @@ public final class ConfigKismet {
         config.setCategoryComment(Configuration.CATEGORY_GENERAL, "General settings regarding the mod, such as " +
                 "activating or deactivating recipes and setting timer durations.");
 
-        config.setCategoryComment(Configuration.CATEGORY_GENERAL, "General settings regarding the mod, such as " +
-                "activating or deactivating recipes and setting timer durations.");
+        config.setCategoryComment(CATEGORY_TARGETS, "Settings regarding which items the mod will use as targets " +
+                "(goal of obtaining the item), and which algorithms and metrics to use to compile these targets.");
 
         syncFromFile();
     }
@@ -86,7 +89,6 @@ public final class ConfigKismet {
         final Property propChillEnabled = getProperty(categories, CATEGORY_GENERAL, Names.chillEnabled);
         final Property propTimedEnabled = getProperty(categories, CATEGORY_GENERAL, Names.timedEnabled);
         final Property propTimedLimit = getProperty(categories, CATEGORY_GENERAL, Names.timedLimit);
-
 
         final Map<EnumOrigin, Property> propGenFlags = new HashMap<>();
 
@@ -140,7 +142,7 @@ public final class ConfigKismet {
                 }
             }
 
-            genBlacklist = Arrays.asList(propGenBlacklist.getStringList());
+            genFilter = Arrays.asList(propGenBlacklist.getStringList());
             forceAdd = Arrays.asList(propForceAdd.getStringList());
         }
 
@@ -162,7 +164,7 @@ public final class ConfigKismet {
 
         propGenMode.set(genMode.toString());
 
-        propGenBlacklist.set(genBlacklist.toArray(new String[] {}));
+        propGenBlacklist.set(genFilter.toArray(new String[] {}));
         propForceAdd.set(forceAdd.toArray(new String[] {}));
 
         if (config.hasChanged()) {
@@ -180,7 +182,6 @@ public final class ConfigKismet {
         Map<String, List<Property>> categories = new HashMap<>();
         addCatGeneralProperties(categories);
         addCatTargetsProperties(categories);
-
 
         // final operation: adding language keys
         for (String categoryName : categories.keySet()) {
@@ -211,7 +212,7 @@ public final class ConfigKismet {
 
         Property propGenMode = config.get(CATEGORY_TARGETS, Names.genMode, Defaults.genMode.toString())
                 .setValidValues(genModesValues);
-        propGenMode.setComment("Defines if the mod will register possible targets from the game registeries, either " +
+        propGenMode.setComment("Defines if the mod will register possible targets from the game registries, either " +
                 "none at all, only ones with origin according to genFlags (ex: items in a crafting recipe of any " +
                 "kind are flagged as 'recipe') or any valid minecraft item at all, respectively");
         catTargets.add(propGenMode);
@@ -228,19 +229,11 @@ public final class ConfigKismet {
 
     private static void addGenFlagProperties(ArrayList<Property> catTargets) {
         List<Property> catGenFlags = new ArrayList<>();
-        for (EnumOrigin type : EnumOrigin.values()) {
-            if (type.equals(EnumOrigin.FORCED) || type.equals(EnumOrigin.OTHER)) continue;
+        for (EnumOrigin type : EnumOrigin.getSorted(false)) {
             Property propGenFlag = config.get(CATEGORY_TARGETS, "gen" + getTypeName(type), true);
             propGenFlag.setComment(getComment(type));
             catGenFlags.add(propGenFlag);
-            catGenFlags.sort((o1, o2) -> o1.getName().compareTo(o2.getName()));
         }
-
-        // add others as the last one
-        Property propGenFlagOthers = config.get(CATEGORY_TARGETS, "gen" + getTypeName(EnumOrigin.OTHER), true);
-        propGenFlagOthers.setComment(getComment(EnumOrigin.OTHER));
-        catGenFlags.add(propGenFlagOthers);
-
         catTargets.addAll(catGenFlags);
     }
 
@@ -357,8 +350,8 @@ public final class ConfigKismet {
         return genMode;
     }
 
-    public static List<String> getGenBlacklist() {
-        return ImmutableList.copyOf(genBlacklist);
+    public static List<String> getGenFilter() {
+        return ImmutableList.copyOf(genFilter);
     }
 
     public static boolean isChillEnabled() {
@@ -379,7 +372,7 @@ public final class ConfigKismet {
 
     public enum EnumGenMode {
         NONE("None"),
-        FILTERED("Filtered only"),
+        FILTERED("Filtered"),
         ALL("All");
 
         private String value;
@@ -399,7 +392,7 @@ public final class ConfigKismet {
         private static final String timedLimit = "timedLimit";
         private static final String timedEnabled = "timedEnabled";
         private static final String genMode = "genMode";
-        private static final String genBlacklist = "genBlacklist";
+        private static final String genBlacklist = "genFilter";
         private static final String forceAdd = "forceAdd";
     }
 

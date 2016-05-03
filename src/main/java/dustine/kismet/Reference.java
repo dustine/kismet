@@ -15,7 +15,7 @@ public final class Reference {
 
     public static final class Names {
         public static final String MOD = "Kismet";
-        public static final String MOD_PRETTY = "§eKismet";
+        public static final String MOD_PRETTY = "§r§eKismet§r";
         public static final String TARGET_DATABASE = MOD_ID + "TargetDatabase";
 
         public static final class Items {

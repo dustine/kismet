@@ -132,7 +132,8 @@ public class BlockDisplay extends BlockContainerKismet<TileDisplay> {
     }
 
     @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand,
+                                    ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
         // correcting state -_-
         state = getActualState(world.getBlockState(pos), world, pos);
 
@@ -150,7 +151,8 @@ public class BlockDisplay extends BlockContainerKismet<TileDisplay> {
         if (hand == EnumHand.OFF_HAND) {
             // only show GUI on server
             if (!world.isRemote) {
-                player.openGui(Kismet.instance, ModGuiHandler.EnumGuiID.DISPLAY.ordinal(), world, pos.getX(), pos.getY(), pos.getZ());
+                player.openGui(Kismet.instance, ModGuiHandler.EnumGuiID.DISPLAY.ordinal(), world, pos.getX(),
+                        pos.getY(), pos.getZ());
             }
             return true;
         }
@@ -169,7 +171,8 @@ public class BlockDisplay extends BlockContainerKismet<TileDisplay> {
     }
 
     @Override
-    public IBlockState onBlockPlaced(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ, int meta, EntityLivingBase placer) {
+    public IBlockState onBlockPlaced(World world, BlockPos pos, EnumFacing facing, float hitX, float hitY, float hitZ,
+                                     int meta, EntityLivingBase placer) {
         return this.getDefaultState().withProperty(FACING, facing);
     }
 

@@ -1,6 +1,5 @@
 package dustine.kismet.server.command;
 
-import dustine.kismet.ConfigKismet;
 import dustine.kismet.Log;
 import dustine.kismet.target.*;
 import dustine.kismet.world.savedata.WSDTargetDatabase;
@@ -13,11 +12,16 @@ import net.minecraft.util.math.BlockPos;
 import java.util.*;
 import java.util.stream.Collectors;
 
-class CCDump implements ICommandComponent {
-    private final String commandName;
+class CCDump extends CommandComponent {
 
-    CCDump(String commandName) {
-        this.commandName = commandName;
+    CCDump(String parent) {
+        super(parent);
+    }
+
+    @Override
+    public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args,
+                                                BlockPos pos) {
+        return Arrays.asList(EnumLists.values()).stream().map(EnumLists::getName).collect(Collectors.toList());
     }
 
     private enum EnumLists implements IStringSerializable {
@@ -28,27 +32,21 @@ class CCDump implements ICommandComponent {
         }
     }
 
-    @Override
-    public String getComponentName() {
+    @Override public String getCommandName() {
         return "dump";
-    }
-
-    @Override
-    public String getParentName() {
-        return this.commandName;
     }
 
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws WrongUsageException {
         if (args.length < 1) {
-            throw new WrongUsageException(getParentName() + '.' + getComponentName());
+            throw new WrongUsageException(getParentName() + '.' + getCommandName());
         }
 
         EnumLists list;
         try {
             list = EnumLists.valueOf(args[0].toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new WrongUsageException(getParentName() + '.' + getComponentName());
+            throw new WrongUsageException(getParentName() + '.' + getCommandName());
         }
 
         Collection<String> dump;
@@ -62,18 +60,14 @@ class CCDump implements ICommandComponent {
         final WSDTargetDatabase targetDatabase = WSDTargetDatabase.get(sender.getEntityWorld());
         switch (list) {
             case SAVEDATA:
-                dump = getSortedInformedStacks(targetDatabase.getStacks());
+                dump = getSortedInformedStacks(targetDatabase.getDatabase());
                 break;
             case DATABASE:
                 dump = getSortedInformedStacks(
-                        new ArrayList<>(TargetLibraryBuilder.getConfigStacks(targetDatabase.getStacks()).values()));
+                        new ArrayList<>(TargetLibraryBuilder.getConfigStacks(targetDatabase.getDatabase()).values()));
                 break;
             case LIBRARY:
                 dump = getSortedInformedStacks(TargetLibrary.getLibrary());
-                break;
-            case FORCED:
-                dump = new ArrayList<>(ConfigKismet.getForceAdd()).stream()
-                        .sorted().collect(Collectors.toList());
                 break;
             case BLACKLIST:
                 dump = new ArrayList<>();
@@ -97,8 +91,7 @@ class CCDump implements ICommandComponent {
                 break;
             default:
                 Log.warning("Dump COMMAND using default list");
-                dump = new ArrayList<String>() {
-                };
+                dump = new ArrayList<String>() {};
                 break;
         }
         return dump;
@@ -109,11 +102,6 @@ class CCDump implements ICommandComponent {
                 .sorted((o1, o2) -> o1.toString().compareTo(o2.toString()))
                 .map(s -> String.format("%s %s", s.getOrigins(), s))
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args, BlockPos pos) {
-        return Arrays.asList(EnumLists.values()).stream().map(EnumLists::getName).collect(Collectors.toList());
     }
 
 

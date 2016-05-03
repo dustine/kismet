@@ -1,10 +1,10 @@
 package dustine.kismet.proxy;
 
-import dustine.kismet.ConfigKismet;
 import dustine.kismet.Kismet;
 import dustine.kismet.block.BlockKismet;
 import dustine.kismet.client.ColorDisplay;
 import dustine.kismet.client.render.RenderTileDisplay;
+import dustine.kismet.config.ConfigKismet;
 import dustine.kismet.item.ItemKismet;
 import dustine.kismet.registry.ModBlocks;
 import dustine.kismet.tile.TileDisplay;
@@ -46,7 +46,7 @@ public class ClientProxy extends CommonProxy {
         // that's because client proxy + isRemote = embedded server thread
         if (player.worldObj.isRemote) return;
 
-        Kismet.databaseBuilder.generateStacks(player);
+        Kismet.databaseBuilder.build(player, false);
     }
 
     @Override

@@ -34,7 +34,8 @@ public class TargetLibrary {
      * @param lastTargets
      * @return
      */
-    public static TargetGenerationResult generateTarget(@Nonnull final Map<String, Integer> weights, @Nonnull List<InformedStack> lastTargets) {
+    public static TargetGenerationResult generateTarget(@Nonnull final Map<String, Integer> weights,
+                                                        @Nonnull List<InformedStack> lastTargets) {
         if (library == null) return new TargetGenerationResult(EnumTargetFailure.LIST_NOT_READY);
 
         // saving the mod weights before we removed stacks according to previousTargets
@@ -148,7 +149,9 @@ public class TargetLibrary {
         private final Map<String, Integer> metrics;
         private boolean solved;
 
-        EdgeCaseSolver(Map<String, Integer> weights, List<InformedStack> excludedTargets, Map<String, Integer> statelessCount, List<InformedStack> targets, Map<String, Integer> count, Map<String, Integer> metrics) {
+        EdgeCaseSolver(Map<String, Integer> weights, List<InformedStack> excludedTargets,
+                       Map<String, Integer> statelessCount, List<InformedStack> targets, Map<String, Integer> count,
+                       Map<String, Integer> metrics) {
             this.weights = weights;
             this.excludedTargets = excludedTargets;
             this.statelessCount = statelessCount;

@@ -10,6 +10,7 @@ import dustine.kismet.registry.ModTiles;
 import dustine.kismet.server.command.CommandKismet;
 import dustine.kismet.server.event.EventOnceFixDatabase;
 import dustine.kismet.target.TargetLibraryBuilder;
+import dustine.kismet.target.TargetPatcher;
 import dustine.kismet.world.savedata.TargetDatabaseBuilder;
 import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.world.WorldServer;
@@ -66,6 +67,7 @@ public class Kismet {
     public void init(FMLInitializationEvent event) {
         // register recipes
         ModRecipes.init();
+        TargetPatcher.init();
 
         this.jeiLoaded = Loader.isModLoaded("JEI");
 
@@ -74,8 +76,7 @@ public class Kismet {
     }
 
     @EventHandler
-    public void postInit(FMLPostInitializationEvent event) {
-    }
+    public void postInit(FMLPostInitializationEvent event) {}
 
     @EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
