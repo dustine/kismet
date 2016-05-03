@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import dustine.kismet.Log;
 import dustine.kismet.config.ConfigKismet;
 import dustine.kismet.util.StackHelper;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.INBTSerializable;
@@ -28,33 +29,42 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
     }
 
     @Override
-    public void deserializeNBT(NBTTagCompound nbt) {
-        this.stack = nbt.hasKey("stk") ? ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("stk")) : null;
+    public void deserializeNBT(NBTTagCompound compound) {
         this.origins = new HashSet<>();
-        int bitwiseObtainable = nbt.getInteger("obt");
+        int bitwiseObtainable = compound.getInteger("o");
         for (EnumOrigin type : EnumOrigin.values()) {
-            if ((bitwiseObtainable & 1) != 0)
+            if ((bitwiseObtainable & (1 << type.ordinal())) != 0)
                 this.origins.add(type);
-            bitwiseObtainable >>= 1;
         }
-        this.hasSubtypes = nbt.getBoolean("sub");
-        this.sealed = nbt.getBoolean("sld");
+
+        String resource = compound.getString("r");
+        int metadata = compound.getInteger("m");
+        NBTTagCompound nbt = compound.getCompoundTag("n");
+        this.stack = new ItemStack(Item.getByNameOrId(resource), 1, metadata >= 0 ? metadata : 0);
+        this.stack.setTagCompound(nbt);
+
+        this.hasSubtypes = metadata >= 0;
+
+        this.sealed = compound.getBoolean("s");
     }
 
     @Override
     public NBTTagCompound serializeNBT() {
         final NBTTagCompound compound = new NBTTagCompound();
-        if (this.stack != null) {
-            compound.setTag("stk", this.stack.writeToNBT(new NBTTagCompound()));
-        }
+
         int bitwiseObtainable = 0;
         for (EnumOrigin type : Lists.reverse(Arrays.asList(EnumOrigin.values()))) {
-            bitwiseObtainable <<= 1;
-            bitwiseObtainable |= hasOrigin(type) ? 1 : 0;
+            bitwiseObtainable |= hasOrigin(type) ? 1 << type.ordinal() : 0;
         }
-        compound.setInteger("obt", bitwiseObtainable);
-        compound.setBoolean("sub", this.hasSubtypes);
-        compound.setBoolean("sld", this.sealed);
+        compound.setInteger("o", bitwiseObtainable);
+
+        compound.setString("r", stack.getItem().getRegistryName().toString());
+        compound.setInteger("m", hasSubtypes ? stack.getMetadata() : -1);
+        final NBTTagCompound tagCompound = stack.getTagCompound();
+        if (tagCompound != null) compound.setTag("n", tagCompound);
+
+        compound.setBoolean("s", this.sealed);
+
         return compound;
     }
 
