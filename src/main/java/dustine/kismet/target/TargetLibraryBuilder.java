@@ -140,7 +140,7 @@ public class TargetLibraryBuilder {
         stack = StackHelper.getItemStack(s);
         if (stack == null) return null;
 
-        return StackHelper.toUniqueKey(stack);
+        return StackHelper.toUniqueKey(stack, s.split(":", 4).length > 2);
     }
 
     private static boolean isTarget(Target target, Set<String> filter) {

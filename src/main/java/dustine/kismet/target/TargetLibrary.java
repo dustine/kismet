@@ -2,7 +2,7 @@ package dustine.kismet.target;
 
 import dustine.kismet.Kismet;
 import dustine.kismet.Log;
-import dustine.kismet.target.TargetGenerationResult.EnumTargetFailure;
+import dustine.kismet.target.TargetResult.EnumTargetFailure;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
@@ -33,9 +33,9 @@ public class TargetLibrary {
      * @param lastTargets
      * @return
      */
-    public static TargetGenerationResult generateTarget(@Nonnull final Map<String, Integer> weights,
-                                                        @Nonnull List<Target> lastTargets) {
-        if (library == null) return new TargetGenerationResult(EnumTargetFailure.LIST_NOT_READY);
+    public static TargetResult generateTarget(@Nonnull final Map<String, Integer> weights,
+                                              @Nonnull List<Target> lastTargets) {
+        if (library == null) return new TargetResult(EnumTargetFailure.LIST_NOT_READY);
 
         // saving the mod weights before we removed stacks according to previousTargets
         Map<String, Integer> statelessCount = getModItemCount(library);
@@ -72,7 +72,7 @@ public class TargetLibrary {
         EdgeCaseSolver edgeCaseSolver =
                 new EdgeCaseSolver(weights, lastTargets, statelessCount, targets, count, metrics).invoke();
         if (!edgeCaseSolver.isSolved())
-            return new TargetGenerationResult(EnumTargetFailure.NO_TARGETS_AVAILABLE);
+            return new TargetResult(EnumTargetFailure.NO_TARGETS_AVAILABLE);
 
         metrics = edgeCaseSolver.getMetrics();
         targets = edgeCaseSolver.getTargets();
@@ -81,7 +81,7 @@ public class TargetLibrary {
         // target should always be assigned a value, but just in case...
         if (targetMod == null) {
             Log.error(String.format("Failed to get a targeted mod, from %s and %s", weights, lastTargets));
-            return new TargetGenerationResult(EnumTargetFailure.NO_TARGET_MODS_AVAILABLE);
+            return new TargetResult(EnumTargetFailure.NO_TARGET_MODS_AVAILABLE);
         }
 
         // increase all weights by one, make the targetMod reset back to 0
@@ -101,7 +101,7 @@ public class TargetLibrary {
         // finally, we have a target.
         // but ah, before finishing, we have to add the newly generated target to the lastTarget stacks!
         lastTargets.add(newTarget);
-        return new TargetGenerationResult(newTarget);
+        return new TargetResult(newTarget);
     }
 
     private static String getWeightedRandomMod(Map<String, Integer> metrics, Random random) {

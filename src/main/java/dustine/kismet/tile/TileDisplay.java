@@ -6,9 +6,9 @@ import dustine.kismet.block.BlockDisplay;
 import dustine.kismet.block.BlockTimedDisplay;
 import dustine.kismet.config.ConfigKismet;
 import dustine.kismet.target.Target;
-import dustine.kismet.target.TargetGenerationResult;
 import dustine.kismet.target.TargetHelper;
 import dustine.kismet.target.TargetLibrary;
+import dustine.kismet.target.TargetResult;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -200,7 +200,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
 
         final Target oldTarget = this.target;
 
-        TargetGenerationResult targetResult = TargetLibrary.generateTarget(this.weights, this.history);
+        TargetResult targetResult = TargetLibrary.generateTarget(this.weights, this.history);
         if (targetResult.hasFlag()) {
             this.newTargetTimeout = this.worldObj.getTotalWorldTime() + 5 * 20;
             Log.warning("Failed to get target, " + targetResult.getFlag());

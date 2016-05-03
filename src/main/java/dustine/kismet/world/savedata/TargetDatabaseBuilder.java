@@ -39,7 +39,6 @@ import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.UniversalBucket;
-import net.minecraftforge.oredict.OreDictionary;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -77,21 +76,26 @@ public class TargetDatabaseBuilder {
         TargetDatabaseBuilder.command = command;
         this.targetDatabase = WSDTargetDatabase.get(player.worldObj);
         this.targetDatabase.setDatabase(new HashMap<>());
-
-        final WorldServer world = player.getServerWorld();
-//        Map<String, Target> targetMap = getRegisteredItems();
         Map<String, Target> targetMap = new HashMap<>();
-        identifyLoot(world, targetMap);
-        identifyBlockDrops(world, targetMap);
-        identifyBuckets(world, targetMap);
 
-        targetMap.values().forEach(Target::refreshHasSubtypes);
+        identifyOriginsServerSide(player, targetMap);
 
         this.serverStacks = new ArrayList<>(targetMap.values());
         this.clientStacks = new ArrayList<>();
         this.id = UUID.randomUUID();
 
         Kismet.network.sendTo(new MessageClientTargets(this.id), player);
+    }
+
+    private static void identifyOriginsServerSide(EntityPlayerMP player, Map<String, Target> targetMap) {
+        final WorldServer world = player.getServerWorld();
+        identifyLoot(world, targetMap);
+        identifyBlockDrops(world, targetMap);
+        identifyBuckets(world, targetMap);
+        TargetHelper.identifyRecipes(targetMap);
+
+        targetMap.values().removeIf(target -> target.getOrigins().isEmpty());
+        targetMap.values().forEach(Target::refreshHasSubtypes);
     }
 
     private static void identifyBuckets(WorldServer world, Map<String, Target> stacks) {
@@ -337,16 +341,7 @@ public class TargetDatabaseBuilder {
         this.targetDatabase.setDatabase(new HashMap<>());
 
         Map<String, Target> targetMap = getRegisteredItems();
-        targetMap.forEach((k, target) -> target.getStack().setItemDamage(0));
-
-        final WorldServer world = player.getServerWorld();
-        identifyLoot(world, targetMap);
-        identifyBlockDrops(world, targetMap);
-        identifyBuckets(world, targetMap);
-        TargetHelper.identifyRecipes(targetMap);
-
-        targetMap.values().removeIf(target -> target.getOrigins().isEmpty());
-        targetMap.values().forEach(Target::refreshHasSubtypes);
+        identifyOriginsServerSide(player, targetMap);
 
         this.targetDatabase.enrichStacks(targetMap.values());
     }
@@ -360,7 +355,7 @@ public class TargetDatabaseBuilder {
             ItemStack stack = new ItemStack(item);
             if (stack.getItem() == null) continue;
 
-            stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
+//            stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
             final Target target = new Target(stack);
             target.setHasSubtypes(true);
             targetMap.put(target.toString(), target);
