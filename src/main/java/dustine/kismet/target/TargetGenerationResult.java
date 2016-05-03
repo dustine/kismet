@@ -1,10 +1,10 @@
 package dustine.kismet.target;
 
 public class TargetGenerationResult {
-    private final InformedStack value;
+    private final Target value;
     private final EnumTargetFailure flag;
 
-    public TargetGenerationResult(InformedStack value) {
+    public TargetGenerationResult(Target value) {
         if (value == null || !value.hasItem()) {
             this.value = null;
             this.flag = EnumTargetFailure.EMPTY_STACK;
@@ -23,7 +23,7 @@ public class TargetGenerationResult {
         return value != null && value.hasItem();
     }
 
-    public InformedStack getValue() {
+    public Target getValue() {
         return value;
     }
 

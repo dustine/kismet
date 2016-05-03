@@ -34,8 +34,8 @@ public class TargetPatcher {
         } else return Collections.emptySet();
     }
 
-    public static boolean isBlacklisted(InformedStack stack, EnumOrigin origin) {
-        return getBlacklist(origin).contains(stack.toString());
+    public static boolean isBlacklisted(Target target, EnumOrigin origin) {
+        return getBlacklist(origin).contains(target.toString());
     }
 
     public static Set<String> getBlacklist(EnumOrigin origin) {

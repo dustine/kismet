@@ -432,7 +432,7 @@ public final class ConfigKismet {
                 if (category != null) {
                     // force a library refresh if in-world and any changes occured regarding the target category
                     if (category.equals(ConfigKismet.CATEGORY_TARGETS)) {
-                        Log.trace("Updating filtered stacks...");
+                        Log.trace("Refreshing target library...");
                         if (Kismet.databaseBuilder != null)
                             Kismet.databaseBuilder.tryBuildLibraryWithLastGeneratedDatabase();
                     }

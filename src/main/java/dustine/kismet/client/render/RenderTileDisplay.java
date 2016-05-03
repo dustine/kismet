@@ -2,7 +2,7 @@ package dustine.kismet.client.render;
 
 import dustine.kismet.block.BlockDisplay;
 import dustine.kismet.block.BlockTimedDisplay;
-import dustine.kismet.target.InformedStack;
+import dustine.kismet.target.Target;
 import dustine.kismet.tile.TileDisplay;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -88,7 +88,7 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         GlStateManager.rotate(facingRot, 0, 1, 0);
 
         // item rendering!
-        final InformedStack target = te.getTarget();
+        final Target target = te.getTarget();
         if (target != null && target.hasItem()) {
             ItemStack stack = target.getStack();
             if (!itemRenderer.shouldRenderItemIn3D(stack) || stack.getItem() instanceof ItemSkull) {

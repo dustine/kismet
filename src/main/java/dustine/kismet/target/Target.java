@@ -1,10 +1,10 @@
 package dustine.kismet.target;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import dustine.kismet.Log;
 import dustine.kismet.config.ConfigKismet;
 import dustine.kismet.util.StackHelper;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.INBTSerializable;
@@ -12,20 +12,18 @@ import net.minecraftforge.common.util.INBTSerializable;
 import javax.annotation.Nonnull;
 import java.util.*;
 
-public final class InformedStack implements INBTSerializable<NBTTagCompound> {
+public final class Target implements INBTSerializable<NBTTagCompound> {
     private ItemStack stack;
     private boolean hasSubtypes = true;
-    private boolean sealed;
     private Set<EnumOrigin> origins;
 
-    public InformedStack(InformedStack stack) {
+    public Target(Target target) {
         // hackish way of doing a deep copy
-        this(stack.serializeNBT());
+        this(target.serializeNBT());
     }
 
-    public InformedStack(NBTTagCompound nbt) {
+    public Target(NBTTagCompound nbt) {
         deserializeNBT(nbt);
-//        this.hasSubtypes = Kismet.proxy.sideSafeHasSubtypes(stack);
     }
 
     @Override
@@ -37,15 +35,10 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
                 this.origins.add(type);
         }
 
-        String resource = compound.getString("r");
-        int metadata = compound.getInteger("m");
-        NBTTagCompound nbt = compound.getCompoundTag("n");
-        this.stack = new ItemStack(Item.getByNameOrId(resource), 1, metadata >= 0 ? metadata : 0);
-        this.stack.setTagCompound(nbt);
+        String key = compound.getString("s");
+        this.stack = StackHelper.getItemStack(key);
 
-        this.hasSubtypes = metadata >= 0;
-
-        this.sealed = compound.getBoolean("s");
+        this.hasSubtypes = key.split(":").length > 2;
     }
 
     @Override
@@ -58,12 +51,7 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
         }
         compound.setInteger("o", bitwiseObtainable);
 
-        compound.setString("r", stack.getItem().getRegistryName().toString());
-        compound.setInteger("m", hasSubtypes ? stack.getMetadata() : -1);
-        final NBTTagCompound tagCompound = stack.getTagCompound();
-        if (tagCompound != null) compound.setTag("n", tagCompound);
-
-        compound.setBoolean("s", this.sealed);
+        compound.setString("s", TargetHelper.toUniqueKey(this));
 
         return compound;
     }
@@ -72,19 +60,18 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
         return this.origins.contains(type);
     }
 
-    public InformedStack(@Nonnull ItemStack stack, EnumOrigin type) {
+    public Target(@Nonnull ItemStack stack, EnumOrigin type) {
         this(stack);
         setOrigins(type, true);
     }
 
-    public InformedStack(@Nonnull ItemStack stack) {
+    public Target(@Nonnull ItemStack stack) {
         this.stack = stack;
         this.origins = new HashSet<>();
         this.hasSubtypes = stack.getHasSubtypes();
     }
 
     public void setOrigins(EnumOrigin type, boolean obtainable) {
-        if (this.sealed) return;
         if (obtainable) {
             this.origins.add(type);
         } else {
@@ -92,19 +79,12 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
         }
     }
 
-    public static InformedStack getUnsealedCopy(InformedStack stack) {
-        final InformedStack newStack = new InformedStack(stack);
-        newStack.sealed = false;
-        return newStack;
-    }
-
     @Override
     public String toString() {
-        return StackHelper.toUniqueKey(this);
+        return TargetHelper.toUniqueKey(this);
     }
 
     public void refreshHasSubtypes() {
-        if (this.sealed) return;
         this.hasSubtypes = this.stack.getHasSubtypes();
     }
 
@@ -112,40 +92,31 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
         return serializeNBT();
     }
 
-    public InformedStack joinWith(InformedStack rhs) {
-        return InformedStack.join(this, rhs);
+    public Target joinWith(Target rhs) {
+        return Target.join(this, rhs);
     }
 
-    public static InformedStack join(InformedStack lhs, InformedStack rhs) {
-        if (!lhs.sealed && !rhs.sealed) {
-            Log.error(String.format("Tried to join unsealed wrappers %s %s", lhs, rhs));
-            return null;
-        }
+    public static Target join(Target lhs, Target rhs) {
         // if they're not equal, log it and ignore
-        if (!StackHelper.isEquivalent(lhs, rhs)) {
-            Log.error(String.format("Tried to join distinct stacks %s %s", lhs, rhs));
+        if (!TargetHelper.isEquivalent(lhs, rhs)) {
+            Log.error(String.format("Tried to join distinct targets %s %s", lhs, rhs));
             return null;
         }
 
         if (lhs.hasSubtypes != rhs.hasSubtypes) {
-            Log.warning(String.format("Stacks have different subtype state %s %s", lhs.getHasSubtypes(),
+            Log.warning(String.format("Targets have different subtype state %s %s", lhs.getHasSubtypes(),
                     rhs.getHasSubtypes()));
         }
 
-        // create a new informedStack via deep copy
-        InformedStack informedStack = new InformedStack(lhs);
-        informedStack.origins.addAll(rhs.getCurrentObtainableTypes());
-        informedStack.seal();
+        // create a new target via deep copy
+        Target target = new Target(lhs);
+        target.origins.addAll(rhs.getCurrentObtainableTypes());
 
-        return informedStack;
+        return target;
     }
 
     public List<EnumOrigin> getCurrentObtainableTypes() {
         return new ArrayList<>(this.origins);
-    }
-
-    public void seal() {
-        this.sealed = true;
     }
 
     public boolean getHasSubtypes() {
@@ -153,7 +124,6 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
     }
 
     public void setHasSubtypes(boolean hasSubtypes) {
-        if (this.sealed) return;
         this.hasSubtypes = hasSubtypes;
     }
 
@@ -165,8 +135,11 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
         // else, check one of the cases one by one: if one is on, check if we're origins that way
         for (EnumOrigin origin : EnumOrigin.values()) {
             if (origin.equals(EnumOrigin.FORCED)) continue;
-            if (ConfigKismet.isGenFlag(origin) && hasOrigin(origin))
-                return !TargetPatcher.isBlacklisted(this, origin);
+            // if the origin is allowed by config
+            // if this target has that origin
+            // and if this target isn't blacklisted (origin removed)
+            if (ConfigKismet.isGenFlag(origin) && hasOrigin(origin) && !TargetPatcher.isBlacklisted(this, origin))
+                return true;
         }
 
         // return false if we deplete all gens
@@ -174,7 +147,7 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
     }
 
     public ItemStack getStack() {
-        return this.stack;
+        return ItemStack.copyItemStack(this.stack);
     }
 
     public boolean hasItem() {
@@ -182,15 +155,11 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
     }
 
     public Set<EnumOrigin> getOrigins() {
-        return this.origins;
+        return ImmutableSet.copyOf(this.origins);
     }
 
     public void setOrigins(Set<EnumOrigin> obtainable) {
-        if (isSealed()) return;
-        this.origins = obtainable;
+        this.origins = new HashSet<>(obtainable);
     }
 
-    public boolean isSealed() {
-        return this.sealed;
-    }
 }

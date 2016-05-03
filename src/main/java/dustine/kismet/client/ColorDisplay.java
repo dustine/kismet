@@ -13,25 +13,11 @@ public class ColorDisplay implements IBlockColor, IItemColor {
 
     @Override
     public int colorMultiplier(IBlockState state, IBlockAccess blockAccess, BlockPos pos, int tintIndex) {
-//        switch (tintIndex) {
-//            case 0:
-//                if (state.getBlock() instanceof BlockChillDisplay) {
-//                    return 0x00ff00;
-//                }
-//        }
-
         return -1;
     }
 
     @Override
     public int getColorFromItemstack(ItemStack stack, int tintIndex) {
-//        switch (tintIndex) {
-//            case 0:
-//                if (Block.getBlockFromItem(stack.getItem()) instanceof BlockChillDisplay) {
-//                    return 0x00ff00;
-//                }
-//        }
-
         return -1;
     }
 }

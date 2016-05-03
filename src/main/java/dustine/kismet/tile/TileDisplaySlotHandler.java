@@ -1,13 +1,13 @@
 package dustine.kismet.tile;
 
-import dustine.kismet.target.InformedStack;
+import dustine.kismet.target.Target;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 
 /**
- * A IItemHandler with one slot that is actually only a view for the current target stack
+ * A IItemHandler with one slot that is actually only a view for the current target
  * <p>
- * "Inserting" a stack counts as submitting a target, extracting always returns null
+ * "Inserting" does nothing, retrieving always returns null
  */
 public final class TileDisplaySlotHandler implements IItemHandler {
     private TileDisplay parent;
@@ -35,7 +35,7 @@ public final class TileDisplaySlotHandler implements IItemHandler {
     @Override
     public ItemStack getStackInSlot(int slot) {
         validateSlotIndex(slot);
-        final InformedStack target = this.parent.getTarget();
+        final Target target = this.parent.getTarget();
         if (target == null) return null;
 
         final ItemStack itemStack = ItemStack.copyItemStack(target.getStack());

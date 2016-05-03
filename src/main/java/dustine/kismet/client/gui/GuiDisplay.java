@@ -5,9 +5,9 @@ import dustine.kismet.block.BlockTimedDisplay;
 import dustine.kismet.gui.inventory.ContainerDisplay;
 import dustine.kismet.gui.inventory.SlotTarget;
 import dustine.kismet.target.EnumOrigin;
-import dustine.kismet.target.InformedStack;
+import dustine.kismet.target.Target;
+import dustine.kismet.target.TargetHelper;
 import dustine.kismet.tile.TileDisplay;
-import dustine.kismet.util.StackHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -49,7 +49,7 @@ public class GuiDisplay extends GuiKismet {
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        final InformedStack target = this.display.getTarget();
+        final Target target = this.display.getTarget();
 
         super.drawScreen(mouseX, mouseY, partialTicks);
 
@@ -121,7 +121,7 @@ public class GuiDisplay extends GuiKismet {
 
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
-        final InformedStack target = this.display.getTarget();
+        final Target target = this.display.getTarget();
         int relOx = (this.width - this.xSize) / 2;
         int relOy = (this.height - this.ySize) / 2;
 
@@ -183,7 +183,7 @@ public class GuiDisplay extends GuiKismet {
                     this.drawTexturedModalRect(slotX, slotY, 0, 0, slotSize, slotSize);
                 }
             } else if (!this.display.isFulfilled() && slot.getHasStack() && target != null &&
-                    StackHelper.isEquivalent(target, slot.getStack())) {
+                    TargetHelper.isEquivalent(target, slot.getStack())) {
                 this.drawTexturedModalRect(slotX, slotY, 0, 0, 16, 16);
             }
         }
@@ -221,7 +221,7 @@ public class GuiDisplay extends GuiKismet {
         }
     }
 
-    private List<EnumOrigin> getOrderedOrigins(InformedStack target) {
+    private List<EnumOrigin> getOrderedOrigins(Target target) {
         return EnumOrigin.getSorted(true).stream().filter(target::hasOrigin).collect(Collectors.toList());
     }
 

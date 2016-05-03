@@ -30,7 +30,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 minecraft {
-    version = "1.9-12.16.0.1877-1.9"
+    version = "1.9-12.16.0.1881-1.9"
     runDir = "run"
     useDepAts = true
     replace '@VERSION@', project.version

@@ -16,10 +16,10 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(Parameterized.class)
-public class InformedStackNBTSerializationTest {
+public class TargetNBTSerializationTest {
     private final Set<EnumOrigin> obtainable;
 
-    public InformedStackNBTSerializationTest(Set<EnumOrigin> obtainable) {
+    public TargetNBTSerializationTest(Set<EnumOrigin> obtainable) {
         this.obtainable = obtainable;
     }
 
@@ -42,10 +42,10 @@ public class InformedStackNBTSerializationTest {
 
     @Test
     public void test() {
-        final InformedStack testCase = new InformedStack(new ItemStack(new Item()));
+        final Target testCase = new Target(new ItemStack(new Item()));
         testCase.setOrigins(obtainable);
 
-        final InformedStack serialized = new InformedStack(testCase.serializeNBT());
+        final Target serialized = new Target(testCase.serializeNBT());
 
         final Set<EnumOrigin> serializedObtainable = serialized.getOrigins();
         assertThat("same length", serializedObtainable.size(), is(this.obtainable.size()));

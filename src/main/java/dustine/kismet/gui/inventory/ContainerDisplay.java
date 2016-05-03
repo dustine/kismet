@@ -3,9 +3,9 @@ package dustine.kismet.gui.inventory;
 import dustine.kismet.Kismet;
 import dustine.kismet.item.ItemKey;
 import dustine.kismet.network.message.MessageGuiRemoteAction;
+import dustine.kismet.target.TargetHelper;
 import dustine.kismet.tile.TileDisplay;
 import dustine.kismet.util.SoundHelper;
-import dustine.kismet.util.StackHelper;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Slot;
@@ -80,7 +80,7 @@ public class ContainerDisplay extends ContainerKismet {
             // and do the action on the server
             Kismet.network.sendToServer(new MessageGuiRemoteAction(this.display.getPos(), slotIndex));
 
-            if (!this.display.isFulfilled() && StackHelper.isEquivalent(display.getTarget(), stack)) {
+            if (!this.display.isFulfilled() && TargetHelper.isEquivalent(display.getTarget(), stack)) {
                 SoundHelper.onTargetFulfilled(this.display.getWorld(), player, this.display.getPos());
             }
             // decrease a key amount if it's a key

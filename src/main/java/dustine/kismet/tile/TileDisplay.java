@@ -5,10 +5,10 @@ import dustine.kismet.Log;
 import dustine.kismet.block.BlockDisplay;
 import dustine.kismet.block.BlockTimedDisplay;
 import dustine.kismet.config.ConfigKismet;
-import dustine.kismet.target.InformedStack;
+import dustine.kismet.target.Target;
 import dustine.kismet.target.TargetGenerationResult;
+import dustine.kismet.target.TargetHelper;
 import dustine.kismet.target.TargetLibrary;
-import dustine.kismet.util.StackHelper;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -49,8 +49,8 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
     private int score;
     private int highScore;
     private long deadline;
-    private InformedStack target;
-    private List<InformedStack> history;
+    private Target target;
+    private List<Target> history;
     private HashMap<String, Integer> weights;
     private boolean stateChanged;
     private long newTargetTimeout;
@@ -198,7 +198,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
             return false;
         }
 
-        final InformedStack oldTarget = this.target;
+        final Target oldTarget = this.target;
 
         TargetGenerationResult targetResult = TargetLibrary.generateTarget(this.weights, this.history);
         if (targetResult.hasFlag()) {
@@ -281,7 +281,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         setHighScore(nbt.getInteger("highScore"));
 
         if (nbt.hasKey("target")) {
-            this.target = new InformedStack(nbt.getCompoundTag("target"));
+            this.target = new Target(nbt.getCompoundTag("target"));
         } else {
             this.target = null;
         }
@@ -299,7 +299,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         NBTTagList lastTargetsNbt = nbt.getTagList("history", 10);
         for (int i = 0; i < lastTargetsNbt.tagCount(); i++) {
             NBTTagCompound compound = lastTargetsNbt.getCompoundTagAt(i);
-            this.history.add(new InformedStack(compound));
+            this.history.add(new Target(compound));
         }
     }
 
@@ -328,7 +328,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         compound.setTag("weights", modWeightsNbt);
 
         NBTTagList lastTargetsNbt = new NBTTagList();
-        for (InformedStack lastTarget : this.history) {
+        for (Target lastTarget : this.history) {
             NBTTagCompound targetTag = lastTarget.writeToNBT();
             lastTargetsNbt.appendTag(targetTag);
         }
@@ -347,14 +347,14 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         readFromNBT(pkt.getNbtCompound());
     }
 
-    public InformedStack getTarget() {
+    public Target getTarget() {
         return this.target;
     }
 
-    public void setTarget(InformedStack target) {
-        InformedStack oldTarget = this.target;
+    public void setTarget(Target target) {
+        Target oldTarget = this.target;
 
-        if (!StackHelper.isEquivalent(this.target, target)) {
+        if (!TargetHelper.isEquivalent(this.target, target)) {
             this.target = target;
         }
 

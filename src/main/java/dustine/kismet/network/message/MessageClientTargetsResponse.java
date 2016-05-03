@@ -1,7 +1,8 @@
 package dustine.kismet.network.message;
 
 import dustine.kismet.Kismet;
-import dustine.kismet.target.InformedStack;
+import dustine.kismet.Log;
+import dustine.kismet.target.Target;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -13,46 +14,42 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Enrich Stack List message
- * <p>
- * Includes: a InformedStack list to be enriched clientside
- */
 public class MessageClientTargetsResponse extends MessageBase<MessageClientTargetsResponse> {
-    private List<InformedStack> stacks;
+    private List<Target> targets;
     private UUID id;
 
     @SuppressWarnings("unused") public MessageClientTargetsResponse() {}
 
-    public MessageClientTargetsResponse(List<InformedStack> stacks, UUID id) {
-        this.stacks = stacks;
+    public MessageClientTargetsResponse(List<Target> targets, UUID id) {
+        this.targets = targets;
         this.id = id;
     }
 
     @Override
     public void fromBytes(ByteBuf buf) {
         this.id = NBTUtil.getUUIDFromTag(ByteBufUtils.readTag(buf));
-        this.stacks = new ArrayList<>();
+        this.targets = new ArrayList<>();
         while (buf.isReadable()) {
             final NBTTagCompound compound = ByteBufUtils.readTag(buf);
-            final InformedStack wrapper = new InformedStack(compound);
-            this.stacks.add(wrapper);
+            final Target target = new Target(compound);
+            this.targets.add(target);
         }
     }
 
     @Override
     public void toBytes(ByteBuf buf) {
         ByteBufUtils.writeTag(buf, NBTUtil.createUUIDTag(this.id));
-        for (InformedStack wrapper : this.stacks) {
-            NBTTagCompound compound = wrapper.serializeNBT();
+        for (Target target : this.targets) {
+            NBTTagCompound compound = target.serializeNBT();
             ByteBufUtils.writeTag(buf, compound);
         }
+        Log.info(buf.array().length + " " + targets.size());
     }
 
     @Override
     protected void handleServerSide(MessageClientTargetsResponse message, EntityPlayer player) {
         if (Kismet.databaseBuilder != null) {
-            if (Kismet.databaseBuilder.receiveClientTargets(message.stacks, message.id, (EntityPlayerMP) player))
+            if (Kismet.databaseBuilder.receiveClientTargets(message.targets, message.id, (EntityPlayerMP) player))
                 Kismet.network.sendTo(new MessageClientTargets(message.id), (EntityPlayerMP) player);
         }
     }

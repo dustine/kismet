@@ -3,7 +3,6 @@ package dustine.kismet.target;
 import dustine.kismet.Kismet;
 import dustine.kismet.Log;
 import dustine.kismet.target.TargetGenerationResult.EnumTargetFailure;
-import dustine.kismet.util.StackHelper;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
@@ -14,7 +13,7 @@ import java.util.stream.Collectors;
 
 public class TargetLibrary {
 
-    private static List<InformedStack> library;
+    private static List<Target> library;
 
     /**
      * todo rewrite this all and remove comments from function body Pick a RANDOM mod, using as a metric w*#stacks(mod),
@@ -35,7 +34,7 @@ public class TargetLibrary {
      * @return
      */
     public static TargetGenerationResult generateTarget(@Nonnull final Map<String, Integer> weights,
-                                                        @Nonnull List<InformedStack> lastTargets) {
+                                                        @Nonnull List<Target> lastTargets) {
         if (library == null) return new TargetGenerationResult(EnumTargetFailure.LIST_NOT_READY);
 
         // saving the mod weights before we removed stacks according to previousTargets
@@ -51,8 +50,9 @@ public class TargetLibrary {
 
         // filter the library so it only has possible targets
         // as in, none of the excludedTargets
-        List<InformedStack> targets = library.stream()
-                .filter(stack -> lastTargets.stream().noneMatch(stack1 -> StackHelper.isEquivalent(stack, stack1)))
+        List<Target> targets = library.stream()
+                .filter(target -> lastTargets.stream()
+                        .noneMatch(lastTarget -> TargetHelper.isEquivalent(target, lastTarget)))
                 .collect(Collectors.toList());
 
         // get a count for the nr of
@@ -92,11 +92,11 @@ public class TargetLibrary {
         // configFilteredItems is already filtered to only have valid stacks so it's just a process of picking a
         // RANDOM index and returning the contents on that index
         final String finalTargetMod = targetMod;
-        List<InformedStack> unwrappedStacks = targets.stream()
-                .filter(item -> finalTargetMod.equals(StackHelper.getMod(item)))
+        List<Target> unwrappedStacks = targets.stream()
+                .filter(item -> finalTargetMod.equals(TargetHelper.getMod(item)))
                 .collect(Collectors.toList());
         int index = Kismet.RANDOM.nextInt(unwrappedStacks.size());
-        InformedStack newTarget = unwrappedStacks.get(index);
+        Target newTarget = unwrappedStacks.get(index);
 
         // finally, we have a target.
         // but ah, before finishing, we have to add the newly generated target to the lastTarget stacks!
@@ -120,10 +120,10 @@ public class TargetLibrary {
         return null;
     }
 
-    private static Map<String, Integer> getModItemCount(List<InformedStack> filteredCompleteList) {
+    private static Map<String, Integer> getModItemCount(List<Target> filteredCompleteList) {
         HashMap<String, Integer> map = new HashMap<>();
-        for (InformedStack item : filteredCompleteList) {
-            String mod = StackHelper.getMod(item);
+        for (Target item : filteredCompleteList) {
+            String mod = TargetHelper.getMod(item);
             if (!map.containsKey(mod)) {
                 map.put(mod, 1);
             } else
@@ -132,25 +132,25 @@ public class TargetLibrary {
         return map;
     }
 
-    public static List<InformedStack> getLibrary() {
+    public static List<Target> getLibrary() {
         return library;
     }
 
-    public static void setLibrary(List<InformedStack> library) {
+    public static void setLibrary(List<Target> library) {
         TargetLibrary.library = library;
     }
 
     private static class EdgeCaseSolver {
         private final Map<String, Integer> weights;
-        private final List<InformedStack> excludedTargets;
+        private final List<Target> excludedTargets;
         private final Map<String, Integer> statelessCount;
-        private final List<InformedStack> targets;
+        private final List<Target> targets;
         private final Map<String, Integer> count;
         private final Map<String, Integer> metrics;
         private boolean solved;
 
-        EdgeCaseSolver(Map<String, Integer> weights, List<InformedStack> excludedTargets,
-                       Map<String, Integer> statelessCount, List<InformedStack> targets, Map<String, Integer> count,
+        EdgeCaseSolver(Map<String, Integer> weights, List<Target> excludedTargets,
+                       Map<String, Integer> statelessCount, List<Target> targets, Map<String, Integer> count,
                        Map<String, Integer> metrics) {
             this.weights = weights;
             this.excludedTargets = excludedTargets;
@@ -161,25 +161,25 @@ public class TargetLibrary {
         }
 
         boolean isSolved() {
-            return solved;
+            return this.solved;
         }
 
-        List<InformedStack> getTargets() {
-            return targets;
+        List<Target> getTargets() {
+            return this.targets;
         }
 
         Map<String, Integer> getMetrics() {
-            return metrics;
+            return this.metrics;
         }
 
         EdgeCaseSolver invoke() {
             // check if there IS an edge case to begin with
-            int max = metrics.values().stream().reduce(0, (i, j) -> i + j);
+            int max = this.metrics.values().stream().reduce(0, (i, j) -> i + j);
             if (max > 0) {
-                solved = true;
+                this.solved = true;
                 return this;
             }
-            solved = false;
+            this.solved = false;
 
             if (increaseWeights()) return this;
             if (ignorePreviousTargets()) return this;
@@ -190,54 +190,54 @@ public class TargetLibrary {
         private boolean increaseWeights() {
             // sum(metrics) = 0, so we're under an edge case
             // we artificially increase the weights (nulls previous weights)
-            for (String key : weights.keySet()) {
-                int modifiedWeight = weights.get(key);
+            for (String key : this.weights.keySet()) {
+                int modifiedWeight = this.weights.get(key);
                 if (modifiedWeight <= 0) modifiedWeight = 1;
-                metrics.put(key, count.getOrDefault(key, 0) * modifiedWeight);
+                this.metrics.put(key, this.count.getOrDefault(key, 0) * modifiedWeight);
             }
 
-            int max = metrics.values().stream().reduce(0, (i, j) -> i + j);
+            int max = this.metrics.values().stream().reduce(0, (i, j) -> i + j);
             if (max <= 0) return false;
 
-            weights.keySet().stream()
-                    .filter(key -> weights.get(key) <= 0 && count.getOrDefault(key, 0) > 0)
-                    .forEach(key -> weights.put(key, 1));
+            this.weights.keySet().stream()
+                    .filter(key -> this.weights.get(key) <= 0 && this.count.getOrDefault(key, 0) > 0)
+                    .forEach(key -> this.weights.put(key, 1));
 
             Log.trace("Edge case resolved, all mods with weight 0");
 
-            solved = true;
+            this.solved = true;
             return true;
         }
 
         private boolean ignorePreviousTargets() {
             // sum(metrics*) = 0, so we're under an edge case
             // we discard the previousTargets
-            for (String key : weights.keySet()) {
-                int modifiedWeight = weights.get(key);
+            for (String key : this.weights.keySet()) {
+                int modifiedWeight = this.weights.get(key);
                 if (modifiedWeight <= 0) modifiedWeight = 1;
-                metrics.put(key, statelessCount.getOrDefault(key, 0) * modifiedWeight);
+                this.metrics.put(key, this.statelessCount.getOrDefault(key, 0) * modifiedWeight);
             }
 
-            int max = metrics.values().stream().reduce(0, (i, j) -> i + j);
+            int max = this.metrics.values().stream().reduce(0, (i, j) -> i + j);
             if (max <= 0) return false;
 
-            excludedTargets.clear();
+            this.excludedTargets.clear();
 
             // reset possible targets to all in the library
-            targets.clear();
-            targets.addAll(library);
-            count.clear();
-            count.putAll(statelessCount);
+            this.targets.clear();
+            this.targets.addAll(library);
+            this.count.clear();
+            this.count.putAll(this.statelessCount);
 
             // reset weights too, seeing that to get here you needed to already consider it broken
             //  as extra incentive, it allows for added randomization, seeing that all the old targets will
             //  be back!
-            weights.replaceAll((s, integer) -> 1);
+            this.weights.replaceAll((s, integer) -> 1);
 
             // and with all it done with, log
             Log.trace("Edge case resolved, cleared previous targets");
 
-            solved = true;
+            this.solved = true;
             return true;
         }
     }
