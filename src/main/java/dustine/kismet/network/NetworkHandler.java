@@ -1,6 +1,7 @@
 package dustine.kismet.network;
 
 import dustine.kismet.Log;
+import dustine.kismet.client.target.ClientTargetSender;
 import dustine.kismet.network.message.*;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
@@ -10,6 +11,7 @@ import net.minecraftforge.fml.relauncher.Side;
 public class NetworkHandler {
     private final String name;
     private final SimpleNetworkWrapper channel;
+    public ClientTargetSender clientTargetSender;
     private int discriminator;
 
     public NetworkHandler(String name) {
@@ -27,12 +29,11 @@ public class NetworkHandler {
         this.channel.registerMessage(MessageServerConfig.class, MessageServerConfig.class,
                 getDiscriminator(), Side.CLIENT);
 
-        this.channel.registerMessage(MessageEnrichStacks.class, MessageEnrichStacks.class,
+        this.channel.registerMessage(MessageClientTargets.class, MessageClientTargets.class,
                 getDiscriminator(), Side.CLIENT);
-        this.channel.registerMessage(MessageEnrichStacks.class, MessageEnrichStacks.class,
+        this.channel.registerMessage(MessageClientTargets.class, MessageClientTargets.class,
                 getDiscriminator(), Side.SERVER);
-
-        this.channel.registerMessage(MessageFinishedEnriching.class, MessageFinishedEnriching.class,
+        this.channel.registerMessage(MessageClientTargetsResponse.class, MessageClientTargetsResponse.class,
                 getDiscriminator(), Side.SERVER);
 
         // the discriminator can't go above 256

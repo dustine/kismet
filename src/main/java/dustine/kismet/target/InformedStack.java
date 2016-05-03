@@ -82,6 +82,12 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
         }
     }
 
+    public static InformedStack getUnsealedCopy(InformedStack stack) {
+        final InformedStack newStack = new InformedStack(stack);
+        newStack.sealed = false;
+        return newStack;
+    }
+
     @Override
     public String toString() {
         return StackHelper.toUniqueKey(this);
@@ -177,5 +183,4 @@ public final class InformedStack implements INBTSerializable<NBTTagCompound> {
     public boolean isSealed() {
         return this.sealed;
     }
-
 }
