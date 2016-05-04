@@ -65,4 +65,8 @@ public class ClientProxy extends CommonProxy {
     public EntityPlayer tryGetEntityPlayerSP() {
         return Minecraft.getMinecraft().thePlayer;
     }
+
+    @Override public void sendServerConfig(EntityPlayerMP player) {
+        ConfigKismet.removeClientSync();
+    }
 }

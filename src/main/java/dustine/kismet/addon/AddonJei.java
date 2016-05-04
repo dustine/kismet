@@ -7,7 +7,6 @@ import dustine.kismet.target.EnumOrigin;
 import dustine.kismet.target.Target;
 import mezz.jei.api.*;
 import mezz.jei.api.recipe.IRecipeCategory;
-import mezz.jei.api.recipe.IStackHelper;
 import net.minecraft.item.ItemStack;
 
 import javax.annotation.Nonnull;
@@ -15,9 +14,7 @@ import java.util.List;
 
 @JEIPlugin
 public class AddonJei implements IModPlugin {
-    public static IItemListOverlay itemListOverlay;
     public static IRecipeRegistry recipeRegistry;
-    public static IStackHelper stackHelper;
 
     public static void setCraftingFlags(Target target) {
         // check the categories where this item appears as an output
@@ -39,12 +36,10 @@ public class AddonJei implements IModPlugin {
         registry.addDescription(new ItemStack(ModBlocks.CHILL_DISPLAY), "jei.description.tile.chillDisplay");
         registry.addDescription(new ItemStack(ModBlocks.TIMED_DISPLAY), "jei.description.tile.timedDisplay");
         registry.addDescription(new ItemStack(ModItems.KEY), "jei.description.item.key");
-        stackHelper = registry.getJeiHelpers().getStackHelper();
     }
 
     @Override
     public void onRuntimeAvailable(@Nonnull IJeiRuntime jeiRuntime) {
-        itemListOverlay = jeiRuntime.getItemListOverlay();
         recipeRegistry = jeiRuntime.getRecipeRegistry();
     }
 }

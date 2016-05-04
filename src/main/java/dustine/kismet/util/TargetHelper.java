@@ -1,6 +1,7 @@
-package dustine.kismet.target;
+package dustine.kismet.util;
 
-import dustine.kismet.util.StackHelper;
+import dustine.kismet.target.EnumOrigin;
+import dustine.kismet.target.Target;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.FurnaceRecipes;
@@ -73,20 +74,7 @@ public class TargetHelper {
             }
         }
 
-        if (lhw.getHasSubtypes()) {
-            // test NBT
-            if (lhs.getItem() == null || rhs.getItem() == null) return false;
-            String nbtLhs = StackHelper.getNbtKey(lhs);
-            String nbtRhs = StackHelper.getNbtKey(rhs);
-            return nbtLhs.equals(nbtRhs);
-        } else {
-            return true;
-        }
-    }
-
-    public static String toUniqueKey(Target target) {
-        if (target == null || !target.hasItem()) return "";
-        return StackHelper.toUniqueKey(target.getStack(), target.getHasSubtypes());
+        return !lhw.getHasSubtypes() || lhw.toString().equalsIgnoreCase(StackHelper.toUniqueKey(rhs, true));
     }
 
     public static Set<String> getMods(Collection<Target> stacks) {

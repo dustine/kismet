@@ -3,6 +3,7 @@ package dustine.kismet.target;
 import dustine.kismet.Kismet;
 import dustine.kismet.Log;
 import dustine.kismet.target.TargetResult.EnumTargetFailure;
+import dustine.kismet.util.TargetHelper;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;

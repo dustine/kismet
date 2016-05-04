@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import dustine.kismet.Log;
 import dustine.kismet.config.ConfigKismet;
 import dustine.kismet.util.StackHelper;
+import dustine.kismet.util.TargetHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.INBTSerializable;
@@ -51,13 +52,30 @@ public final class Target implements INBTSerializable<NBTTagCompound> {
         }
         compound.setInteger("o", bitwiseObtainable);
 
-        compound.setString("s", TargetHelper.toUniqueKey(this));
+        compound.setString("s", this.toString());
 
         return compound;
     }
 
     public boolean hasOrigin(EnumOrigin type) {
         return this.origins.contains(type);
+    }
+
+    @Override
+    public String toString() {
+        return StackHelper.toUniqueKey(getStack(), getHasSubtypes());
+    }
+
+    public boolean getHasSubtypes() {
+        return this.hasSubtypes;
+    }
+
+    public void setHasSubtypes(boolean hasSubtypes) {
+        this.hasSubtypes = hasSubtypes;
+    }
+
+    public ItemStack getStack() {
+        return ItemStack.copyItemStack(this.stack);
     }
 
     public Target(@Nonnull ItemStack stack, EnumOrigin type) {
@@ -77,11 +95,6 @@ public final class Target implements INBTSerializable<NBTTagCompound> {
         } else {
             this.origins.remove(type);
         }
-    }
-
-    @Override
-    public String toString() {
-        return TargetHelper.toUniqueKey(this);
     }
 
     public void refreshHasSubtypes() {
@@ -119,14 +132,6 @@ public final class Target implements INBTSerializable<NBTTagCompound> {
         return new ArrayList<>(this.origins);
     }
 
-    public boolean getHasSubtypes() {
-        return this.hasSubtypes;
-    }
-
-    public void setHasSubtypes(boolean hasSubtypes) {
-        this.hasSubtypes = hasSubtypes;
-    }
-
     public boolean isObtainable() {
         // forced stacks are always obtainable
         if (hasOrigin(EnumOrigin.FORCED))
@@ -144,10 +149,6 @@ public final class Target implements INBTSerializable<NBTTagCompound> {
 
         // return false if we deplete all gens
         return false;
-    }
-
-    public ItemStack getStack() {
-        return ItemStack.copyItemStack(this.stack);
     }
 
     public boolean hasItem() {

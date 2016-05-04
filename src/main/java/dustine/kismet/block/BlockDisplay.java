@@ -2,9 +2,9 @@ package dustine.kismet.block;
 
 import dustine.kismet.Kismet;
 import dustine.kismet.gui.ModGuiHandler;
-import dustine.kismet.target.TargetHelper;
 import dustine.kismet.tile.TileDisplay;
 import dustine.kismet.util.SoundHelper;
+import dustine.kismet.util.TargetHelper;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.properties.PropertyEnum;

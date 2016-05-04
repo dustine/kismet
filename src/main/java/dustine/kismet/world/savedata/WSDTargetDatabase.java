@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableList;
 import dustine.kismet.Log;
 import dustine.kismet.Reference;
 import dustine.kismet.target.Target;
-import dustine.kismet.target.TargetHelper;
 import dustine.kismet.target.TargetLibraryBuilder;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -103,7 +102,7 @@ public class WSDTargetDatabase extends WorldSavedData {
      */
     public void enrichStacks(Collection<Target> newStacks) {
         newStacks.forEach(target -> {
-            String key = TargetHelper.toUniqueKey(target);
+            String key = target.toString();
             if (this.database.containsKey(key)) {
                 Target originalTarget = this.database.get(key);
                 this.database.put(key, originalTarget.joinWith(target));

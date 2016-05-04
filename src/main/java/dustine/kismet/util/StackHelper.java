@@ -2,12 +2,10 @@ package dustine.kismet.util;
 
 import dustine.kismet.Kismet;
 import dustine.kismet.Log;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.JsonToNBT;
-import net.minecraft.nbt.NBTException;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.oredict.OreDictionary;
 
 import javax.annotation.Nonnull;
@@ -46,7 +44,7 @@ public class StackHelper {
         return result.toString();
     }
 
-    public static String getNbtKey(ItemStack item) {
+    private static String getNbtKey(ItemStack item) {
         if (item.hasTagCompound()) {
             NBTTagCompound nbtTagCompound;
             // fixme no consideration for nbt tags that mean nothing ._."
@@ -65,43 +63,17 @@ public class StackHelper {
         if (split.length < 2) {
             Log.warning("Weird location: " + s);
             return null;
-        }
-
-        // define item (mod:itemName)
-        ItemStack stack;
-        ResourceLocation loc = new ResourceLocation(split[0], split[1]);
-        if (Item.REGISTRY.getKeys().contains(loc)) {
-            stack = new ItemStack(Item.REGISTRY.getObject(loc));
         } else {
-            Log.error("Weird location: " + s);
-            return null;
-        }
-
-        // add metadata
-        if (split.length > 2) {
-            // input metadata
-            Integer meta = tryParse(split[2]);
-            if (meta != null) {
-                // there's metadata, add it
-                stack.setItemDamage(meta);
-            } else {
-                Log.error(String.format("Weird metadata %s in %s", split[2], s));
-                return null;
+            Integer meta = null;
+            String nbt = "";
+            if (split.length > 2) {
+                meta = tryParse(split[2]);
             }
-        }
-
-        // add nbt data
-        if (split.length > 3) {
-            try {
-                NBTTagCompound nbt = JsonToNBT.getTagFromJson(split[3]);
-                stack.setTagCompound(nbt);
-            } catch (NBTException e) {
-                Log.error(String.format("Weird NBT %s in %s", split[3], s), e);
-                return null;
+            if (split.length > 3) {
+                nbt = split[3];
             }
+            return GameRegistry.makeItemStack(split[0] + ":" + split[1], meta != null ? meta : 0, 1, nbt);
         }
-
-        return stack;
     }
 
     public static Integer tryParse(String text) {

@@ -41,6 +41,7 @@ public final class ConfigKismet {
     private static List<String> genFilter;
 
     private static Map<EnumOrigin, Boolean> genFlags;
+    private static ConfigCopy configCopy;
 
     private static String[] getEnumValues(Class<? extends Enum<?>> e) {
         return Arrays.asList(e.getEnumConstants())
@@ -54,7 +55,7 @@ public final class ConfigKismet {
         if (config == null)
             config = new Configuration(configFile);
 
-        MinecraftForge.EVENT_BUS.register(new ServerToClientConfigSyncEventHandler());
+        MinecraftForge.EVENT_BUS.register(new SyncPlayerConfig());
 
         config.setCategoryComment(Configuration.CATEGORY_GENERAL, "General settings regarding the mod, such as " +
                 "activating or deactivating recipes and setting timer durations.");
@@ -318,7 +319,6 @@ public final class ConfigKismet {
     }
 
     public static void clientPreInit() {
-
         MinecraftForge.EVENT_BUS.register(new ClientConfigEventHandler());
     }
 
@@ -329,12 +329,8 @@ public final class ConfigKismet {
         syncConfig(false, true);
     }
 
-    public static void clientSync() {
-
-    }
-
-    public static int getTimedLimit() {
-        return timedLimit;
+    public static void clientSync(ConfigCopy configCopy) {
+        ConfigKismet.configCopy = configCopy;
     }
 
     /**
@@ -365,7 +361,19 @@ public final class ConfigKismet {
         return genFlags.get(type);
     }
 
+    public static void removeClientSync() {
+        configCopy = null;
+    }
+
+    public static int getTimedLimit() {
+        if (configCopy != null) return configCopy.getTimedLimit();
+
+        return timedLimit;
+    }
+
     public static boolean isBlockEnabled(BlockKismet blockType) {
+        if (configCopy != null) return configCopy.isBlockEnabled(blockType);
+
         if (blockType instanceof BlockTimedDisplay) {
             return isTimedEnabled();
         } else
@@ -373,10 +381,12 @@ public final class ConfigKismet {
     }
 
     public static boolean isChillEnabled() {
-        return chillEnabled;
+        if (configCopy != null) return configCopy.isChillEnabled();
+        return ConfigKismet.chillEnabled;
     }
 
     public static boolean isTimedEnabled() {
+        if (configCopy != null) return configCopy.isTimedEnabled();
         return timedEnabled;
     }
 
@@ -450,14 +460,19 @@ public final class ConfigKismet {
                 } else {
                     Log.debug("Config changed on Gui, no category");
                 }
+
+                Kismet.proxy.broadcastServerConfig();
             }
         }
     }
 
-    private static class ServerToClientConfigSyncEventHandler {
+    private static class SyncPlayerConfig {
         @SubscribeEvent
         public void onEvent(PlayerEvent.PlayerLoggedInEvent event) {
-            Kismet.proxy.sendConfigToClient((EntityPlayerMP) event.player);
+            if (!event.player.worldObj.isRemote) {
+                // only for safe keeping as this event only happens server side
+                Kismet.proxy.sendServerConfig((EntityPlayerMP) event.player);
+            }
         }
     }
 }

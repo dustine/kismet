@@ -6,6 +6,7 @@ import dustine.kismet.item.ItemKey;
 import dustine.kismet.item.ItemKismet;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
+@GameRegistry.ObjectHolder(Reference.MOD_ID)
 public class ModItems {
     public static final ItemKismet KEY = new ItemKey();
 
