@@ -16,16 +16,16 @@ public class TargetLibraryBuilder {
     }
 
     /**
-     * Recreates the possible target stack library at TargetLibrary according to the current config. This function reads
+     * Recreates the possible target library at TargetLibrary according to the current config. This function reads
      * the existing "stacks" information stored in the @world and rewrites the "forcedStacks" to assure any
      * configuration changes are reflected on the saved data for future use.
      *
      * @param targets
      */
-    public static void build(Collection<InformedStack> targets) {
-        Map<String, InformedStack> stacks = getConfigStacks(targets);
+    public static void build(Collection<Target> targets) {
+        Map<String, Target> targetMap = getConfigStacks(targets);
 
-        // generated stacks filter keys
+        // generated targets filter keys
         final Set<String> filter = new HashSet<>();
         for (String s : ConfigKismet.getGenFilter()) {
             // skip entries that start with an !
@@ -34,57 +34,41 @@ public class TargetLibraryBuilder {
         }
         filter.remove(null);
 
-        stacks.values().removeIf(wrapper -> !isTarget(wrapper, filter));
-        TargetLibrary.setLibrary(new ArrayList<>(stacks.values()));
+        targetMap.values().removeIf(target -> !isTarget(target, filter));
+        TargetLibrary.setLibrary(new ArrayList<>(targetMap.values()));
 
         Log.info("Built target library");
     }
 
     /**
-     * Using originalStacks as a initial blueprint, this function loads all the defined stacks in the configurations,
-     * such as the hidden lists and the force-add stacks, and joins them into originalStacks.
+     * Using targets as a initial blueprint, this function loads all the defined stacks in the configurations,
+     * such as the hidden lists and the force-add stacks, and joins them into targets.
      *
-     * @param originalStacks
-     * @return A map from joining originalStacks with the config lists
+     * @param targets
+     * @return A map from joining targets with the config lists
      */
-    public static Map<String, InformedStack> getConfigStacks(Collection<InformedStack> originalStacks) {
-        Map<String, InformedStack> stacks = new HashMap<>();
+    public static Map<String, Target> getConfigStacks(Collection<Target> targets) {
+        Map<String, Target> targetMap = new HashMap<>();
 
         // forced stacks, the ones that are added for sure to the filtered stacks
-        addOverrides(stacks);
+        addConfigForceAdd(targetMap);
+        // the overrides, both from file and runtime
+        addOverrides(targetMap);
 
         // add all the targets now to this list
-        originalStacks.forEach(stack -> {
-            String key = stack.toString();
-            if (stacks.containsKey(key)) {
-                stacks.put(key, stacks.get(key).joinWith(stack));
+        targets.forEach(target -> {
+            String key = target.toString();
+            if (targetMap.containsKey(key)) {
+                targetMap.put(key, targetMap.get(key).joinWith(target));
             } else {
-                stacks.put(key, stack);
+                targetMap.put(key, target);
             }
         });
-        return stacks;
+        return targetMap;
     }
 
-    private static void addOverrides(Map<String, InformedStack> stacks) {
-        for (String item : ConfigKismet.getForceAdd()) {
-            if (item.startsWith("!") || isMod(item)) continue;
+    private static void addOverrides(Map<String, Target> targetMap) {
 
-            final ItemStack stack = StackHelper.getItemStack(item);
-            if (stack == null) continue;
-
-            // add the entries as subtype-having wrappers
-            final InformedStack wrapper = new InformedStack(stack, EnumOrigin.FORCED);
-            // force hasSubtypes to true if user specified a metadata value
-            if (hasMetadata(item))
-                wrapper.setHasSubtypes(true);
-            wrapper.seal();
-
-            String key = wrapper.toString();
-            if (stacks.containsKey(key)) {
-                stacks.put(key, stacks.get(key).joinWith(wrapper));
-            } else
-                stacks.put(key, wrapper);
-        }
 
         for (EnumOrigin origin : EnumOrigin.values()) {
             for (String item : TargetPatcher.getOverrides(origin)) {
@@ -94,18 +78,38 @@ public class TargetLibraryBuilder {
                 if (stack == null) continue;
 
                 // add the entries as subtype-having wrappers
-                final InformedStack wrapper = new InformedStack(stack, origin);
+                final Target target = new Target(stack, origin);
                 // force hasSubtypes to true if user specified a metadata value
                 if (hasMetadata(item))
-                    wrapper.setHasSubtypes(true);
-                wrapper.seal();
+                    target.setHasSubtypes(true);
 
-                String key = wrapper.toString();
-                if (stacks.containsKey(key)) {
-                    stacks.put(key, stacks.get(key).joinWith(wrapper));
+                String key = target.toString();
+                if (targetMap.containsKey(key)) {
+                    targetMap.put(key, targetMap.get(key).joinWith(target));
                 } else
-                    stacks.put(key, wrapper);
+                    targetMap.put(key, target);
             }
+        }
+    }
+
+    private static void addConfigForceAdd(Map<String, Target> targetMap) {
+        for (String item : ConfigKismet.getForceAdd()) {
+            if (item.startsWith("!") || isMod(item)) continue;
+
+            final ItemStack stack = StackHelper.getItemStack(item);
+            if (stack == null) continue;
+
+            // add the entries as subtype-having wrappers
+            final Target target = new Target(stack, EnumOrigin.FORCED);
+            // force hasSubtypes to true if user specified a metadata value
+            if (hasMetadata(item))
+                target.setHasSubtypes(true);
+
+            String key = target.toString();
+            if (targetMap.containsKey(key)) {
+                targetMap.put(key, targetMap.get(key).joinWith(target));
+            } else
+                targetMap.put(key, target);
         }
     }
 
@@ -133,25 +137,25 @@ public class TargetLibraryBuilder {
 
         // else treat it as item filtering (with possible metadata)
         ItemStack stack;
-        stack = StackHelper.getItemStack(s, true);
+        stack = StackHelper.getItemStack(s);
         if (stack == null) return null;
 
-        return StackHelper.toUniqueKey(stack);
+        return StackHelper.toUniqueKey(stack, s.split(":", 4).length > 2);
     }
 
-    private static boolean isTarget(InformedStack wrapper, Set<String> filter) {
+    private static boolean isTarget(Target target, Set<String> filter) {
         // no nulls pls
-        if (wrapper == null || wrapper.getStack() == null) return false;
+        if (target == null || target.getStack() == null) return false;
 
         // forcefully added stacks always go true, even if they're on the blacklist
-        if (wrapper.hasOrigin(EnumOrigin.FORCED)) return true;
+        if (target.hasOrigin(EnumOrigin.FORCED)) return true;
 
         // generation mode dictates if we continue or not
         switch (ConfigKismet.getGenMode()) {
             case NONE:
                 return false;
             case FILTERED:
-                if (!wrapper.isObtainable()) return false;
+                if (!target.isObtainable()) return false;
                 break;
             case ALL:
                 break;
@@ -159,9 +163,9 @@ public class TargetLibraryBuilder {
                 break;
         }
 
-        String name = wrapper.toString();
+        String name = target.toString();
 
-        // if this stack matches exactly one in the forced list, skip it (will be added later)
+        // if this target matches exactly one in the forced list, skip it (will be added later)
         // and if it's on the filter list, skip it as well (blacklisted)
         return filter.stream().noneMatch(name::startsWith);
     }

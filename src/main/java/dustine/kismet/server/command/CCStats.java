@@ -1,7 +1,7 @@
 package dustine.kismet.server.command;
 
 import dustine.kismet.target.EnumOrigin;
-import dustine.kismet.target.InformedStack;
+import dustine.kismet.target.Target;
 import dustine.kismet.target.TargetLibrary;
 import dustine.kismet.target.TargetLibraryBuilder;
 import dustine.kismet.world.savedata.WSDTargetDatabase;
@@ -27,7 +27,7 @@ public class CCStats extends CommandComponent {
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws WrongUsageException {
         final WSDTargetDatabase targetDatabase = WSDTargetDatabase.get(sender.getEntityWorld());
         CommandKismet.send(sender, "Printing library stats: Savedata, Database, Library");
-        final Collection<InformedStack> configStacks = TargetLibraryBuilder
+        final Collection<Target> configStacks = TargetLibraryBuilder
                 .getConfigStacks(targetDatabase.getDatabase())
                 .values();
 
@@ -49,9 +49,9 @@ public class CCStats extends CommandComponent {
 
         // obtainable
         CommandKismet.sendLine(sender, String.format("§d%s§r: %d, %d, %d", "Obtainable",
-                targetDatabase.getDatabase().stream().filter(InformedStack::isObtainable).count(),
-                configStacks.stream().filter(InformedStack::isObtainable).count(),
-                TargetLibrary.getLibrary().stream().filter(InformedStack::isObtainable).count()
+                targetDatabase.getDatabase().stream().filter(Target::isObtainable).count(),
+                configStacks.stream().filter(Target::isObtainable).count(),
+                TargetLibrary.getLibrary().stream().filter(Target::isObtainable).count()
         ));
 
         // total

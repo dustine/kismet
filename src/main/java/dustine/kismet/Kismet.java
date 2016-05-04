@@ -44,6 +44,9 @@ public class Kismet {
         // register logger
         Log.logger = event.getModLog();
 
+        // start network channels
+        network = new NetworkHandler(Reference.MOD_ID);
+
         // load configs
         proxy.initConfig();
 
@@ -53,14 +56,10 @@ public class Kismet {
         ModItems.init();
         proxy.registerTESR();
 
+        // register gui handler
         ModGuiHandler.register();
 
-
         // register event handlers
-
-
-        // start network channels
-        network = new NetworkHandler(Reference.MOD_ID);
     }
 
     @EventHandler

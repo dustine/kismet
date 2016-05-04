@@ -15,6 +15,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static net.minecraftforge.common.config.Configuration.CATEGORY_GENERAL;
+
 public class ConfigKismetOverride {
     private static final Map<EnumOrigin, Set<String>> blacklist = new HashMap<>();
     private static final Map<EnumOrigin, Set<String>> overrides = new HashMap<>();
@@ -108,6 +110,9 @@ public class ConfigKismetOverride {
             "OTHER:minecraft:dragon_breath",
             "OTHER:minecraft:potion:0"
     };
+    private static final String overridesName = "overrides";
+    private static final String blacklistName = "blacklist";
+    private static final String lockName = "lock";
     private static Configuration config;
 
     public static void init() {
@@ -115,22 +120,19 @@ public class ConfigKismetOverride {
         if (config == null) {
             config = new Configuration(configFile, Reference.VERSION);
         }
-        if (!configFile.exists()) {
+        config.load();
+        loadConfig();
+        final ConfigCategory catGeneral = config.getCategory(CATEGORY_GENERAL);
+
+        // check for lock, and if not, reset on version mismatch
+        final boolean lock = catGeneral.get(lockName).getBoolean();
+        if (!lock && !config.getLoadedConfigVersion().equals(config.getDefinedConfigVersion())) {
             reset();
-        } else {
-            config.load();
-            // check for lock, and if not, reset on version mismatch
-            final boolean lock = config.get("lock", Configuration.CATEGORY_GENERAL, false).getBoolean();
-            if (!lock && !config.getLoadedConfigVersion().equals(config.getDefinedConfigVersion())) {
-                reset();
-            }
         }
 
         // load the configs into the patcher
-        final String[] fileBlacklist = config.get("blacklist", Configuration.CATEGORY_GENERAL, defaultBlacklistValues)
-                .getStringList();
-        final String[] fileOverrides = config.get("override", Configuration.CATEGORY_GENERAL, defaultOverridesValues)
-                .getStringList();
+        final String[] fileBlacklist = catGeneral.get(blacklistName).getStringList();
+        final String[] fileOverrides = catGeneral.get(overridesName).getStringList();
 
         for (EnumOrigin origin : EnumOrigin.values()) {
             if (origin == EnumOrigin.FORCED) continue;
@@ -138,14 +140,20 @@ public class ConfigKismetOverride {
             overrides.put(origin, new HashSet<>());
         }
 
-        addOverrides("blacklist", blacklist, fileBlacklist);
-        addOverrides("overrides", overrides, fileOverrides);
+        addOverrides(blacklistName, blacklist, fileBlacklist);
+        addOverrides(overridesName, overrides, fileOverrides);
         Log.info(String.format("Found %d blacklisted and %d overridden file entries",
                 blacklist.values().stream().map(Set::size).reduce((i, j) -> i + j).orElse(0),
                 overrides.values().stream().map(Set::size).reduce((i, j) -> i + j).orElse(0)
         ));
 
         config.save();
+    }
+
+    private static void reset() {
+        final ConfigCategory catGeneral = config.getCategory(CATEGORY_GENERAL);
+        catGeneral.get(blacklistName).setToDefault();
+        catGeneral.get(overridesName).setToDefault();
     }
 
     private static void addOverrides(String name, Map<EnumOrigin, Set<String>> list, String... entries) {
@@ -185,30 +193,30 @@ public class ConfigKismetOverride {
         }
     }
 
-    private static void reset() {
-        config.setCategoryComment(Configuration.CATEGORY_GENERAL, String.format(
+    private static void loadConfig() {
+        config.setCategoryComment(CATEGORY_GENERAL, String.format(
                 "This file is meant as a manual override for the obtainability algorithms of the mod; either to add new origins for certain items, or to remove (blacklist) them.\nFields are under the format <ORIGIN:ITEM>, where <ORIGIN> is one of %s and <ITEM> uses the same format as in the normal config file ([mod:item[:meta[:nbt]]]).\n**CAUTION**: because the file is loaded before any mods had a chance of registering themselves and their items, there is no sanitation on these fields for item validity. The mod shouldn't crash but expect console spam over any messed up fields.",
                 EnumOrigin.getSorted(true)));
 
-        final ConfigCategory category = config.getCategory(Configuration.CATEGORY_GENERAL);
+        final ConfigCategory category = config.getCategory(CATEGORY_GENERAL);
         category.setRequiresMcRestart(true);
 
-        Property propLock = config.get(Configuration.CATEGORY_GENERAL, "lock", false,
+        Property propLock = config.get(CATEGORY_GENERAL, lockName, false,
                 "If this is set to true, this file won't be reset even when the mod updates");
         propLock.setRequiresMcRestart(true);
-        category.put("lock", propLock);
+        category.put(lockName, propLock);
 
-        Property propBlacklist = config.get(Configuration.CATEGORY_GENERAL, "blacklist", defaultBlacklistValues,
+        Property propBlacklist = config.get(CATEGORY_GENERAL, blacklistName, defaultBlacklistValues,
                 "Items put here, under <ORIGIN:ITEM>, will have the origin forcefully removed from that item when " +
                         "registered as a target. Takes priority over overrides.");
         propBlacklist.setRequiresMcRestart(true);
-        category.put("blacklist", propBlacklist);
+        category.put(blacklistName, propBlacklist);
 
-        Property propOverride = config.get(Configuration.CATEGORY_GENERAL, "overrides", defaultOverridesValues,
+        Property propOverride = config.get(CATEGORY_GENERAL, overridesName, defaultOverridesValues,
                 "Items put here, under <ORIGIN:ITEM>, will have the origin forcefully added from that item when " +
                         "registered as a target.");
         propOverride.setRequiresMcRestart(true);
-        category.put("overrides", propOverride);
+        category.put(overridesName, propOverride);
     }
 
     public static Map<EnumOrigin, Set<String>> getBlacklist() {

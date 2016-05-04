@@ -97,8 +97,8 @@ class CCDump extends CommandComponent {
         return dump;
     }
 
-    private List<String> getSortedInformedStacks(List<InformedStack> stacks) {
-        return stacks.stream()
+    private List<String> getSortedInformedStacks(List<Target> targets) {
+        return targets.stream()
                 .sorted((o1, o2) -> o1.toString().compareTo(o2.toString()))
                 .map(s -> String.format("%s %s", s.getOrigins(), s))
                 .collect(Collectors.toList());

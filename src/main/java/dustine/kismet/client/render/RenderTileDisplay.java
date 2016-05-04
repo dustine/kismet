@@ -2,7 +2,7 @@ package dustine.kismet.client.render;
 
 import dustine.kismet.block.BlockDisplay;
 import dustine.kismet.block.BlockTimedDisplay;
-import dustine.kismet.target.InformedStack;
+import dustine.kismet.target.Target;
 import dustine.kismet.tile.TileDisplay;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -30,7 +30,7 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
      */
     @Override
     public void renderTileEntityAt(TileDisplay te, double x, double y, double z, float partialTicks, int destroyStage) {
-        if (te == null) return;
+        if (te == null || !te.isReady()) return;
 
         // check if we have a blockTimedDisplay, and if so, its status on fulfillment
         final Boolean fulfilled = getWorld().getBlockState(te.getPos()).getValue(BlockDisplay.FULFILLED);
@@ -88,7 +88,7 @@ public class RenderTileDisplay extends TileEntitySpecialRenderer<TileDisplay> {
         GlStateManager.rotate(facingRot, 0, 1, 0);
 
         // item rendering!
-        final InformedStack target = te.getTarget();
+        final Target target = te.getTarget();
         if (target != null && target.hasItem()) {
             ItemStack stack = target.getStack();
             if (!itemRenderer.shouldRenderItemIn3D(stack) || stack.getItem() instanceof ItemSkull) {

@@ -4,7 +4,7 @@ import dustine.kismet.block.BlockDisplay;
 import dustine.kismet.item.ItemKey;
 import dustine.kismet.item.ItemKismet;
 import dustine.kismet.tile.TileDisplay;
-import dustine.kismet.util.StackHelper;
+import dustine.kismet.util.TargetHelper;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Slot;
@@ -63,7 +63,7 @@ public class MessageGuiRemoteAction extends MessageBase<MessageGuiRemoteAction> 
             final TileDisplay display = (TileDisplay) tile;
             final BlockDisplay block = (BlockDisplay) display.getBlockType();
 
-            if (StackHelper.isEquivalent(display.getTarget(), stack)) {
+            if (TargetHelper.isEquivalent(display.getTarget(), stack)) {
                 // fulfill target
                 block.setTargetAsFulfilled(world, message.pos, world.getBlockState(message.pos), player);
             } else if (stack.getItem() instanceof ItemKismet) {

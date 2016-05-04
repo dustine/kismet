@@ -1,12 +1,11 @@
 package dustine.kismet.client.target;
 
 import dustine.kismet.Log;
-import dustine.kismet.target.InformedStack;
+import dustine.kismet.target.Target;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -16,12 +15,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ClientTargetHelper {
-    public static void setCraftingFlags(InformedStack stack) {
-        throw new NotImplementedException();
-    }
-
-    public static Map<String, InformedStack> unfoldSubtypes() {
-        Map<String, InformedStack> stacks = new HashMap<>();
+    public static Map<String, Target> unfoldSubtypes() {
+        Map<String, Target> stacks = new HashMap<>();
         // get registered items
         for (ResourceLocation loc : Item.REGISTRY.getKeys()) {
             Item item = Item.REGISTRY.getObject(loc);
@@ -31,9 +26,9 @@ public class ClientTargetHelper {
             final List<ItemStack> subtypes = getSubtypes(item);
             // turn them into informed stacks with subtype count info
             for (ItemStack s : subtypes) {
-                final InformedStack informedStack = new InformedStack(s);
-                informedStack.setHasSubtypes(subtypes.size() > 1);
-                stacks.put(informedStack.toString(), informedStack);
+                final Target target = new Target(s);
+                target.setHasSubtypes(subtypes.size() > 1);
+                stacks.put(target.toString(), target);
             }
         }
         return stacks;
@@ -57,6 +52,4 @@ public class ClientTargetHelper {
 
         return itemStacks;
     }
-
-
 }

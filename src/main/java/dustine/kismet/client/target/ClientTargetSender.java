@@ -5,7 +5,7 @@ import dustine.kismet.Log;
 import dustine.kismet.addon.AddonJei;
 import dustine.kismet.network.message.MessageClientTargets;
 import dustine.kismet.network.message.MessageClientTargetsResponse;
-import dustine.kismet.target.InformedStack;
+import dustine.kismet.target.Target;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTUtil;
 
@@ -18,12 +18,12 @@ import java.util.List;
 import java.util.UUID;
 
 public class ClientTargetSender {
-    private final List<InformedStack> stacks;
+    private final List<Target> targets;
     private final UUID id;
 
     public ClientTargetSender(UUID id) {
         this.id = id;
-        this.stacks = new ArrayList<>(ClientTargetHelper.unfoldSubtypes().values());
+        this.targets = new ArrayList<>(ClientTargetHelper.unfoldSubtypes().values());
     }
 
     public UUID getId() {
@@ -31,13 +31,13 @@ public class ClientTargetSender {
     }
 
     public ClientTargetSender invoke() {
-        if (this.stacks.isEmpty()) {
+        if (this.targets.isEmpty()) {
             Kismet.network.sendToServer(new MessageClientTargets(this.id));
         } else {
-            final List<InformedStack> toSend = new ArrayList<>();
+            final List<Target> toSend = new ArrayList<>();
             final CountingOutputStream counter = new CountingOutputStream();
             final DataOutputStream stream = new DataOutputStream(counter);
-            final Iterator<InformedStack> itr = this.stacks.iterator();
+            final Iterator<Target> itr = this.targets.iterator();
 
             try {
                 CompressedStreamTools.write(NBTUtil.createUUIDTag(this.id), stream);
@@ -46,23 +46,21 @@ public class ClientTargetSender {
             }
 
             while (itr.hasNext()) {
-                final InformedStack stack = itr.next();
+                final Target target = itr.next();
 
                 // add crafting flags
                 if (Kismet.instance.isJeiLoaded()) {
-                    AddonJei.setCraftingFlags(stack);
-                } else {
-                    ClientTargetHelper.setCraftingFlags(stack);
+                    AddonJei.setCraftingFlags(target);
                 }
 
                 try {
-                    CompressedStreamTools.write(stack.writeToNBT(), stream);
+                    CompressedStreamTools.write(target.writeToNBT(), stream);
                     if (counter.getCount() >= Short.MAX_VALUE) {
                         // client -> servers have a max size of Short.MAX_VALUE, in bytes
-                        // so we add stacks until we're juuuust over the min size
+                        // so we add targets until we're juuuust over the min size
                         if (toSend.isEmpty()) {
-                            // ... we haven't added any to toSend, this single stack is BIGGER than the limit
-                            Log.error(String.format("This stack is just too damn big to send by network: %s", stack));
+                            // ... we haven't added any to toSend, this single target is BIGGER than the limit
+                            Log.error(String.format("This target is just too damn big to send by network: %s", target));
                             itr.remove();
                         }
                         // limit reached, break and send
@@ -70,9 +68,9 @@ public class ClientTargetSender {
                     }
 
                     // add to toSend
-                    toSend.add(stack);
+                    toSend.add(target);
                 } catch (IOException e) {
-                    Log.error(stack.toString(), e);
+                    Log.error(target.toString(), e);
                 }
 
                 itr.remove();

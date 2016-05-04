@@ -24,9 +24,9 @@ commands.kismet.unforce.usage=/kismet unforce <mod:item> [damage] [nbt] OR <mod:
 
 # Addons
 ## JEI
-jei.description.tile.chillDisplay=A display of your Kismet without a time limit. To get the next goal right-click it with your own version of whatever it holds.\n It al
-jei.description.tile.timedDisplay=A timed display of your Kismet. Before the timer runs out you have to right-click the display with your own version of whatever it holds.\nIt also keeps track of your streak so far and the highest streak you ever had.
-jei.description.item.key=A key used to expedite any Kismetic Displays, consuming it. If used on an unfulfilled display it'll reroll the goal, but it's a decreasing chance of it happening the more keys you use without fulfilling goals on your own. Using one on a fulfilled displays will instead show the next goal right away without any chance of failure or worsening the reroll chance.
+jei.description.tile.chillDisplay=A display of your Kismet without a time limit. To get the next goal right-click the block with your own version of the target block and/or item.\n\nIt also keeps track of your score (fulfilled targets) so far.
+jei.description.tile.timedDisplay=A timed display of your Kismet. Before the timer runs out you have to right-click the display with the target.\n\nIt also keeps track of your streak (fulfilled targets in a row) so far and the highest streak you ever had in parenthesis.
+jei.description.item.key=A key used to expedite any Kismetic Displays, consuming it.\n\nIf used on an unfulfilled display it'll re-roll the goal, but it's a decreasing chance of it happening the more keys you use without fulfilling goals on your own.\n\nUsing one on a fulfilled displays will instead show the next goal right away without any chance of failure or worsening the re-roll chance.
 
 # GUI
 ## Display GUI

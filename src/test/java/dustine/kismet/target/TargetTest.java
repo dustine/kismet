@@ -5,10 +5,10 @@ import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-        InformedStackNBTSerializationTest.class
+        TargetNBTSerializationTest.class
 })
 
-public class InformedStackTest {
+public class TargetTest {
 }
 
 

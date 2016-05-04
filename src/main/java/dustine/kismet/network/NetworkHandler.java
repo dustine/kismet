@@ -58,6 +58,10 @@ public class NetworkHandler {
         this.channel.sendToDimension(message, dimension);
     }
 
+    public void sendToAll(MessageBase message) {
+        this.channel.sendToAll(message);
+    }
+
     public void sendToServer(MessageBase message) {
         this.channel.sendToServer(message);
     }

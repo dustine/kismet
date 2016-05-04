@@ -23,13 +23,6 @@ public interface IProxy {
     void registerColorHandlers();
 
     /**
-     * Sends the current server config to player
-     *
-     * @param player The player that will receive the config message
-     */
-    void sendConfigToClient(EntityPlayerMP player);
-
-    /**
      * Cleans the target library on embedded server side only
      *
      * @param player The player instance with the outdated target library
@@ -77,4 +70,8 @@ public interface IProxy {
      * @return true if successful
      */
     EntityPlayer tryGetEntityPlayerSP();
+
+    void broadcastServerConfig();
+
+    void sendServerConfig(EntityPlayerMP player);
 }

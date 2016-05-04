@@ -3,12 +3,13 @@ package dustine.kismet.tile;
 import dustine.kismet.Kismet;
 import dustine.kismet.Log;
 import dustine.kismet.block.BlockDisplay;
+import dustine.kismet.block.BlockKismet;
 import dustine.kismet.block.BlockTimedDisplay;
 import dustine.kismet.config.ConfigKismet;
-import dustine.kismet.target.InformedStack;
-import dustine.kismet.target.TargetGenerationResult;
+import dustine.kismet.target.Target;
 import dustine.kismet.target.TargetLibrary;
-import dustine.kismet.util.StackHelper;
+import dustine.kismet.target.TargetResult;
+import dustine.kismet.util.TargetHelper;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -44,13 +45,14 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
             TextFormatting.DARK_PURPLE,
             TextFormatting.GOLD
     };
+    private final int DEADLINE_MULTIPLIER = 20;
     private IItemHandler targetSlot = null;
     private int skipped;
     private int score;
     private int highScore;
     private long deadline;
-    private InformedStack target;
-    private List<InformedStack> history;
+    private Target target;
+    private List<Target> history;
     private HashMap<String, Integer> weights;
     private boolean stateChanged;
     private long newTargetTimeout;
@@ -168,7 +170,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
     }
 
     private void resetDeadline() {
-        setDeadline(this.worldObj.getTotalWorldTime() + ConfigKismet.getTimedLimit() * 20 * 60);
+        setDeadline(this.worldObj.getTotalWorldTime() + ConfigKismet.getTimedLimit() * DEADLINE_MULTIPLIER);
     }
 
     public boolean rollForKey() {
@@ -198,9 +200,9 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
             return false;
         }
 
-        final InformedStack oldTarget = this.target;
+        final Target oldTarget = this.target;
 
-        TargetGenerationResult targetResult = TargetLibrary.generateTarget(this.weights, this.history);
+        TargetResult targetResult = TargetLibrary.generateTarget(this.weights, this.history);
         if (targetResult.hasFlag()) {
             this.newTargetTimeout = this.worldObj.getTotalWorldTime() + 5 * 20;
             Log.warning("Failed to get target, " + targetResult.getFlag());
@@ -230,7 +232,8 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
     }
 
     public boolean isReady() {
-        return this.target != null && this.target.hasItem();
+        return this.target != null && this.target.hasItem() && ConfigKismet.isBlockEnabled(
+                (BlockKismet) this.getBlockType());
     }
 
     public String getStylizedKeyChance() {
@@ -281,7 +284,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         setHighScore(nbt.getInteger("highScore"));
 
         if (nbt.hasKey("target")) {
-            this.target = new InformedStack(nbt.getCompoundTag("target"));
+            this.target = new Target(nbt.getCompoundTag("target"));
         } else {
             this.target = null;
         }
@@ -299,7 +302,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         NBTTagList lastTargetsNbt = nbt.getTagList("history", 10);
         for (int i = 0; i < lastTargetsNbt.tagCount(); i++) {
             NBTTagCompound compound = lastTargetsNbt.getCompoundTagAt(i);
-            this.history.add(new InformedStack(compound));
+            this.history.add(new Target(compound));
         }
     }
 
@@ -328,7 +331,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         compound.setTag("weights", modWeightsNbt);
 
         NBTTagList lastTargetsNbt = new NBTTagList();
-        for (InformedStack lastTarget : this.history) {
+        for (Target lastTarget : this.history) {
             NBTTagCompound targetTag = lastTarget.writeToNBT();
             lastTargetsNbt.appendTag(targetTag);
         }
@@ -347,14 +350,14 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
         readFromNBT(pkt.getNbtCompound());
     }
 
-    public InformedStack getTarget() {
+    public Target getTarget() {
         return this.target;
     }
 
-    public void setTarget(InformedStack target) {
-        InformedStack oldTarget = this.target;
+    public void setTarget(Target target) {
+        Target oldTarget = this.target;
 
-        if (!StackHelper.isEquivalent(this.target, target)) {
+        if (!TargetHelper.isEquivalent(this.target, target)) {
             this.target = target;
         }
 

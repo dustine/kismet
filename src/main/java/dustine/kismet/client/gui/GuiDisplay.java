@@ -5,14 +5,16 @@ import dustine.kismet.block.BlockTimedDisplay;
 import dustine.kismet.gui.inventory.ContainerDisplay;
 import dustine.kismet.gui.inventory.SlotTarget;
 import dustine.kismet.target.EnumOrigin;
-import dustine.kismet.target.InformedStack;
+import dustine.kismet.target.Target;
 import dustine.kismet.tile.TileDisplay;
-import dustine.kismet.util.StackHelper;
+import dustine.kismet.util.TargetHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextComponentTranslation;
 import net.minecraftforge.fml.client.config.GuiUtils;
 
@@ -29,8 +31,6 @@ public class GuiDisplay extends GuiKismet {
     private static final Point infoIconOrigin = new Point(59, 31);
     private static final Point originIconOrigin = new Point(59, 16);
     private static final Point infoTextOrigin = new Point(72, 33);
-    private static final int infoIconTextureX = 176;
-    private static final int originIconTextureY = 164;
     private final InventoryPlayer playerInventory;
     private final TileDisplay display;
     private final RenderTargetSlot renderTargetSlot = new RenderTargetSlot(this);
@@ -41,15 +41,13 @@ public class GuiDisplay extends GuiKismet {
         this.playerInventory = playerInventory;
         this.display = display;
         this.targetSlot = (SlotTarget) this.inventorySlots.getSlot(0);
-        // no coincidence the texture statics are the same here, the icon texture sheets are on either edge of the
-        // main gui sheet
         this.xSize = 176;
         this.ySize = 164;
     }
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        final InformedStack target = this.display.getTarget();
+        final Target target = this.display.getTarget();
 
         super.drawScreen(mouseX, mouseY, partialTicks);
 
@@ -121,12 +119,13 @@ public class GuiDisplay extends GuiKismet {
 
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
-        final InformedStack target = this.display.getTarget();
+        final Target target = this.display.getTarget();
         int relOx = (this.width - this.xSize) / 2;
         int relOy = (this.height - this.ySize) / 2;
 
         GlStateManager.color(1.0F, 1.0F, 1.0F, 1.0F);
-        this.mc.getTextureManager().bindTexture(Reference.GUI.DISPLAY);
+        final TextureManager textureManager = this.mc.getTextureManager();
+        textureManager.bindTexture(Reference.Gui.DISPLAY);
         this.drawTexturedModalRect(relOx, relOy, 0, 0, this.xSize, this.ySize);
 
         // origin icons
@@ -136,41 +135,36 @@ public class GuiDisplay extends GuiKismet {
 
             for (EnumOrigin origin : origins) {
                 if (target.hasOrigin(origin)) {
+                    textureManager.bindTexture(new ResourceLocation(
+                            String.format(Reference.Gui.ORIGIN, origin.toCamelCase())));
                     this.drawTexturedModalRect(relOx + originIconOrigin.x + originIconSize * iconLocation++,
-                            relOy + originIconOrigin.y, originIconSize * origin.ordinal(), originIconTextureY,
-                            originIconSize, originIconSize);
+                            relOy + originIconOrigin.y, 0, 0, originIconSize, originIconSize);
                 }
             }
         }
 
         // text info icons
         int iconLocation = 0;
+        textureManager.bindTexture(Reference.Gui.TIME);
         if (this.display.getBlockType() instanceof BlockTimedDisplay) {
             this.drawTexturedModalRect(relOx + infoIconOrigin.x,
                     relOy + infoIconOrigin.y + (infoIconSize + 1) * iconLocation++,
-                    infoIconTextureX,
-                    infoIconSize * EnumIcon.TIME.ordinal(),
-                    infoIconSize,
-                    infoIconSize);
+                    0, 0, infoIconSize, infoIconSize);
         }
 
+        textureManager.bindTexture(Reference.Gui.KEYS);
         this.drawTexturedModalRect(relOx + infoIconOrigin.x,
                 relOy + infoIconOrigin.y + (infoIconSize + 1) * iconLocation++,
-                infoIconTextureX,
-                infoIconSize * EnumIcon.KEY.ordinal(),
-                infoIconSize,
-                infoIconSize);
+                0, 0, infoIconSize, infoIconSize);
 
+        textureManager.bindTexture(Reference.Gui.SCORE);
         this.drawTexturedModalRect(relOx + infoIconOrigin.x,
                 relOy + infoIconOrigin.y + (infoIconSize + 1) * iconLocation,
-                infoIconTextureX,
-                infoIconSize * EnumIcon.SCORE.ordinal(),
-                infoIconSize,
-                infoIconSize);
+                0, 0, infoIconSize, infoIconSize);
 
         // draw a background highlight under a slot if it equals the target
         // or under the target slot if it is fulfilled
-        this.mc.getTextureManager().bindTexture(Reference.GUI.HIGHLIGHT);
+        textureManager.bindTexture(Reference.Gui.HIGHLIGHT);
 
         for (int i1 = 0; i1 < this.inventorySlots.inventorySlots.size(); ++i1) {
             Slot slot = this.inventorySlots.inventorySlots.get(i1);
@@ -183,7 +177,7 @@ public class GuiDisplay extends GuiKismet {
                     this.drawTexturedModalRect(slotX, slotY, 0, 0, slotSize, slotSize);
                 }
             } else if (!this.display.isFulfilled() && slot.getHasStack() && target != null &&
-                    StackHelper.isEquivalent(target, slot.getStack())) {
+                    TargetHelper.isEquivalent(target, slot.getStack())) {
                 this.drawTexturedModalRect(slotX, slotY, 0, 0, 16, 16);
             }
         }
@@ -221,7 +215,7 @@ public class GuiDisplay extends GuiKismet {
         }
     }
 
-    private List<EnumOrigin> getOrderedOrigins(InformedStack target) {
+    private List<EnumOrigin> getOrderedOrigins(Target target) {
         return EnumOrigin.getSorted(true).stream().filter(target::hasOrigin).collect(Collectors.toList());
     }
 

@@ -4,7 +4,7 @@ import dustine.kismet.Kismet;
 import dustine.kismet.gui.ModGuiHandler;
 import dustine.kismet.tile.TileDisplay;
 import dustine.kismet.util.SoundHelper;
-import dustine.kismet.util.StackHelper;
+import dustine.kismet.util.TargetHelper;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.properties.PropertyEnum;
@@ -141,7 +141,7 @@ public class BlockDisplay extends BlockContainerKismet<TileDisplay> {
         // do nothing if tile-entity is borked
         if (te == null) return false;
 
-        if (heldItem != null && StackHelper.isEquivalent(te.getTarget(), heldItem)) {
+        if (heldItem != null && TargetHelper.isEquivalent(te.getTarget(), heldItem)) {
             // fulfilled target~
             setTargetAsFulfilled(world, pos, state, player);
             // because of bug
@@ -149,7 +149,7 @@ public class BlockDisplay extends BlockContainerKismet<TileDisplay> {
         }
 
         if (hand == EnumHand.OFF_HAND) {
-            // only show GUI on server
+            // only show Gui on server
             if (!world.isRemote) {
                 player.openGui(Kismet.instance, ModGuiHandler.EnumGuiID.DISPLAY.ordinal(), world, pos.getX(),
                         pos.getY(), pos.getZ());

@@ -4,6 +4,9 @@ import com.google.common.collect.ImmutableList;
 import dustine.kismet.Kismet;
 import dustine.kismet.Log;
 import dustine.kismet.Reference;
+import dustine.kismet.block.BlockChillDisplay;
+import dustine.kismet.block.BlockKismet;
+import dustine.kismet.block.BlockTimedDisplay;
 import dustine.kismet.target.EnumOrigin;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraftforge.common.MinecraftForge;
@@ -38,6 +41,7 @@ public final class ConfigKismet {
     private static List<String> genFilter;
 
     private static Map<EnumOrigin, Boolean> genFlags;
+    private static ConfigCopy configCopy;
 
     private static String[] getEnumValues(Class<? extends Enum<?>> e) {
         return Arrays.asList(e.getEnumConstants())
@@ -51,7 +55,7 @@ public final class ConfigKismet {
         if (config == null)
             config = new Configuration(configFile);
 
-        MinecraftForge.EVENT_BUS.register(new ServerToClientConfigSyncEventHandler());
+        MinecraftForge.EVENT_BUS.register(new SyncPlayerConfig());
 
         config.setCategoryComment(Configuration.CATEGORY_GENERAL, "General settings regarding the mod, such as " +
                 "activating or deactivating recipes and setting timer durations.");
@@ -72,7 +76,7 @@ public final class ConfigKismet {
     /**
      * Synchronise the three copies of the data 1) loadConfigFromFile && readFieldsFromConfig -> initialise everything
      * from the disk file 2) !loadConfigFromFile && readFieldsFromConfig --> copy everything from the config file
-     * (altered by GUI) 3) !loadConfigFromFile && !readFieldsFromConfig --> copy everything from the native fields
+     * (altered by Gui) 3) !loadConfigFromFile && !readFieldsFromConfig --> copy everything from the native fields
      *
      * @param loadConfigFromFile   if true, load the config field from the config file on disk
      * @param readFieldsFromConfig if true, reload the member variables from the config field
@@ -315,23 +319,18 @@ public final class ConfigKismet {
     }
 
     public static void clientPreInit() {
-
         MinecraftForge.EVENT_BUS.register(new ClientConfigEventHandler());
     }
 
     /**
-     * Save the GUI-stored values, without accessing disk config Not needed to use
+     * Save the Gui-stored values, without accessing disk config Not needed to use
      */
     private static void syncFromGUI() {
         syncConfig(false, true);
     }
 
-    public static void clientSync() {
-
-    }
-
-    public static int getTimedLimit() {
-        return timedLimit;
+    public static void clientSync(ConfigCopy configCopy) {
+        ConfigKismet.configCopy = configCopy;
     }
 
     /**
@@ -354,20 +353,41 @@ public final class ConfigKismet {
         return ImmutableList.copyOf(genFilter);
     }
 
-    public static boolean isChillEnabled() {
-        return chillEnabled;
-    }
-
-    public static boolean isTimedEnabled() {
-        return timedEnabled;
-    }
-
     public static boolean isGenFlag(EnumOrigin type) {
         if (type.equals(EnumOrigin.FORCED)) {
             Log.warning("Tried to check if FORCED are allowed");
             return true;
         }
         return genFlags.get(type);
+    }
+
+    public static void removeClientSync() {
+        configCopy = null;
+    }
+
+    public static int getTimedLimit() {
+        if (configCopy != null) return configCopy.getTimedLimit();
+
+        return timedLimit;
+    }
+
+    public static boolean isBlockEnabled(BlockKismet blockType) {
+        if (configCopy != null) return configCopy.isBlockEnabled(blockType);
+
+        if (blockType instanceof BlockTimedDisplay) {
+            return isTimedEnabled();
+        } else
+            return blockType instanceof BlockChillDisplay && isChillEnabled();
+    }
+
+    public static boolean isChillEnabled() {
+        if (configCopy != null) return configCopy.isChillEnabled();
+        return ConfigKismet.chillEnabled;
+    }
+
+    public static boolean isTimedEnabled() {
+        if (configCopy != null) return configCopy.isTimedEnabled();
+        return timedEnabled;
     }
 
     public enum EnumGenMode {
@@ -432,22 +452,27 @@ public final class ConfigKismet {
                 if (category != null) {
                     // force a library refresh if in-world and any changes occured regarding the target category
                     if (category.equals(ConfigKismet.CATEGORY_TARGETS)) {
-                        Log.trace("Updating filtered stacks...");
+                        Log.trace("Refreshing target library...");
                         if (Kismet.databaseBuilder != null)
                             Kismet.databaseBuilder.tryBuildLibraryWithLastGeneratedDatabase();
                     }
-                    Log.debug("Config changed on GUI, category " + category);
+                    Log.debug("Config changed on Gui, category " + category);
                 } else {
-                    Log.debug("Config changed on GUI, no category");
+                    Log.debug("Config changed on Gui, no category");
                 }
+
+                Kismet.proxy.broadcastServerConfig();
             }
         }
     }
 
-    private static class ServerToClientConfigSyncEventHandler {
+    private static class SyncPlayerConfig {
         @SubscribeEvent
         public void onEvent(PlayerEvent.PlayerLoggedInEvent event) {
-            Kismet.proxy.sendConfigToClient((EntityPlayerMP) event.player);
+            if (!event.player.worldObj.isRemote) {
+                // only for safe keeping as this event only happens server side
+                Kismet.proxy.sendServerConfig((EntityPlayerMP) event.player);
+            }
         }
     }
 }
