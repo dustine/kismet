@@ -1,4 +1,4 @@
-package dustine.kismet.server.command;
+package dustine.kismet.command;
 
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.ICommandSender;

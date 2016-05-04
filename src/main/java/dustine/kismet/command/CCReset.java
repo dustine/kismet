@@ -1,4 +1,4 @@
-package dustine.kismet.server.command;
+package dustine.kismet.command;
 
 import dustine.kismet.Kismet;
 import dustine.kismet.world.savedata.TargetDatabaseBuilder;
