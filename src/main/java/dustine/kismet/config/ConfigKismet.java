@@ -1,17 +1,22 @@
 package dustine.kismet.config;
 
 import com.google.common.collect.ImmutableList;
+import dustine.kismet.Kismet;
 import dustine.kismet.Log;
 import dustine.kismet.Reference;
 import dustine.kismet.block.BlockChillDisplay;
 import dustine.kismet.block.BlockKismet;
 import dustine.kismet.block.BlockTimedDisplay;
-import dustine.kismet.event.ClientConfigChanged;
-import dustine.kismet.event.SyncPlayerConfig;
 import dustine.kismet.target.EnumOrigin;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
+import net.minecraftforge.fml.client.event.ConfigChangedEvent;
 import net.minecraftforge.fml.common.Loader;
+import net.minecraftforge.fml.common.eventhandler.EventPriority;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 
 import java.io.File;
 import java.util.*;
@@ -50,7 +55,7 @@ public final class ConfigKismet {
         if (config == null)
             config = new Configuration(configFile);
 
-        new SyncPlayerConfig();
+        MinecraftForge.EVENT_BUS.register(new SyncPlayerConfig());
 
         config.setCategoryComment(Configuration.CATEGORY_GENERAL, "General settings regarding the mod, such as " +
                 "activating or deactivating recipes and setting timer durations.");
@@ -314,13 +319,13 @@ public final class ConfigKismet {
     }
 
     public static void clientPreInit() {
-        new ClientConfigChanged();
+        MinecraftForge.EVENT_BUS.register(new ClientConfigEventHandler());
     }
 
     /**
      * Save the Gui-stored values, without accessing disk config Not needed to use
      */
-    public static void syncFromGUI() {
+    private static void syncFromGUI() {
         syncConfig(false, true);
     }
 
@@ -434,4 +439,40 @@ public final class ConfigKismet {
         };
     }
 
+    private static class ClientConfigEventHandler {
+        /*
+         * This class, when instantiated as an object, will listen on the FML
+         *  event bus for an OnConfigChangedEvent
+         */
+        @SubscribeEvent(priority = EventPriority.NORMAL)
+        public void onEvent(ConfigChangedEvent.OnConfigChangedEvent event) {
+            if (Reference.MOD_ID.equals(event.getModID())) {
+                syncFromGUI();
+                final String category = event.getConfigID();
+                if (category != null) {
+                    // force a library refresh if in-world and any changes occured regarding the target category
+                    if (category.equals(ConfigKismet.CATEGORY_TARGETS)) {
+                        Log.trace("Refreshing target library...");
+                        if (Kismet.databaseBuilder != null)
+                            Kismet.databaseBuilder.tryBuildLibraryWithLastGeneratedDatabase();
+                    }
+                    Log.debug("Config changed on Gui, category " + category);
+                } else {
+                    Log.debug("Config changed on Gui, no category");
+                }
+
+                Kismet.proxy.broadcastServerConfig();
+            }
+        }
+    }
+
+    private static class SyncPlayerConfig {
+        @SubscribeEvent
+        public void onEvent(PlayerEvent.PlayerLoggedInEvent event) {
+            if (!event.player.worldObj.isRemote) {
+                // only for safe keeping as this event only happens server side
+                Kismet.proxy.sendServerConfig((EntityPlayerMP) event.player);
+            }
+        }
+    }
 }

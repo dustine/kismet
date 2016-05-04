@@ -1,4 +1,4 @@
-package dustine.kismet.command;
+package dustine.kismet.server.command;
 
 import dustine.kismet.target.EnumOrigin;
 import dustine.kismet.target.Target;

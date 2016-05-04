@@ -1,7 +1,5 @@
 package dustine.kismet;
 
-import dustine.kismet.command.CommandKismet;
-import dustine.kismet.event.FixDatabaseOnLogin;
 import dustine.kismet.gui.ModGuiHandler;
 import dustine.kismet.network.NetworkHandler;
 import dustine.kismet.proxy.IProxy;
@@ -9,11 +7,14 @@ import dustine.kismet.registry.ModBlocks;
 import dustine.kismet.registry.ModItems;
 import dustine.kismet.registry.ModRecipes;
 import dustine.kismet.registry.ModTiles;
+import dustine.kismet.server.command.CommandKismet;
+import dustine.kismet.server.event.EventOnceFixDatabase;
 import dustine.kismet.target.TargetLibraryBuilder;
 import dustine.kismet.target.TargetPatcher;
 import dustine.kismet.world.savedata.TargetDatabaseBuilder;
 import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.Mod.EventHandler;
@@ -36,7 +37,7 @@ public class Kismet {
 
     private boolean jeiLoaded;
 
-    private FixDatabaseOnLogin eventFixDatabaseOnLogin;
+    private EventOnceFixDatabase eventOnceFixDatabase;
 
     @EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -87,13 +88,14 @@ public class Kismet {
         TargetLibraryBuilder.build(targetDatabase);
 
         // register the hook to restart the targetLibrary on single-player
-        this.eventFixDatabaseOnLogin = new FixDatabaseOnLogin();
+        this.eventOnceFixDatabase = new EventOnceFixDatabase();
+        MinecraftForge.EVENT_BUS.register(this.eventOnceFixDatabase);
     }
 
     @EventHandler
     public void serverStopping(FMLServerStoppingEvent event) {
         // unregister the thing if it wasn't unfulfilled yet
-        this.eventFixDatabaseOnLogin.unregister();
+        MinecraftForge.EVENT_BUS.unregister(Kismet.instance.eventOnceFixDatabase);
     }
 
     public boolean isJeiLoaded() {
