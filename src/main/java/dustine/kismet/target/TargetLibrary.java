@@ -68,8 +68,7 @@ public class TargetLibrary {
 
         final String targetMod = getWeightedRandomMod(metrics);
         // target should always be assigned a value, but just in case...
-        if (targetMod == null || targetMod.isEmpty() || !Loader.isModLoaded(targetMod) ||
-                count.get(targetMod) <= 0) {
+        if (targetMod == null || targetMod.isEmpty() || !count.containsKey(targetMod) || count.get(targetMod) <= 0) {
             Log.error(String.format("Failed to get a targeted mod (%s) after edge case verification, from %s and %s",
                     targetMod, weights, history));
             return null;
