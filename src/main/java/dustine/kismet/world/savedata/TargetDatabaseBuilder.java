@@ -399,15 +399,13 @@ public class TargetDatabaseBuilder {
 
         this.targetDatabase.enrichStacks(targetMap.values());
 
-        if (command) {
-            if (TargetDatabaseBuilder.isCommand()) {
-                CommandKismet.send(player, "Finished! Refreshing target library now...");
-            }
-            Log.info("Build target database");
-            TargetLibraryBuilder.build(WSDTargetDatabase.get(player.getEntityWorld()));
-            if (TargetDatabaseBuilder.isCommand()) {
-                CommandKismet.send(player, "Done! Database reset finished.");
-            }
+        if (TargetDatabaseBuilder.isCommand()) {
+            CommandKismet.send(player, "Finished! Refreshing target library now...");
+        }
+        Log.info("Build target database");
+        TargetLibraryBuilder.build(WSDTargetDatabase.get(player.getEntityWorld()));
+        if (TargetDatabaseBuilder.isCommand()) {
+            CommandKismet.send(player, "Done! Database reset finished.");
         }
     }
 
