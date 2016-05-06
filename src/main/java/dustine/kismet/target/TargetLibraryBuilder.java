@@ -68,8 +68,6 @@ public class TargetLibraryBuilder {
     }
 
     private static void addOverrides(Map<String, Target> targetMap) {
-
-
         for (EnumOrigin origin : EnumOrigin.values()) {
             for (String item : TargetPatcher.getOverrides(origin)) {
                 if (item.startsWith("!") || isMod(item)) continue;
