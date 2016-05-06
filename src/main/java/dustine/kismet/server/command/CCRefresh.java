@@ -1,7 +1,7 @@
 package dustine.kismet.server.command;
 
 import dustine.kismet.Kismet;
-import dustine.kismet.target.TargetLibraryBuilder;
+import dustine.kismet.target.TargetLibrary;
 import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -12,7 +12,7 @@ import java.util.List;
 
 public class CCRefresh extends CommandComponent {
 
-    public CCRefresh(String parent) {
+    public CCRefresh(final String parent) {
         super(parent);
     }
 
@@ -22,10 +22,11 @@ public class CCRefresh extends CommandComponent {
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
+    public void execute(final MinecraftServer server, final ICommandSender sender,
+                        final String[] args) throws CommandException {
         final WSDTargetDatabase targetDatabase = WSDTargetDatabase.get(sender.getEntityWorld());
         if (Kismet.databaseBuilder != null) {
-            TargetLibraryBuilder.build(targetDatabase);
+            TargetLibrary.build(targetDatabase);
             CommandKismet.send(sender, "Refreshing target library...");
             CommandKismet.send(sender, "Done! Target library has been refreshed.");
         } else {
@@ -34,8 +35,9 @@ public class CCRefresh extends CommandComponent {
     }
 
     @Override
-    public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args,
-                                                BlockPos pos) {
+    public List<String> getTabCompletionOptions(final MinecraftServer server, final ICommandSender sender,
+                                                final String[] args,
+                                                final BlockPos pos) {
         return null;
     }
 }

@@ -10,7 +10,7 @@ import dustine.kismet.network.message.MessageClientTargets;
 import dustine.kismet.server.command.CommandKismet;
 import dustine.kismet.target.EnumOrigin;
 import dustine.kismet.target.Target;
-import dustine.kismet.target.TargetLibraryBuilder;
+import dustine.kismet.target.TargetLibrary;
 import dustine.kismet.target.TargetPatcher.LootTableSeparator;
 import dustine.kismet.util.StackHelper;
 import dustine.kismet.util.TargetHelper;
@@ -65,7 +65,7 @@ public class TargetDatabaseBuilder {
     private List<Target> clientStacks;
     private List<Target> serverStacks;
 
-    public TargetDatabaseBuilder(WorldServer world) {
+    public TargetDatabaseBuilder(final WorldServer world) {
         this.targetDatabase = WSDTargetDatabase.get(world);
     }
 
@@ -75,11 +75,11 @@ public class TargetDatabaseBuilder {
      * @param player  The player entity to use to enrich the state
      * @param command If the build action came from a command or not
      */
-    public void build(EntityPlayerMP player, boolean command) {
+    public void build(final EntityPlayerMP player, final boolean command) {
         TargetDatabaseBuilder.command = command;
         this.targetDatabase = WSDTargetDatabase.get(player.worldObj);
-        this.targetDatabase.setDatabase(new HashMap<>());
-        Map<String, Target> targetMap = new HashMap<>();
+        this.targetDatabase.clearDatabase();
+        final Map<String, Target> targetMap = new HashMap<>();
 
         identifyOriginsServerSide(player, targetMap);
 
@@ -90,7 +90,7 @@ public class TargetDatabaseBuilder {
         Kismet.network.sendTo(new MessageClientTargets(this.id), player);
     }
 
-    private static void identifyOriginsServerSide(EntityPlayerMP player, Map<String, Target> targetMap) {
+    private static void identifyOriginsServerSide(final EntityPlayerMP player, final Map<String, Target> targetMap) {
         final WorldServer world = player.getServerWorld();
         identifyLoot(world, targetMap);
         identifyBlockDrops(world, targetMap);
@@ -101,7 +101,7 @@ public class TargetDatabaseBuilder {
         targetMap.values().forEach(Target::refreshHasSubtypes);
     }
 
-    private static void identifyBuckets(WorldServer world, Map<String, Target> stacks) {
+    private static void identifyBuckets(final WorldServer world, final Map<String, Target> stacks) {
         final List<ItemStack> buckets = new ArrayList<>();
         // add the vanilla buckets
         buckets.add(new ItemStack(Items.LAVA_BUCKET));
@@ -110,7 +110,7 @@ public class TargetDatabaseBuilder {
 
         if (FluidRegistry.isUniversalBucketEnabled()) {
             final Set<Fluid> bucketFluids = FluidRegistry.getBucketFluids();
-            for (Fluid fluid : bucketFluids) {
+            for (final Fluid fluid : bucketFluids) {
                 final ItemStack bucket = UniversalBucket.getFilledBucket(
                         ForgeModContainer.getInstance().universalBucket, fluid);
                 buckets.add(bucket);
@@ -120,7 +120,7 @@ public class TargetDatabaseBuilder {
         buckets.forEach(TargetHelper.joinWithTargetMap(stacks, EnumOrigin.FLUID));
     }
 
-    private static void identifyBlockDrops(World world, Map<String, Target> stacks) {
+    private static void identifyBlockDrops(final World world, final Map<String, Target> stacks) {
         final Set<String> drops = new HashSet<>();
         final Set<String> silkDrops = new HashSet<>();
         final FakePlayer fakePlayer = FakePlayerFactory.getMinecraft((WorldServer) world);
@@ -131,7 +131,7 @@ public class TargetDatabaseBuilder {
 
             final ImmutableList<IBlockState> validStates = block.getBlockState().getValidStates();
 
-            for (IBlockState state : validStates) {
+            for (final IBlockState state : validStates) {
                 // if the block is unbreakable in this state, don't even bother
                 if (block.getBlockHardness(state, world, BlockPos.ORIGIN) < 0) continue;
 
@@ -152,8 +152,9 @@ public class TargetDatabaseBuilder {
         silkDrops.forEach(TargetHelper.addToTargetMap(stacks, EnumOrigin.SILK_TOUCH));
     }
 
-    private static Set<String> getDropsFromState(World world, FakePlayer fakePlayer, Block block, IBlockState state) {
-        Set<String> drops = new HashSet<>();
+    private static Set<String> getDropsFromState(final World world, final FakePlayer fakePlayer, final Block block,
+                                                 final IBlockState state) {
+        final Set<String> drops = new HashSet<>();
 
         // a state machine that loops around while it adds new items to the drops
         for (int fortune = 5; fortune >= 0; --fortune) {
@@ -167,7 +168,7 @@ public class TargetDatabaseBuilder {
                     drops.addAll(block.getDrops(world, BlockPos.ORIGIN, state, fortune).stream()
                             .map(StackHelper::toUniqueKey)
                             .collect(Collectors.toList()));
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     Log.error("Error while gathering blocks for " +
                             StackHelper.toUniqueKey(new ItemStack(block)) + state, e);
                     continue;
@@ -190,10 +191,10 @@ public class TargetDatabaseBuilder {
      * @param state
      * @return A String set of the unique keys for the drops
      */
-    private static Set<String> getSilkDrops(Block block, IBlockState state) {
-        Set<String> drops = new HashSet<>();
+    private static Set<String> getSilkDrops(final Block block, final IBlockState state) {
+        final Set<String> drops = new HashSet<>();
 
-        ItemStack silkDrop = block.createStackedBlock(state);
+        final ItemStack silkDrop = block.createStackedBlock(state);
 
         if (silkDrop != null)
             drops.add(StackHelper.toUniqueKey(silkDrop));
@@ -206,7 +207,7 @@ public class TargetDatabaseBuilder {
      * @param stacks
      * @return Number of new items added from the loot system
      */
-    private static void identifyLoot(WorldServer world, Map<String, Target> stacks) {
+    private static void identifyLoot(final WorldServer world, final Map<String, Target> stacks) {
         final LootTableSeparator tables = new LootTableSeparator(LootTableList.getAll()).invoke(world);
 
         // entity loot
@@ -222,19 +223,19 @@ public class TargetDatabaseBuilder {
         remainingLoots.forEach(TargetHelper.addToTargetMap(stacks, EnumOrigin.LOOT_TABLE));
     }
 
-    private static Set<String> iterateLootJsonTree(List<LootTable> allTables) {
-        Set<String> items = new HashSet<>();
+    private static Set<String> iterateLootJsonTree(final List<LootTable> allTables) {
+        final Set<String> items = new HashSet<>();
 
         // iterating down the JSON tree~
         // check http://minecraft.gamepedia.com/Loot_table for more details
-        for (LootTable aTable : allTables) {
+        for (final LootTable aTable : allTables) {
             final JsonObject table = gson.toJsonTree(aTable, new TypeToken<LootTable>() {
             }.getType()).getAsJsonObject();
-            JsonArray pools = table.getAsJsonArray("pools");
-            for (JsonElement aPool : pools) {
-                JsonArray entries = aPool.getAsJsonObject().getAsJsonArray("entries");
-                for (JsonElement anEntry : entries) {
-                    JsonObject entry = anEntry.getAsJsonObject();
+            final JsonArray pools = table.getAsJsonArray("pools");
+            for (final JsonElement aPool : pools) {
+                final JsonArray entries = aPool.getAsJsonObject().getAsJsonArray("entries");
+                for (final JsonElement anEntry : entries) {
+                    final JsonObject entry = anEntry.getAsJsonObject();
 
                     // we only want to deal with item-type entries
                     if (!entry.get("type").getAsString().equals("item")) continue;
@@ -245,18 +246,19 @@ public class TargetDatabaseBuilder {
         return items;
     }
 
-    private static void getItemsFromLootEntry(Set<String> items, JsonObject entry) {
+    private static void getItemsFromLootEntry(final Set<String> items, final JsonObject entry) {
         final String name = entry.get("name").getAsString();
-        Set<String> variants = new HashSet<>();
+        final Set<String> variants = new HashSet<>();
         variants.add(name);
 
-        List<Integer> metaValues = new ArrayList<>();
+        final List<Integer> metaValues = new ArrayList<>();
         int maxCount = 1;
         int maxAddCount = 0;
         NBTTagCompound nbt = null;
+        JsonElement count;
         if (entry.has("functions")) {
-            for (JsonElement aFunction : entry.get("functions").getAsJsonArray()) {
-                JsonObject function = aFunction.getAsJsonObject();
+            for (final JsonElement aFunction : entry.get("functions").getAsJsonArray()) {
+                final JsonObject function = aFunction.getAsJsonObject();
                 switch (function.get("function").getAsString()) {
                     case "minecraft:furnace_smelt":
                         // change the item to be the smelted version
@@ -265,9 +267,9 @@ public class TargetDatabaseBuilder {
 //                        variants.add(smeltedStack.getItem().getRegistryName().toString());
                         break;
                     case "minecraft:looting_enchant":
-                        JsonElement count = function.get("count");
+                        count = function.get("count");
                         if (count.isJsonObject()) {
-                            JsonObject countRange = count.getAsJsonObject();
+                            final JsonObject countRange = count.getAsJsonObject();
                             maxAddCount = countRange.get("max").getAsInt() * 3;
                         } else {
                             maxAddCount = count.getAsInt() * 3;
@@ -276,30 +278,30 @@ public class TargetDatabaseBuilder {
                     case "minecraft:set_count":
                         count = function.get("count");
                         if (count.isJsonObject()) {
-                            JsonObject countRange = count.getAsJsonObject();
+                            final JsonObject countRange = count.getAsJsonObject();
                             maxCount = countRange.get("max").getAsInt();
                         } else {
                             maxCount = count.getAsInt();
                         }
                         break;
                     case "minecraft:set_data":
-                        JsonElement data = function.get("data");
+                        final JsonElement data = function.get("data");
                         if (data.isJsonObject()) {
-                            JsonObject dataRange = data.getAsJsonObject();
-                            int min = dataRange.get("min").getAsInt();
-                            int max = dataRange.get("max").getAsInt();
+                            final JsonObject dataRange = data.getAsJsonObject();
+                            final int min = dataRange.get("min").getAsInt();
+                            final int max = dataRange.get("max").getAsInt();
                             // max is inclusive
                             IntStream.range(min, max + 1).forEach(metaValues::add);
                         } else {
-                            int meta = data.getAsInt();
+                            final int meta = data.getAsInt();
                             metaValues.add(meta);
                         }
                         break;
                     case "minecraft:set_nbt":
-                        JsonElement tag = function.get("tag");
+                        final JsonElement tag = function.get("tag");
                         try {
                             nbt = JsonToNBT.getTagFromJson(tag.getAsString());
-                        } catch (NBTException e) {
+                        } catch (final NBTException e) {
                             Log.warning(e);
                         }
                         break;
@@ -323,8 +325,8 @@ public class TargetDatabaseBuilder {
         // add meta=0 if we didn't get any data
         if (metaValues.isEmpty()) metaValues.add(0);
         // for each data values, add the item TARGET_DATABASE (+nbt if any)
-        for (String variant : variants) {
-            for (int meta : metaValues) {
+        for (final String variant : variants) {
+            for (final int meta : metaValues) {
                 items.add(String.format("%s:%d%s", variant, meta,
                         nbt != null ? ":" + nbt.toString() : ""));
             }
@@ -336,26 +338,26 @@ public class TargetDatabaseBuilder {
      */
     public void tryBuildLibraryWithLastGeneratedDatabase() {
         if (this.targetDatabase == null || !this.targetDatabase.isValid()) return;
-        TargetLibraryBuilder.build(this.targetDatabase.getDatabase());
+        TargetLibrary.build(this.targetDatabase.getDatabase());
     }
 
-    public void buildServerSide(EntityPlayerMP player) {
+    public void buildServerSide(final EntityPlayerMP player) {
         this.targetDatabase = WSDTargetDatabase.get(player.worldObj);
-        this.targetDatabase.setDatabase(new HashMap<>());
+        this.targetDatabase.clearDatabase();
 
-        Map<String, Target> targetMap = getRegisteredItems();
+        final Map<String, Target> targetMap = getRegisteredItems();
         identifyOriginsServerSide(player, targetMap);
 
-        this.targetDatabase.enrichStacks(targetMap.values());
+        this.targetDatabase.joinDatabaseWith(targetMap.values());
     }
 
     public static Map<String, Target> getRegisteredItems() {
         final Map<String, Target> targetMap = new HashMap<>();
 
         // add clientStacks from ItemRegistry
-        for (ResourceLocation loc : Item.REGISTRY.getKeys()) {
-            Item item = Item.REGISTRY.getObject(loc);
-            ItemStack stack = new ItemStack(item);
+        for (final ResourceLocation loc : Item.REGISTRY.getKeys()) {
+            final Item item = Item.REGISTRY.getObject(loc);
+            final ItemStack stack = new ItemStack(item);
             if (stack.getItem() == null) continue;
 
 //            stack.setItemDamage(OreDictionary.WILDCARD_VALUE);
@@ -366,7 +368,7 @@ public class TargetDatabaseBuilder {
         return targetMap;
     }
 
-    public void finishBuilding(UUID id, EntityPlayerMP player) {
+    public void finishBuilding(final UUID id, final EntityPlayerMP player) {
         this.targetDatabase = WSDTargetDatabase.get(player.worldObj);
         if (!this.id.equals(id)) {
             idError(id, player);
@@ -377,7 +379,7 @@ public class TargetDatabaseBuilder {
         this.clientStacks.forEach(t -> targetMap.put(t.toString(), t));
 
         // join server stacks with client stacks
-        for (Target target : this.serverStacks) {
+        for (final Target target : this.serverStacks) {
             final String key = target.toString();
             if (targetMap.containsKey(key)) {
                 targetMap.put(key, targetMap.get(key).joinWith(target));
@@ -397,14 +399,14 @@ public class TargetDatabaseBuilder {
             }
         }
 
-        this.targetDatabase.enrichStacks(targetMap.values());
+        this.targetDatabase.joinDatabaseWith(targetMap.values());
 
-        if (TargetDatabaseBuilder.isCommand()) {
+        if (command) {
             CommandKismet.send(player, "Finished! Refreshing target library now...");
         }
         Log.info("Build target database");
-        TargetLibraryBuilder.build(WSDTargetDatabase.get(player.getEntityWorld()));
-        if (TargetDatabaseBuilder.isCommand()) {
+        TargetLibrary.build(WSDTargetDatabase.get(player.getEntityWorld()));
+        if (command) {
             CommandKismet.send(player, "Done! Database reset finished.");
         }
     }
@@ -413,11 +415,11 @@ public class TargetDatabaseBuilder {
         return command;
     }
 
-    public static void setCommand(boolean command) {
+    public static void setCommand(final boolean command) {
         TargetDatabaseBuilder.command = command;
     }
 
-    private void idError(UUID id, EntityPlayerMP player) {
+    private void idError(final UUID id, final EntityPlayerMP player) {
         this.targetDatabase = WSDTargetDatabase.get(player.worldObj);
         if (command) {
             player.addChatMessage(
@@ -428,7 +430,7 @@ public class TargetDatabaseBuilder {
         Log.error(String.format("ID mismatch S:%s C:%s", this.id, id));
     }
 
-    public boolean receiveClientTargets(List<Target> stacks, UUID id, EntityPlayerMP player) {
+    public boolean receiveClientTargets(final List<Target> stacks, final UUID id, final EntityPlayerMP player) {
         this.targetDatabase = WSDTargetDatabase.get(player.worldObj);
         if (!this.id.equals(id)) {
             idError(id, player);

@@ -1,10 +1,15 @@
 package dustine.kismet.world.savedata;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import dustine.kismet.Log;
 import dustine.kismet.Reference;
+import dustine.kismet.config.ConfigKismet;
+import dustine.kismet.target.EnumOrigin;
 import dustine.kismet.target.Target;
-import dustine.kismet.target.TargetLibraryBuilder;
+import dustine.kismet.target.TargetLibrary;
+import dustine.kismet.target.TargetPatcher;
+import dustine.kismet.util.StackHelper;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
@@ -14,8 +19,8 @@ import net.minecraft.world.storage.MapStorage;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
-@SuppressWarnings("WeakerAccess")
 public class WSDTargetDatabase extends WorldSavedData {
     private static final String NAME = Reference.Names.TARGET_DATABASE;
 
@@ -26,13 +31,12 @@ public class WSDTargetDatabase extends WorldSavedData {
         super(NAME);
     }
 
-    @SuppressWarnings("unused")
-    public WSDTargetDatabase(String name) {
+    public WSDTargetDatabase(final String name) {
         super(name);
     }
 
-    public static WSDTargetDatabase get(World world) {
-        MapStorage storage = world.getMapStorage();
+    public static WSDTargetDatabase get(final World world) {
+        final MapStorage storage = world.getMapStorage();
         WSDTargetDatabase instance =
                 (WSDTargetDatabase) storage.loadData(WSDTargetDatabase.class, NAME);
 
@@ -44,31 +48,31 @@ public class WSDTargetDatabase extends WorldSavedData {
     }
 
     @Override
-    public void readFromNBT(NBTTagCompound nbt) {
+    public void readFromNBT(final NBTTagCompound nbt) {
         if (nbt.hasKey("valid")) this.valid = nbt.getBoolean("valid");
 
         this.database.clear();
-        NBTTagList proceduralNbt = nbt.getTagList("database", 10);
+        final NBTTagList proceduralNbt = nbt.getTagList("database", 10);
         for (int i = 0; i < proceduralNbt.tagCount(); i++) {
-            NBTTagCompound tagCompound = proceduralNbt.getCompoundTagAt(i);
+            final NBTTagCompound tagCompound = proceduralNbt.getCompoundTagAt(i);
             final Target target = new Target(tagCompound);
             this.database.put(target.toString(), target);
         }
 
-        TargetLibraryBuilder.build(this.database.values());
+        TargetLibrary.build(getDatabase());
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound nbt) {
+    public void writeToNBT(final NBTTagCompound nbt) {
         nbt.setBoolean("valid", this.valid);
 
-        NBTTagList stacksNbt = new NBTTagList();
-        for (Target target : this.database.values()) {
+        final NBTTagList stacksNbt = new NBTTagList();
+        for (final Target target : this.database.values()) {
             if (target == null) {
                 Log.error("Null target in savedata");
                 continue;
             }
-            NBTTagCompound tagCompound = target.serializeNBT();
+            final NBTTagCompound tagCompound = target.serializeNBT();
             if (tagCompound != null) {
                 stacksNbt.appendTag(tagCompound);
             }
@@ -76,21 +80,85 @@ public class WSDTargetDatabase extends WorldSavedData {
         nbt.setTag("database", stacksNbt);
     }
 
-    public ImmutableList<Target> getDatabase() {
-        return ImmutableList.copyOf(this.database.values());
+    /**
+     * Returns the target database, where all the possible Targets are present. Includes overrides and forced targets
+     * from the config. If you don't want these, use {@code getSavedata()}.
+     * <p>
+     * <b>Notice</b>: this list, as it has to load data from the config, is generated anew every time the function is
+     * called. Cache it if you're using it externally. And if you're worried performance wise, it's not a processing
+     * leak for the mod as this is only called when evoked by user command or when the library is refreshed, which
+     * seldom happens.
+     *
+     * @return The target database
+     */
+    public Map<String, Target> getDatabase() {
+        // todo cache the database; just the savedata isn't enough...
+        return ImmutableMap.copyOf(addConfigStacks(this.database));
     }
 
-    public void setDatabase(Map<String, Target> database) {
-        this.database = database;
-        if (database.isEmpty())
-            this.valid = false;
-        markDirty();
+    /**
+     * Using targets as a initial blueprint, this function loads all the defined stacks in the configurations, such as
+     * the hidden lists and the force-add stacks, and joins them into targets.
+     *
+     * @param savedata The entry savadata values
+     * @return A map from joining targets with the config lists
+     */
+    private static Map<String, Target> addConfigStacks(final Map<String, Target> savedata) {
+        final Map<String, Target> resultMap = new HashMap<>();
+
+        // forced stacks, the ones that are added for sure to the filtered stacks
+        addKeyedOriginsToTargetMap(ConfigKismet.getForceAdd(), EnumOrigin.FORCED, resultMap);
+        // the overrides, both from file and runtime
+        for (final EnumOrigin origin : EnumOrigin.values()) {
+            addKeyedOriginsToTargetMap(TargetPatcher.getOverrides(origin), origin, resultMap);
+        }
+
+        // add all the targets now to this list
+        savedata.values().forEach(target -> {
+            final String key = target.toString();
+            if (resultMap.containsKey(key)) {
+                resultMap.put(key, resultMap.get(key).joinWith(target));
+            } else {
+                resultMap.put(key, target);
+            }
+        });
+        return resultMap;
     }
 
-    @Override
-    public void markDirty() {
-        super.markDirty();
-        this.valid = true;
+    private static void addKeyedOriginsToTargetMap(Set<String> keys, EnumOrigin origin, Map<String, Target> targetMap) {
+        for (final String item : keys) {
+            if (item.startsWith("!") || isMod(item)) continue;
+
+            final ItemStack stack = StackHelper.getItemStack(item);
+            if (stack == null) continue;
+
+            // add the entries as subtype-having wrappers
+            final Target target = new Target(stack, origin);
+            // force hasSubtypes to true if user specified a metadata value
+            if (hasMetadata(item))
+                target.setHasSubtypes(true);
+
+            final String key = target.toString();
+            if (targetMap.containsKey(key)) {
+                targetMap.put(key, targetMap.get(key).joinWith(target));
+            } else
+                targetMap.put(key, target);
+        }
+    }
+
+    private static boolean hasMetadata(final String entry) {
+        final String[] split = entry.split(":");
+        if (split.length < 3) return false;
+        final Integer meta = StackHelper.tryParse(split[2]);
+        return meta != null;
+    }
+
+    private static boolean isMod(final String s) {
+        return !s.contains(":");
+    }
+
+    public Map<String, Target> getSavedata() {
+        return ImmutableMap.copyOf(this.database);
     }
 
     public boolean isValid() {
@@ -98,19 +166,31 @@ public class WSDTargetDatabase extends WorldSavedData {
     }
 
     /**
-     * @param newStacks
+     * Joins the list of Targets into the current database (adds them if new, does joinWith if not)
+     *
+     * @param targets The targets to join with
      */
-    public void enrichStacks(Collection<Target> newStacks) {
-        newStacks.forEach(target -> {
-            String key = target.toString();
+    public void joinDatabaseWith(final Collection<Target> targets) {
+        targets.forEach(target -> {
+            final String key = target.toString();
             if (this.database.containsKey(key)) {
-                Target originalTarget = this.database.get(key);
+                final Target originalTarget = this.database.get(key);
                 this.database.put(key, originalTarget.joinWith(target));
             } else {
                 this.database.put(key, target);
             }
         });
 
+        this.valid = !this.database.isEmpty();
+        markDirty();
+    }
+
+    /**
+     * Clears the database from its entries.
+     */
+    public void clearDatabase() {
+        this.database = new HashMap<>();
+        this.valid = false;
         markDirty();
     }
 }

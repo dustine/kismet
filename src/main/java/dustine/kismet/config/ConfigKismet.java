@@ -36,7 +36,7 @@ public final class ConfigKismet {
     private static boolean chillEnabled;
     private static boolean timedEnabled;
     private static int timedLimit;
-    private static List<String> forceAdd;
+    private static Set<String> forceAdd;
     private static EnumGenMode genMode;
     private static List<String> genFilter;
 
@@ -147,7 +147,7 @@ public final class ConfigKismet {
             }
 
             genFilter = Arrays.asList(propGenBlacklist.getStringList());
-            forceAdd = Arrays.asList(propForceAdd.getStringList());
+            forceAdd = new HashSet<>(Arrays.asList(propForceAdd.getStringList()));
         }
 
         // ---- step 4 - write the class's variables back into the config properties and save to disk
@@ -341,7 +341,7 @@ public final class ConfigKismet {
         syncConfig(false, false);
     }
 
-    public static List<String> getForceAdd() {
+    public static Set<String> getForceAdd() {
         return forceAdd;
     }
 

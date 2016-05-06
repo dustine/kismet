@@ -9,7 +9,7 @@ import dustine.kismet.registry.ModRecipes;
 import dustine.kismet.registry.ModTiles;
 import dustine.kismet.server.command.CommandKismet;
 import dustine.kismet.server.event.EventOnceFixDatabase;
-import dustine.kismet.target.TargetLibraryBuilder;
+import dustine.kismet.target.TargetLibrary;
 import dustine.kismet.target.TargetPatcher;
 import dustine.kismet.world.savedata.TargetDatabaseBuilder;
 import dustine.kismet.world.savedata.WSDTargetDatabase;
@@ -40,7 +40,7 @@ public class Kismet {
     private EventOnceFixDatabase eventOnceFixDatabase;
 
     @EventHandler
-    public void preInit(FMLPreInitializationEvent event) {
+    public void preInit(final FMLPreInitializationEvent event) {
         // register logger
         Log.logger = event.getModLog();
 
@@ -63,7 +63,7 @@ public class Kismet {
     }
 
     @EventHandler
-    public void init(FMLInitializationEvent event) {
+    public void init(final FMLInitializationEvent event) {
         // register recipes
         ModRecipes.init();
         TargetPatcher.init();
@@ -75,17 +75,17 @@ public class Kismet {
     }
 
     @EventHandler
-    public void postInit(FMLPostInitializationEvent event) {}
+    public void postInit(final FMLPostInitializationEvent event) {}
 
     @EventHandler
-    public void serverStarting(FMLServerStartingEvent event) {
+    public void serverStarting(final FMLServerStartingEvent event) {
         // register commands
         event.registerServerCommand(new CommandKismet());
 
         final WorldServer world = (WorldServer) event.getServer().getEntityWorld();
         databaseBuilder = new TargetDatabaseBuilder(world);
         final WSDTargetDatabase targetDatabase = WSDTargetDatabase.get(world);
-        TargetLibraryBuilder.build(targetDatabase);
+        TargetLibrary.build(targetDatabase);
 
         // register the hook to restart the targetLibrary on single-player
         this.eventOnceFixDatabase = new EventOnceFixDatabase();
@@ -93,7 +93,7 @@ public class Kismet {
     }
 
     @EventHandler
-    public void serverStopping(FMLServerStoppingEvent event) {
+    public void serverStopping(final FMLServerStoppingEvent event) {
         // unregister the thing if it wasn't unfulfilled yet
         MinecraftForge.EVENT_BUS.unregister(Kismet.instance.eventOnceFixDatabase);
     }

@@ -1,14 +1,14 @@
 [
   {
     "modid": "kismet",
-    "name": "§eKismet",
-    "description": "§ln.§r§o Fate; fortune.§r\nAdds a block that shows random items from the game, modded or not. A good fix for boredom or when you don't know what to do.",
+    "name": "Kismet",
+    "description": "n. Fate; fortune.\nAdds a block that shows random items from the game, modded or not. A good fix for boredom or when you don't know what to do.",
     "version": "${version}",
     "mcversion": "${mcversion}",
     "url": "http://dustine.github.io/kismet",
     "updateUrl": "",
     "authorList": ["Desutine"],
-    "credits": "§c§oEiraNet§r, §oPahimar§r, §oMineMarteen§r, §oTheGreyGhost§r and §omezz§r",
+    "credits": "EiraNet, Pahimar, MineMarteen, TheGreyGhost and mezz",
     "logoFile": "",
     "screenshots": [],
     "dependencies": []

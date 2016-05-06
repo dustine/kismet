@@ -1,7 +1,10 @@
 package dustine.kismet.server.command;
 
 import dustine.kismet.Log;
-import dustine.kismet.target.*;
+import dustine.kismet.target.EnumOrigin;
+import dustine.kismet.target.Target;
+import dustine.kismet.target.TargetLibrary;
+import dustine.kismet.target.TargetPatcher;
 import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
@@ -14,13 +17,14 @@ import java.util.stream.Collectors;
 
 class CCDump extends CommandComponent {
 
-    CCDump(String parent) {
+    CCDump(final String parent) {
         super(parent);
     }
 
     @Override
-    public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args,
-                                                BlockPos pos) {
+    public List<String> getTabCompletionOptions(final MinecraftServer server, final ICommandSender sender,
+                                                final String[] args,
+                                                final BlockPos pos) {
         return Arrays.asList(EnumLists.values()).stream().map(EnumLists::getName).collect(Collectors.toList());
     }
 
@@ -37,41 +41,41 @@ class CCDump extends CommandComponent {
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws WrongUsageException {
+    public void execute(final MinecraftServer server, final ICommandSender sender,
+                        final String[] args) throws WrongUsageException {
         if (args.length < 1) {
             throw new WrongUsageException(getParentName() + '.' + getCommandName());
         }
 
-        EnumLists list;
+        final EnumLists list;
         try {
             list = EnumLists.valueOf(args[0].toUpperCase());
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             throw new WrongUsageException(getParentName() + '.' + getCommandName());
         }
 
-        Collection<String> dump;
+        final Collection<String> dump;
         dump = getStringDump(sender, list);
 
         dump.stream().forEachOrdered(s -> CommandKismet.sendLine(sender, s));
     }
 
-    private Collection<String> getStringDump(ICommandSender sender, EnumLists list) {
+    private Collection<String> getStringDump(final ICommandSender sender, final EnumLists list) {
         Collection<String> dump;
         final WSDTargetDatabase targetDatabase = WSDTargetDatabase.get(sender.getEntityWorld());
         switch (list) {
             case SAVEDATA:
-                dump = getSortedInformedStacks(targetDatabase.getDatabase());
+                dump = getSortedInformedStacks(new ArrayList<>(targetDatabase.getSavedata().values()));
                 break;
             case DATABASE:
-                dump = getSortedInformedStacks(
-                        new ArrayList<>(TargetLibraryBuilder.getConfigStacks(targetDatabase.getDatabase()).values()));
+                dump = getSortedInformedStacks(new ArrayList<>(targetDatabase.getDatabase().values()));
                 break;
             case LIBRARY:
                 dump = getSortedInformedStacks(TargetLibrary.getLibrary());
                 break;
             case BLACKLIST:
                 dump = new ArrayList<>();
-                for (EnumOrigin origin : EnumOrigin.values()) {
+                for (final EnumOrigin origin : EnumOrigin.values()) {
                     final Set<String> overrides = TargetPatcher.getBlacklist(origin);
                     dump.addAll(overrides.stream()
                             .map(s -> String.format("%s:%s", origin, s))
@@ -81,7 +85,7 @@ class CCDump extends CommandComponent {
                 break;
             case OVERRIDE:
                 dump = new ArrayList<>();
-                for (EnumOrigin origin : EnumOrigin.values()) {
+                for (final EnumOrigin origin : EnumOrigin.values()) {
                     final Set<String> overrides = TargetPatcher.getOverrides(origin);
                     dump.addAll(overrides.stream()
                             .map(s -> String.format("%s:%s", origin, s))
@@ -97,7 +101,7 @@ class CCDump extends CommandComponent {
         return dump;
     }
 
-    private List<String> getSortedInformedStacks(List<Target> targets) {
+    private List<String> getSortedInformedStacks(final List<Target> targets) {
         return targets.stream()
                 .sorted((o1, o2) -> o1.toString().compareTo(o2.toString()))
                 .map(s -> String.format("%s %s", s.getOrigins(), s))

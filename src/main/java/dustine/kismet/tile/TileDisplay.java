@@ -1,14 +1,12 @@
 package dustine.kismet.tile;
 
 import dustine.kismet.Kismet;
-import dustine.kismet.Log;
 import dustine.kismet.block.BlockDisplay;
 import dustine.kismet.block.BlockKismet;
 import dustine.kismet.block.BlockTimedDisplay;
 import dustine.kismet.config.ConfigKismet;
 import dustine.kismet.target.Target;
 import dustine.kismet.target.TargetLibrary;
-import dustine.kismet.target.TargetResult;
 import dustine.kismet.util.TargetHelper;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
@@ -25,8 +23,8 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.CapabilityInject;
-import net.minecraftforge.common.capabilities.ICapabilityProvider;
+import net.minecraftforge.common.capabilities.ICapabilitySerializable;
+import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 
@@ -35,9 +33,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-public class TileDisplay extends TileEntity implements ITickable, ICapabilityProvider {
-    @CapabilityInject(IItemHandler.class)
-    private static Capability<IItemHandler> ITEM_HANDLER_CAPABILITY = null;
+public class TileDisplay extends TileEntity implements ITickable, ICapabilitySerializable<NBTTagCompound> {
+    //    @CapabilityInject(IItemHandler.class)
+//    private static Capability<IItemHandler> ITEM_HANDLER_CAPABILITY = null;
     private final TextFormatting[] colors = new TextFormatting[] {
             TextFormatting.WHITE,
             TextFormatting.GREEN,
@@ -59,15 +57,9 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
 
     public TileDisplay() {
         super();
-        if (ITEM_HANDLER_CAPABILITY != null)
-            this.targetSlot = new TileDisplaySlotHandler(this);
+        this.targetSlot = new TileDisplaySlotHandler(this);
         this.weights = new HashMap<>();
         this.history = new ArrayList<>();
-    }
-
-    @CapabilityInject(IItemHandler.class)
-    private static void capRegistered(Capability<IItemHandler> cap) {
-//        Log.info(cap);
     }
 
     public String getStylizedDeadline(boolean color) {
@@ -170,7 +162,7 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
     }
 
     private void resetDeadline() {
-        setDeadline(this.worldObj.getTotalWorldTime() + ConfigKismet.getTimedLimit() * DEADLINE_MULTIPLIER);
+        setDeadline(this.worldObj.getTotalWorldTime() + ConfigKismet.getTimedLimit() * this.DEADLINE_MULTIPLIER);
     }
 
     public boolean rollForKey() {
@@ -202,12 +194,10 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
 
         final Target oldTarget = this.target;
 
-        TargetResult targetResult = TargetLibrary.generateTarget(this.weights, this.history);
-        if (targetResult.hasFlag()) {
+        Target target = TargetLibrary.generateTarget(this.weights, this.history);
+        if (target == null) {
             this.newTargetTimeout = this.worldObj.getTotalWorldTime() + 5 * 20;
-            Log.warning("Failed to get target, " + targetResult.getFlag());
         }
-        setTarget(targetResult.getValue());
 
         // sync client with server as target picking only happens server-wise (for safety)
         if (oldTarget != this.target) {
@@ -247,12 +237,9 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
 
     @Override
     public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-        if (capability == ITEM_HANDLER_CAPABILITY) {
-            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING)
-                    .getOpposite())
-                return super.getCapability(capability, facing);
-            //noinspection unchecked
-            return (T) this.targetSlot;
+        if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
+            if (facing != null) return super.getCapability(capability, facing);
+            return CapabilityItemHandler.ITEM_HANDLER_CAPABILITY.cast(this.targetSlot);
         }
         return super.getCapability(capability, facing);
     }
@@ -260,11 +247,8 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
 
     @Override
     public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
-        if (capability == ITEM_HANDLER_CAPABILITY) {
-            if (facing != null && facing != this.worldObj.getBlockState(this.pos).getValue(BlockDisplay.FACING)
-                    .getOpposite())
-                return super.hasCapability(capability, facing);
-            return true;
+        if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
+            return facing == null || super.hasCapability(capability, null);
         }
         return super.hasCapability(capability, facing);
     }
@@ -381,6 +365,6 @@ public class TileDisplay extends TileEntity implements ITickable, ICapabilityPro
     }
 
     public int getHighScore() {
-        return highScore;
+        return this.highScore;
     }
 }

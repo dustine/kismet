@@ -1,7 +1,7 @@
 package dustine.kismet.server.command;
 
 import dustine.kismet.Kismet;
-import dustine.kismet.target.TargetLibraryBuilder;
+import dustine.kismet.target.TargetLibrary;
 import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class CCServerOnlyReset extends CommandComponent {
-    public CCServerOnlyReset(String parent) {
+    public CCServerOnlyReset(final String parent) {
         super(parent);
     }
 
@@ -22,20 +22,22 @@ public class CCServerOnlyReset extends CommandComponent {
     }
 
     @Override
-    public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
+    public void execute(final MinecraftServer server, final ICommandSender sender,
+                        final String[] args) throws CommandException {
         if (Kismet.databaseBuilder != null) {
             CommandKismet.send(sender, "Starting §cserver only§r database reset...");
             Kismet.databaseBuilder.buildServerSide((EntityPlayerMP) sender);
             CommandKismet.send(sender, "Finished! Refreshing target library now...");
-            TargetLibraryBuilder.build(WSDTargetDatabase.get(server.getEntityWorld()));
+            TargetLibrary.build(WSDTargetDatabase.get(server.getEntityWorld()));
             CommandKismet.send(sender, "Done! Database reset finished.");
         } else {
             CommandKismet.error("Target database factory not found");
         }
     }
 
-    @Override public List<String> getTabCompletionOptions(MinecraftServer server, ICommandSender sender, String[] args,
-                                                          BlockPos pos) {
+    @Override public List<String> getTabCompletionOptions(final MinecraftServer server, final ICommandSender sender,
+                                                          final String[] args,
+                                                          final BlockPos pos) {
         return Collections.emptyList();
     }
 }
