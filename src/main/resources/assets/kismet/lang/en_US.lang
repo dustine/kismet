@@ -15,7 +15,7 @@ tile.chillDisplay.tag.score=Score: %s
 itemGroup.kismet=Kismet
 
 # Command
-commands.kismet.usage=/kismet <block|dump|force|pardon|refresh|regen|reset|serverOnlyReset|stats|unforce>, more info at https://github.com/dustine/kismet/wiki/Commands
+commands.kismet.usage=/kismet <block | dump | force | pardon | refresh | regen | reset | serverOnlyReset | stats | unforce>, more info at https://github.com/dustine/kismet/wiki/Commands
 commands.kismet.dump.usage=/kismet dump <blacklist|database|library|override|savedata>
 commands.kismet.block.usage=/kismet block <mod:item> [damage] [nbt] OR <mod:item>[:damage[:nbt]]
 commands.kismet.pardon.usage=/kismet pardon <mod:item> [damage] [nbt] OR <mod:item>[:damage[:nbt]]

@@ -1,6 +1,7 @@
 package dustine.kismet.config;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import dustine.kismet.Kismet;
 import dustine.kismet.Log;
 import dustine.kismet.Reference;
@@ -38,7 +39,7 @@ public final class ConfigKismet {
     private static int timedLimit;
     private static Set<String> forceAdd;
     private static EnumGenMode genMode;
-    private static List<String> genFilter;
+    private static Set<String> genFilter;
 
     private static Map<EnumOrigin, Boolean> genFlags;
     private static ConfigCopy configCopy;
@@ -146,7 +147,7 @@ public final class ConfigKismet {
                 }
             }
 
-            genFilter = new ArrayList<>(Arrays.asList(propGenBlacklist.getStringList()));
+            genFilter = new HashSet<>(Arrays.asList(propGenBlacklist.getStringList()));
             forceAdd = new HashSet<>(Arrays.asList(propForceAdd.getStringList()));
         }
 
@@ -176,12 +177,6 @@ public final class ConfigKismet {
         }
     }
 
-    private static Property getProperty(Map<String, List<Property>> categories, String category, String propertyName) {
-        return categories.get(category).stream()
-                .filter(property -> property.getName().equalsIgnoreCase(propertyName))
-                .findFirst().orElse(null);
-    }
-
     private static Map<String, List<Property>> getCategories() {
         Map<String, List<Property>> categories = new HashMap<>();
         addCatGeneralProperties(categories);
@@ -198,6 +193,47 @@ public final class ConfigKismet {
         }
 
         return categories;
+    }
+
+    private static Property getProperty(Map<String, List<Property>> categories, String category, String propertyName) {
+        return categories.get(category).stream()
+                .filter(property -> property.getName().equalsIgnoreCase(propertyName))
+                .findFirst().orElse(null);
+    }
+
+    /**
+     * Returns a origin name, which normally is in THIS_FORMAT, into thisFormat
+     *
+     * @param origin Origin
+     * @return A camelCase origin name
+     */
+    private static String getTypeName(EnumOrigin origin) {
+        final String camelCase = origin.toCamelCase();
+        return camelCase.substring(0, 1).toUpperCase() + camelCase.substring(1);
+    }
+
+    private static void addCatGeneralProperties(Map<String, List<Property>> categories) {
+        // CATEGORY: GENERAL
+        ArrayList<Property> catGeneral = new ArrayList<>();
+
+        Property propHasChill = config.get(CATEGORY_GENERAL, Names.chillEnabled, Defaults.chillEnabled)
+                .setRequiresMcRestart(true);
+        propHasChill.setComment("Set to true to enable the crafting recipe to the Kismet Display (the one without a " +
+                "timer)");
+        catGeneral.add(propHasChill);
+
+        Property propHasTimed = config.get(CATEGORY_GENERAL, Names.timedEnabled, Defaults.timedEnabled)
+                .setRequiresMcRestart(true);
+        propHasTimed.setComment("Set to true to enable the crafting recipe to the Timed Kismet Display (the one with " +
+                "a timer)");
+        catGeneral.add(propHasTimed);
+
+        Property propTimeLimit = config.get(CATEGORY_GENERAL, Names.timedLimit, Defaults.timedLimit)
+                .setMinValue(timedLimitMin);
+        propTimeLimit.setComment("The time limit for each goal in the Timed Kismet Display, in minutes");
+        catGeneral.add(propTimeLimit);
+
+        categories.put(CATEGORY_GENERAL, catGeneral);
     }
 
     private static void addCatTargetsProperties(Map<String, List<Property>> categories) {
@@ -271,41 +307,6 @@ public final class ConfigKismet {
     }
 
     /**
-     * Returns a origin name, which normally is in THIS_FORMAT, into thisFormat
-     *
-     * @param origin Origin
-     * @return A camelCase origin name
-     */
-    private static String getTypeName(EnumOrigin origin) {
-        final String camelCase = origin.toCamelCase();
-        return camelCase.substring(0, 1).toUpperCase() + camelCase.substring(1);
-    }
-
-    private static void addCatGeneralProperties(Map<String, List<Property>> categories) {
-        // CATEGORY: GENERAL
-        ArrayList<Property> catGeneral = new ArrayList<>();
-
-        Property propHasChill = config.get(CATEGORY_GENERAL, Names.chillEnabled, Defaults.chillEnabled)
-                .setRequiresMcRestart(true);
-        propHasChill.setComment("Set to true to enable the crafting recipe to the Kismet Display (the one without a " +
-                "timer)");
-        catGeneral.add(propHasChill);
-
-        Property propHasTimed = config.get(CATEGORY_GENERAL, Names.timedEnabled, Defaults.timedEnabled)
-                .setRequiresMcRestart(true);
-        propHasTimed.setComment("Set to true to enable the crafting recipe to the Timed Kismet Display (the one with " +
-                "a timer)");
-        catGeneral.add(propHasTimed);
-
-        Property propTimeLimit = config.get(CATEGORY_GENERAL, Names.timedLimit, Defaults.timedLimit)
-                .setMinValue(timedLimitMin);
-        propTimeLimit.setComment("The time limit for each goal in the Timed Kismet Display, in minutes");
-        catGeneral.add(propTimeLimit);
-
-        categories.put(CATEGORY_GENERAL, catGeneral);
-    }
-
-    /**
      * Returns an immutable copy of the properties and their categories within the mod
      *
      * @return An immutable list of all properties in this config
@@ -333,24 +334,16 @@ public final class ConfigKismet {
         ConfigKismet.configCopy = configCopy;
     }
 
-    /**
-     * Saves the config present on the variables in this class Run this method every time you change one of the
-     * variables
-     */
-    private static void syncFromFields() {
-        syncConfig(false, false);
-    }
-
     public static Set<String> getForceAdd() {
-        return forceAdd;
+        return ImmutableSet.copyOf(forceAdd);
     }
 
     public static EnumGenMode getGenMode() {
         return genMode;
     }
 
-    public static List<String> getGenFilter() {
-        return ImmutableList.copyOf(genFilter);
+    public static Set<String> getGenFilter() {
+        return ImmutableSet.copyOf(genFilter);
     }
 
     public static boolean isGenFlag(EnumOrigin type) {
@@ -380,21 +373,58 @@ public final class ConfigKismet {
             return blockType instanceof BlockChillDisplay && isChillEnabled();
     }
 
-    public static boolean isChillEnabled() {
-        if (configCopy != null) return configCopy.isChillEnabled();
-        return ConfigKismet.chillEnabled;
-    }
-
     public static boolean isTimedEnabled() {
         if (configCopy != null) return configCopy.isTimedEnabled();
         return timedEnabled;
     }
 
-    public static void addToGenFilter(String entry) {
+    public static boolean isChillEnabled() {
+        if (configCopy != null) return configCopy.isChillEnabled();
+        return ConfigKismet.chillEnabled;
+    }
+
+    public static boolean addToGenFilter(String entry) {
         if (!genFilter.contains(entry)) {
             genFilter.add(entry);
             syncFromFields();
+            return true;
         }
+        return false;
+    }
+
+    /**
+     * Saves the config present on the variables in this class Run this method every time you change one of the
+     * variables
+     */
+    private static void syncFromFields() {
+        syncConfig(false, false);
+    }
+
+    public static boolean removeFromGenFilter(String entry) {
+        if (genFilter.contains(entry)) {
+            genFilter.remove(entry);
+            syncFromFields();
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean addToForceAdd(String entry) {
+        if (!forceAdd.contains(entry)) {
+            forceAdd.add(entry);
+            syncFromFields();
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean removeFromForceAdd(String entry) {
+        if (forceAdd.contains(entry)) {
+            forceAdd.remove(entry);
+            syncFromFields();
+            return true;
+        }
+        return false;
     }
 
     public enum EnumGenMode {

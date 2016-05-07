@@ -3,6 +3,7 @@ package dustine.kismet.network.message;
 import dustine.kismet.Kismet;
 import dustine.kismet.client.target.ClientTargetHelper;
 import dustine.kismet.network.MessageSubtypeCountResponse;
+import dustine.kismet.server.command.CCSuperStackEntry;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -10,11 +11,11 @@ import net.minecraftforge.fml.common.network.ByteBufUtils;
 
 public class MessageSubtypeCount extends MessageBase<MessageSubtypeCount> {
     private ItemStack item;
-    private MessageCommandStackType type;
+    private CCSuperStackEntry.EnumCommandType type;
 
     public MessageSubtypeCount() {}
 
-    public MessageSubtypeCount(ItemStack item, MessageCommandStackType type) {
+    public MessageSubtypeCount(ItemStack item, CCSuperStackEntry.EnumCommandType type) {
         super();
         this.item = item;
         this.type = type;
@@ -22,7 +23,7 @@ public class MessageSubtypeCount extends MessageBase<MessageSubtypeCount> {
 
     @Override public void fromBytes(ByteBuf buf) {
         this.item = ByteBufUtils.readItemStack(buf);
-        this.type = MessageCommandStackType.values()[buf.readInt()];
+        this.type = CCSuperStackEntry.EnumCommandType.values()[buf.readInt()];
     }
 
     @Override public void toBytes(ByteBuf buf) {
@@ -37,7 +38,4 @@ public class MessageSubtypeCount extends MessageBase<MessageSubtypeCount> {
         Kismet.network.sendToServer(new MessageSubtypeCountResponse(message.item, message.type, size));
     }
 
-    public enum MessageCommandStackType {
-        BLOCK, PARDON, FORCE, UNFORCE
-    }
 }

@@ -5,7 +5,6 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
@@ -27,12 +26,15 @@ public class CommandKismet extends CommandBase {
 
     public CommandKismet() {
         this.components = new ArrayList<>();
-        this.components.add(new CCReset(getCommandName()));
-        this.components.add(new CCDump(getCommandName()));
-        this.components.add(new CCStats(getCommandName()));
-        this.components.add(new CCRefresh(getCommandName()));
         this.components.add(new CCBlock(getCommandName()));
+        this.components.add(new CCDump(getCommandName()));
+        this.components.add(new CCForce(getCommandName()));
+        this.components.add(new CCPardon(getCommandName()));
+        this.components.add(new CCRefresh(getCommandName()));
+        this.components.add(new CCReset(getCommandName()));
         this.components.add(new CCServerOnlyReset(getCommandName()));
+        this.components.add(new CCStats(getCommandName()));
+        this.components.add(new CCUnforce(getCommandName()));
 
         // cached
         this.names = this.components.stream().map(CommandComponent::getCommandName).collect(Collectors.toList());
@@ -56,7 +58,7 @@ public class CommandKismet extends CommandBase {
         throw new CommandException(String.format("[%s] %s", Reference.Names.MOD, error));
     }
 
-    public static void sendError(EntityPlayer sender, TextComponentString msg) {
+    public static void sendError(ICommandSender sender, TextComponentString msg) {
         sender.addChatMessage(msg.setStyle(ERROR_STYLE));
     }
 

@@ -6,25 +6,25 @@ import dustine.kismet.world.savedata.WSDTargetDatabase;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.util.text.TextComponentString;
 
-public class CCBlock extends CCSuperStackEntry {
-    public CCBlock(String parent) {
-        super(parent, EnumCommandType.BLOCK);
+public class CCPardon extends CCSuperStackEntry {
+    CCPardon(String parent) {
+        super(parent, EnumCommandType.PARDON);
     }
 
     @Override public String getCommandName() {
-        return "block";
+        return "pardon";
     }
 
     public static void staticProcessEntry(ICommandSender sender, String entry) {
-        if (!ConfigKismet.addToGenFilter(entry)) {
+        if (!ConfigKismet.removeFromGenFilter(entry)) {
             CommandKismet.sendError(sender,
-                    new TextComponentString("Entry already present in gen target filter")
+                    new TextComponentString("Entry not present in gen target filter")
             );
             return;
         }
         TargetLibrary.build(WSDTargetDatabase.get(sender.getEntityWorld()));
         CommandKismet.send(sender,
-                new TextComponentString(String.format("Added %s to gen target filter", entry))
+                new TextComponentString(String.format("Removed %s to gen target filter", entry))
         );
     }
 
