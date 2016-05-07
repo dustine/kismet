@@ -150,6 +150,32 @@ public class ConfigKismetOverride {
         config.save();
     }
 
+    private static void loadConfig() {
+        config.setCategoryComment(CATEGORY_GENERAL, String.format(
+                "This file is meant as a manual override for the obtainability algorithms of the mod; either to add new origins for certain items, or to remove (blacklist) them.\nFields are under the format <ORIGIN:ITEM>, where <ORIGIN> is one of %s and <ITEM> uses the same format as in the normal config file ([mod:item[:meta[:nbt]]]).\n**CAUTION**: because the file is loaded before any mods had a chance of registering themselves and their items, there is no sanitation on these fields for item validity. The mod shouldn't crash but expect console spam over any messed up fields.",
+                EnumOrigin.getSorted(true)));
+
+        final ConfigCategory category = config.getCategory(CATEGORY_GENERAL);
+        category.setRequiresMcRestart(true);
+
+        Property propLock = config.get(CATEGORY_GENERAL, lockName, false,
+                "If this is set to true, this file won't be reset even when the mod updates");
+        propLock.setRequiresMcRestart(true);
+        category.put(lockName, propLock);
+
+        Property propBlacklist = config.get(CATEGORY_GENERAL, blacklistName, defaultBlacklistValues,
+                "Items put here, under <ORIGIN:ITEM>, will have the origin forcefully removed from that item when " +
+                        "registered as a target. Takes priority over overrides.");
+        propBlacklist.setRequiresMcRestart(true);
+        category.put(blacklistName, propBlacklist);
+
+        Property propOverride = config.get(CATEGORY_GENERAL, overridesName, defaultOverridesValues,
+                "Items put here, under <ORIGIN:ITEM>, will have the origin forcefully added from that item when " +
+                        "registered as a target.");
+        propOverride.setRequiresMcRestart(true);
+        category.put(overridesName, propOverride);
+    }
+
     private static void reset() {
         final ConfigCategory catGeneral = config.getCategory(CATEGORY_GENERAL);
         catGeneral.get(blacklistName).setToDefault();
@@ -191,32 +217,6 @@ public class ConfigKismetOverride {
 
             list.get(origin).add(item);
         }
-    }
-
-    private static void loadConfig() {
-        config.setCategoryComment(CATEGORY_GENERAL, String.format(
-                "This file is meant as a manual override for the obtainability algorithms of the mod; either to add new origins for certain items, or to remove (blacklist) them.\nFields are under the format <ORIGIN:ITEM>, where <ORIGIN> is one of %s and <ITEM> uses the same format as in the normal config file ([mod:item[:meta[:nbt]]]).\n**CAUTION**: because the file is loaded before any mods had a chance of registering themselves and their items, there is no sanitation on these fields for item validity. The mod shouldn't crash but expect console spam over any messed up fields.",
-                EnumOrigin.getSorted(true)));
-
-        final ConfigCategory category = config.getCategory(CATEGORY_GENERAL);
-        category.setRequiresMcRestart(true);
-
-        Property propLock = config.get(CATEGORY_GENERAL, lockName, false,
-                "If this is set to true, this file won't be reset even when the mod updates");
-        propLock.setRequiresMcRestart(true);
-        category.put(lockName, propLock);
-
-        Property propBlacklist = config.get(CATEGORY_GENERAL, blacklistName, defaultBlacklistValues,
-                "Items put here, under <ORIGIN:ITEM>, will have the origin forcefully removed from that item when " +
-                        "registered as a target. Takes priority over overrides.");
-        propBlacklist.setRequiresMcRestart(true);
-        category.put(blacklistName, propBlacklist);
-
-        Property propOverride = config.get(CATEGORY_GENERAL, overridesName, defaultOverridesValues,
-                "Items put here, under <ORIGIN:ITEM>, will have the origin forcefully added from that item when " +
-                        "registered as a target.");
-        propOverride.setRequiresMcRestart(true);
-        category.put(overridesName, propOverride);
     }
 
     public static Map<EnumOrigin, Set<String>> getBlacklist() {

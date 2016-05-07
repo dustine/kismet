@@ -21,6 +21,7 @@ public class CCReset extends CommandComponent {
     public String getCommandName() {
         return "reset";
     }
+
     @Override
     public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
         if (!(sender instanceof EntityPlayerMP)) {

@@ -69,6 +69,14 @@ public class TargetDatabaseBuilder {
         this.targetDatabase = WSDTargetDatabase.get(world);
     }
 
+    public static boolean isCommand() {
+        return command;
+    }
+
+    public static void setCommand(final boolean command) {
+        TargetDatabaseBuilder.command = command;
+    }
+
     /**
      * Generates the target lists within the game.
      *
@@ -101,23 +109,25 @@ public class TargetDatabaseBuilder {
         targetMap.values().forEach(Target::refreshHasSubtypes);
     }
 
-    private static void identifyBuckets(final WorldServer world, final Map<String, Target> stacks) {
-        final List<ItemStack> buckets = new ArrayList<>();
-        // add the vanilla buckets
-        buckets.add(new ItemStack(Items.LAVA_BUCKET));
-        buckets.add(new ItemStack(Items.MILK_BUCKET));
-        buckets.add(new ItemStack(Items.WATER_BUCKET));
+    /**
+     * @param world
+     * @param stacks
+     * @return Number of new items added from the loot system
+     */
+    private static void identifyLoot(final WorldServer world, final Map<String, Target> stacks) {
+        final LootTableSeparator tables = new LootTableSeparator(LootTableList.getAll()).invoke(world);
 
-        if (FluidRegistry.isUniversalBucketEnabled()) {
-            final Set<Fluid> bucketFluids = FluidRegistry.getBucketFluids();
-            for (final Fluid fluid : bucketFluids) {
-                final ItemStack bucket = UniversalBucket.getFilledBucket(
-                        ForgeModContainer.getInstance().universalBucket, fluid);
-                buckets.add(bucket);
-            }
-        }
+        // entity loot
+        final Set<String> modLoots = iterateLootJsonTree(tables.getEntityTables());
+        modLoots.forEach(TargetHelper.addToTargetMap(stacks, EnumOrigin.MOB_DROP));
 
-        buckets.forEach(TargetHelper.joinWithTargetMap(stacks, EnumOrigin.FLUID));
+        // fishing loot
+        final Set<String> fishingLoots = iterateLootJsonTree(tables.getFishingTables());
+        fishingLoots.forEach(TargetHelper.addToTargetMap(stacks, EnumOrigin.FISHING));
+
+        // remaining loot
+        final Set<String> remainingLoots = iterateLootJsonTree(tables.getRemainingTables());
+        remainingLoots.forEach(TargetHelper.addToTargetMap(stacks, EnumOrigin.LOOT_TABLE));
     }
 
     private static void identifyBlockDrops(final World world, final Map<String, Target> stacks) {
@@ -150,6 +160,48 @@ public class TargetDatabaseBuilder {
         drops.forEach(TargetHelper.addToTargetMap(stacks, EnumOrigin.BLOCK_DROP));
 
         silkDrops.forEach(TargetHelper.addToTargetMap(stacks, EnumOrigin.SILK_TOUCH));
+    }
+
+    private static void identifyBuckets(final WorldServer world, final Map<String, Target> stacks) {
+        final List<ItemStack> buckets = new ArrayList<>();
+        // add the vanilla buckets
+        buckets.add(new ItemStack(Items.LAVA_BUCKET));
+        buckets.add(new ItemStack(Items.MILK_BUCKET));
+        buckets.add(new ItemStack(Items.WATER_BUCKET));
+
+        if (FluidRegistry.isUniversalBucketEnabled()) {
+            final Set<Fluid> bucketFluids = FluidRegistry.getBucketFluids();
+            for (final Fluid fluid : bucketFluids) {
+                final ItemStack bucket = UniversalBucket.getFilledBucket(
+                        ForgeModContainer.getInstance().universalBucket, fluid);
+                buckets.add(bucket);
+            }
+        }
+
+        buckets.forEach(TargetHelper.joinWithTargetMap(stacks, EnumOrigin.FLUID));
+    }
+
+    private static Set<String> iterateLootJsonTree(final List<LootTable> allTables) {
+        final Set<String> items = new HashSet<>();
+
+        // iterating down the JSON tree~
+        // check http://minecraft.gamepedia.com/Loot_table for more details
+        for (final LootTable aTable : allTables) {
+            final JsonObject table = gson.toJsonTree(aTable, new TypeToken<LootTable>() {
+            }.getType()).getAsJsonObject();
+            final JsonArray pools = table.getAsJsonArray("pools");
+            for (final JsonElement aPool : pools) {
+                final JsonArray entries = aPool.getAsJsonObject().getAsJsonArray("entries");
+                for (final JsonElement anEntry : entries) {
+                    final JsonObject entry = anEntry.getAsJsonObject();
+
+                    // we only want to deal with item-type entries
+                    if (!entry.get("type").getAsString().equals("item")) continue;
+                    getItemsFromLootEntry(items, entry);
+                }
+            }
+        }
+        return items;
     }
 
     private static Set<String> getDropsFromState(final World world, final FakePlayer fakePlayer, final Block block,
@@ -200,50 +252,6 @@ public class TargetDatabaseBuilder {
             drops.add(StackHelper.toUniqueKey(silkDrop));
 
         return drops;
-    }
-
-    /**
-     * @param world
-     * @param stacks
-     * @return Number of new items added from the loot system
-     */
-    private static void identifyLoot(final WorldServer world, final Map<String, Target> stacks) {
-        final LootTableSeparator tables = new LootTableSeparator(LootTableList.getAll()).invoke(world);
-
-        // entity loot
-        final Set<String> modLoots = iterateLootJsonTree(tables.getEntityTables());
-        modLoots.forEach(TargetHelper.addToTargetMap(stacks, EnumOrigin.MOB_DROP));
-
-        // fishing loot
-        final Set<String> fishingLoots = iterateLootJsonTree(tables.getFishingTables());
-        fishingLoots.forEach(TargetHelper.addToTargetMap(stacks, EnumOrigin.FISHING));
-
-        // remaining loot
-        final Set<String> remainingLoots = iterateLootJsonTree(tables.getRemainingTables());
-        remainingLoots.forEach(TargetHelper.addToTargetMap(stacks, EnumOrigin.LOOT_TABLE));
-    }
-
-    private static Set<String> iterateLootJsonTree(final List<LootTable> allTables) {
-        final Set<String> items = new HashSet<>();
-
-        // iterating down the JSON tree~
-        // check http://minecraft.gamepedia.com/Loot_table for more details
-        for (final LootTable aTable : allTables) {
-            final JsonObject table = gson.toJsonTree(aTable, new TypeToken<LootTable>() {
-            }.getType()).getAsJsonObject();
-            final JsonArray pools = table.getAsJsonArray("pools");
-            for (final JsonElement aPool : pools) {
-                final JsonArray entries = aPool.getAsJsonObject().getAsJsonArray("entries");
-                for (final JsonElement anEntry : entries) {
-                    final JsonObject entry = anEntry.getAsJsonObject();
-
-                    // we only want to deal with item-type entries
-                    if (!entry.get("type").getAsString().equals("item")) continue;
-                    getItemsFromLootEntry(items, entry);
-                }
-            }
-        }
-        return items;
     }
 
     private static void getItemsFromLootEntry(final Set<String> items, final JsonObject entry) {
@@ -409,14 +417,6 @@ public class TargetDatabaseBuilder {
         if (command) {
             CommandKismet.send(player, new TextComponentString("Done! Database reset finished."));
         }
-    }
-
-    public static boolean isCommand() {
-        return command;
-    }
-
-    public static void setCommand(final boolean command) {
-        TargetDatabaseBuilder.command = command;
     }
 
     private void idError(final UUID id, final EntityPlayerMP player) {

@@ -18,15 +18,15 @@ public class ConfigCopy implements INBTSerializable<NBTTagCompound> {
     }
 
     public int getTimedLimit() {
-        return timedLimit;
+        return this.timedLimit;
     }
 
     @Override public NBTTagCompound serializeNBT() {
         final NBTTagCompound compound = new NBTTagCompound();
 
-        compound.setBoolean("chillEnabled", chillEnabled);
-        compound.setBoolean("timedEnabled", timedEnabled);
-        compound.setInteger("timedLimit", timedLimit);
+        compound.setBoolean("chillEnabled", this.chillEnabled);
+        compound.setBoolean("timedEnabled", this.timedEnabled);
+        compound.setInteger("timedLimit", this.timedLimit);
 
         return compound;
     }
@@ -44,11 +44,11 @@ public class ConfigCopy implements INBTSerializable<NBTTagCompound> {
             return blockType instanceof BlockChillDisplay && isChillEnabled();
     }
 
-    public boolean isChillEnabled() {
-        return chillEnabled;
+    public boolean isTimedEnabled() {
+        return this.timedEnabled;
     }
 
-    public boolean isTimedEnabled() {
-        return timedEnabled;
+    public boolean isChillEnabled() {
+        return this.chillEnabled;
     }
 }

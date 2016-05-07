@@ -11,6 +11,10 @@ public class CCForce extends CCSuperStackEntry {
         super(parent, EnumCommandType.FORCE);
     }
 
+    @Override protected void processEntry(ICommandSender sender, String entry) {
+        staticProcessEntry(sender, entry);
+    }
+
     public static void staticProcessEntry(ICommandSender sender, String entry) {
         if (!ConfigKismet.addToForceAdd(entry)) {
             CommandKismet.sendError(sender,
@@ -22,10 +26,6 @@ public class CCForce extends CCSuperStackEntry {
         CommandKismet.send(sender,
                 new TextComponentString(String.format("Added %s to forced target list", entry))
         );
-    }
-
-    @Override protected void processEntry(ICommandSender sender, String entry) {
-        staticProcessEntry(sender, entry);
     }
 
     @Override public String getCommandName() {

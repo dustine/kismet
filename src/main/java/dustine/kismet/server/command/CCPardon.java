@@ -15,6 +15,10 @@ public class CCPardon extends CCSuperStackEntry {
         return "pardon";
     }
 
+    @Override protected void processEntry(ICommandSender sender, String entry) {
+        staticProcessEntry(sender, entry);
+    }
+
     public static void staticProcessEntry(ICommandSender sender, String entry) {
         if (!ConfigKismet.removeFromGenFilter(entry)) {
             CommandKismet.sendError(sender,
@@ -26,9 +30,5 @@ public class CCPardon extends CCSuperStackEntry {
         CommandKismet.send(sender,
                 new TextComponentString(String.format("Removed %s to gen target filter", entry))
         );
-    }
-
-    @Override protected void processEntry(ICommandSender sender, String entry) {
-        staticProcessEntry(sender, entry);
     }
 }

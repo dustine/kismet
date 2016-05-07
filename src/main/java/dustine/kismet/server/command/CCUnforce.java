@@ -11,6 +11,10 @@ public class CCUnforce extends CCSuperStackEntry {
         super(parent, EnumCommandType.UNFORCE);
     }
 
+    @Override protected void processEntry(ICommandSender sender, String entry) {
+        staticProcessEntry(sender, entry);
+    }
+
     public static void staticProcessEntry(ICommandSender sender, String entry) {
         if (!ConfigKismet.removeFromForceAdd(entry)) {
             CommandKismet.sendError(sender,
@@ -22,10 +26,6 @@ public class CCUnforce extends CCSuperStackEntry {
         CommandKismet.send(sender,
                 new TextComponentString(String.format("Removed %s to forced target list", entry))
         );
-    }
-
-    @Override protected void processEntry(ICommandSender sender, String entry) {
-        staticProcessEntry(sender, entry);
     }
 
     @Override public String getCommandName() {

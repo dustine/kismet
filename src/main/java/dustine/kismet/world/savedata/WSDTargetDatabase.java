@@ -146,15 +146,15 @@ public class WSDTargetDatabase extends WorldSavedData {
         }
     }
 
+    private static boolean isMod(final String s) {
+        return !s.contains(":");
+    }
+
     private static boolean hasMetadata(final String entry) {
         final String[] split = entry.split(":");
         if (split.length < 3) return false;
         final Integer meta = StackHelper.tryParse(split[2]);
         return meta != null;
-    }
-
-    private static boolean isMod(final String s) {
-        return !s.contains(":");
     }
 
     public Map<String, Target> getSavedata() {

@@ -28,21 +28,6 @@ public final class Target implements INBTSerializable<NBTTagCompound> {
     }
 
     @Override
-    public void deserializeNBT(NBTTagCompound compound) {
-        this.origins = new HashSet<>();
-        int bitwiseObtainable = compound.getInteger("o");
-        for (EnumOrigin type : EnumOrigin.values()) {
-            if ((bitwiseObtainable & (1 << type.ordinal())) != 0)
-                this.origins.add(type);
-        }
-
-        String key = compound.getString("s");
-        this.stack = StackHelper.getItemStack(key);
-
-        this.hasSubtypes = key.split(":").length > 2;
-    }
-
-    @Override
     public NBTTagCompound serializeNBT() {
         final NBTTagCompound compound = new NBTTagCompound();
 
@@ -57,6 +42,21 @@ public final class Target implements INBTSerializable<NBTTagCompound> {
         return compound;
     }
 
+    @Override
+    public void deserializeNBT(NBTTagCompound compound) {
+        this.origins = new HashSet<>();
+        int bitwiseObtainable = compound.getInteger("o");
+        for (EnumOrigin type : EnumOrigin.values()) {
+            if ((bitwiseObtainable & (1 << type.ordinal())) != 0)
+                this.origins.add(type);
+        }
+
+        String key = compound.getString("s");
+        this.stack = StackHelper.getItemStack(key);
+
+        this.hasSubtypes = key.split(":").length > 2;
+    }
+
     public boolean hasOrigin(EnumOrigin type) {
         return this.origins.contains(type);
     }
@@ -66,16 +66,16 @@ public final class Target implements INBTSerializable<NBTTagCompound> {
         return StackHelper.toUniqueKey(getStack(), getHasSubtypes());
     }
 
+    public ItemStack getStack() {
+        return ItemStack.copyItemStack(this.stack);
+    }
+
     public boolean getHasSubtypes() {
         return this.hasSubtypes;
     }
 
     public void setHasSubtypes(boolean hasSubtypes) {
         this.hasSubtypes = hasSubtypes;
-    }
-
-    public ItemStack getStack() {
-        return ItemStack.copyItemStack(this.stack);
     }
 
     public Target(@Nonnull ItemStack stack, EnumOrigin type) {

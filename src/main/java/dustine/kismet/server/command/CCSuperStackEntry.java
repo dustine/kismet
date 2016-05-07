@@ -54,7 +54,7 @@ public abstract class CCSuperStackEntry extends CommandComponent {
                                                           BlockPos pos) {
         return (args.length == 1 ?
                 getListOfStringsMatchingLastWord(args, Item.REGISTRY.getKeys()) :
-                Collections.<String>emptyList());
+                Collections.emptyList());
     }
 
     public enum EnumCommandType {
