@@ -402,12 +402,12 @@ public class TargetDatabaseBuilder {
         this.targetDatabase.joinDatabaseWith(targetMap.values());
 
         if (command) {
-            CommandKismet.send(player, "Finished! Refreshing target library now...");
+            CommandKismet.send(player, new TextComponentString("Finished! Refreshing target library now..."));
         }
         Log.info("Build target database");
         TargetLibrary.build(WSDTargetDatabase.get(player.getEntityWorld()));
         if (command) {
-            CommandKismet.send(player, "Done! Database reset finished.");
+            CommandKismet.send(player, new TextComponentString("Done! Database reset finished."));
         }
     }
 

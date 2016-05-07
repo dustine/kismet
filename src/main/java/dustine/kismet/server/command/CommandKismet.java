@@ -5,6 +5,7 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
@@ -16,6 +17,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class CommandKismet extends CommandBase {
+    private static final Style ERROR_STYLE = new Style().setColor(TextFormatting.RED);
+    private static ITextComponent HEADER = new TextComponentString("")
+            .appendSibling(new TextComponentString(String.format("[%s] ", Reference.Names.MOD))
+                    .setStyle(new Style().setColor(TextFormatting.YELLOW))
+            );
     private final List<CommandComponent> components;
     private final List<String> names;
 
@@ -25,6 +31,7 @@ public class CommandKismet extends CommandBase {
         this.components.add(new CCDump(getCommandName()));
         this.components.add(new CCStats(getCommandName()));
         this.components.add(new CCRefresh(getCommandName()));
+        this.components.add(new CCBlock(getCommandName()));
         this.components.add(new CCServerOnlyReset(getCommandName()));
 
         // cached
@@ -39,16 +46,18 @@ public class CommandKismet extends CommandBase {
         sender.addChatMessage(new TextComponentString(msg));
     }
 
-    public static void send(ICommandSender sender, String msg) {
-        final ITextComponent component = new TextComponentString("")
-                .appendSibling(new TextComponentString(String.format("[%s] ", Reference.Names.MOD))
-                        .setStyle(new Style().setColor(TextFormatting.YELLOW)))
-                .appendSibling(new TextComponentString(msg));
+    public static void send(ICommandSender sender, ITextComponent msg) {
+        final ITextComponent component = new TextComponentString(HEADER.getFormattedText());
+        component.appendSibling(msg);
         sender.addChatMessage(component);
     }
 
     public static void error(String error) throws CommandException {
         throw new CommandException(String.format("[%s] %s", Reference.Names.MOD, error));
+    }
+
+    public static void sendError(EntityPlayer sender, TextComponentString msg) {
+        sender.addChatMessage(msg.setStyle(ERROR_STYLE));
     }
 
     @Override public String getCommandUsage(ICommandSender sender) {
@@ -92,6 +101,4 @@ public class CommandKismet extends CommandBase {
             );
         }
     }
-
-
 }

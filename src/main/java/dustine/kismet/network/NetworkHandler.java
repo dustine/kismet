@@ -36,6 +36,11 @@ public class NetworkHandler {
         this.channel.registerMessage(MessageClientTargetsResponse.class, MessageClientTargetsResponse.class,
                 getDiscriminator(), Side.SERVER);
 
+        this.channel.registerMessage(MessageSubtypeCount.class, MessageSubtypeCount.class,
+                getDiscriminator(), Side.CLIENT);
+        this.channel.registerMessage(MessageSubtypeCountResponse.class, MessageSubtypeCountResponse.class,
+                getDiscriminator(), Side.SERVER);
+
         // the discriminator can't go above 256
         if (this.discriminator >= 256)
             Log.error(String.format("Channel %s over maximum registered messages (should be %d, was %d)", this.name,

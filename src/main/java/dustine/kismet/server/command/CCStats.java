@@ -8,6 +8,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
 
 import java.util.Collection;
 import java.util.List;
@@ -26,7 +27,7 @@ public class CCStats extends CommandComponent {
     public void execute(final MinecraftServer server, final ICommandSender sender,
                         final String[] args) throws WrongUsageException {
         final WSDTargetDatabase targetDatabase = WSDTargetDatabase.get(sender.getEntityWorld());
-        CommandKismet.send(sender, "Printing library stats: Savedata, Database, Library");
+        CommandKismet.send(sender, new TextComponentString("Printing library stats: Savedata, Database, Library"));
         final Collection<Target> configStacks = targetDatabase.getDatabase().values();
 
         // types

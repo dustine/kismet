@@ -34,7 +34,7 @@ public class ClientTargetHelper {
         return stacks;
     }
 
-    private static List<ItemStack> getSubtypes(@Nonnull final Item item) {
+    public static List<ItemStack> getSubtypes(@Nonnull final Item item) {
         List<ItemStack> itemStacks = new ArrayList<>();
 
         for (CreativeTabs itemTab : item.getCreativeTabs()) {

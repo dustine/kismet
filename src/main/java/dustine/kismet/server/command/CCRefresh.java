@@ -7,6 +7,7 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
 
 import java.util.List;
 
@@ -27,8 +28,8 @@ public class CCRefresh extends CommandComponent {
         final WSDTargetDatabase targetDatabase = WSDTargetDatabase.get(sender.getEntityWorld());
         if (Kismet.databaseBuilder != null) {
             TargetLibrary.build(targetDatabase);
-            CommandKismet.send(sender, "Refreshing target library...");
-            CommandKismet.send(sender, "Done! Target library has been refreshed.");
+            CommandKismet.send(sender, new TextComponentString("Refreshing target library..."));
+            CommandKismet.send(sender, new TextComponentString("Done! Target library has been refreshed."));
         } else {
             CommandKismet.error("Target database not found");
         }

@@ -7,6 +7,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextComponentString;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,9 +28,10 @@ public class CCReset extends CommandComponent {
             return;
         }
         if (Kismet.databaseBuilder != null) {
-            CommandKismet.send(sender, "Starting database reset...");
+            CommandKismet.send(sender, new TextComponentString("Starting database reset..."));
             Kismet.databaseBuilder.build((EntityPlayerMP) sender, true);
-            CommandKismet.send(sender, "Server side processing finished, sending to client for enriching...");
+            CommandKismet.send(sender,
+                    new TextComponentString("Server side processing finished, sending to client for enriching..."));
             TargetDatabaseBuilder.setCommand(true);
         } else {
             CommandKismet.error("Target database factory not found");

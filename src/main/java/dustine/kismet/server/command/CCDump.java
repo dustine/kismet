@@ -15,7 +15,7 @@ import net.minecraft.util.math.BlockPos;
 import java.util.*;
 import java.util.stream.Collectors;
 
-class CCDump extends CommandComponent {
+public class CCDump extends CommandComponent {
 
     CCDump(final String parent) {
         super(parent);

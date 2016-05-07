@@ -146,7 +146,7 @@ public final class ConfigKismet {
                 }
             }
 
-            genFilter = Arrays.asList(propGenBlacklist.getStringList());
+            genFilter = new ArrayList<>(Arrays.asList(propGenBlacklist.getStringList()));
             forceAdd = new HashSet<>(Arrays.asList(propForceAdd.getStringList()));
         }
 
@@ -388,6 +388,13 @@ public final class ConfigKismet {
     public static boolean isTimedEnabled() {
         if (configCopy != null) return configCopy.isTimedEnabled();
         return timedEnabled;
+    }
+
+    public static void addToGenFilter(String entry) {
+        if (!genFilter.contains(entry)) {
+            genFilter.add(entry);
+            syncFromFields();
+        }
     }
 
     public enum EnumGenMode {
